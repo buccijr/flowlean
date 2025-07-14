@@ -1,0 +1,22 @@
+{
+    "configurations": [
+        {
+            "name": "Flutter (lib\\main.dart)",
+            "type": "dart",
+            "request": "launch",
+            "program": "lib\\main.dart"
+        },
+        {
+            "name": "Flutter (lib\\outbound.dart)",
+            "type": "dart",
+            "request": "launch",
+            "program": "lib\\outbound.dart"
+        },
+        {
+            "name": "Flutter (lib\\login.dart)",
+            "type": "dart",
+            "request": "launch",
+            "program": "lib\\login.dart"
+        }
+    ]
+}
