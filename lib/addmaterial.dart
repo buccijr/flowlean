@@ -47,21 +47,21 @@ final ScrollController _scrollController = ScrollController();
 void initState() {
   super.initState();
    _loadUserRole();
-  fetchNextPage();
+  // fetchNextPage();
 
-  _scrollController.addListener(() {
-    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200 &&
-        !isLoading && hasMore) {
-      fetchNextPage();
-    }
-  });
+  // _scrollController.addListener(() {
+  //   if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200 &&
+  //       !isLoading && hasMore) {
+  //     fetchNextPage();
+  //   }
+  // });
 
   // Optional: Any periodic UI refresh
-  Timer.periodic(Duration(minutes: 1), (timer) {
-    setState(() {
+  // Timer.periodic(Duration(minutes: 1), (timer) {
+  //   setState(() {
       // updateTotalTimeOnce();
-    });
-  });
+  //   });
+  // });
 
   // Optional: Listen to search bar changes
   searchMController.addListener(_onSearchChanged);
@@ -103,6 +103,7 @@ Future<void> fetchNextPage() async {
     isLoading = false;
   });
 
+entries.sort((a, b) => a['name'].compareTo(b['name']));
   // Subscribe to realtime updates
   final pageIds = newEntries.map((e) => e['id'] as int).toList();
   subscribeToPageStream(pageIds);
@@ -110,7 +111,7 @@ Future<void> fetchNextPage() async {
 
 void subscribeToPageStream(List<int> ids) {
   final sub = Supabase.instance.client
-      .from('masterdata')
+      .from('materials')
       .stream(primaryKey: ['id'])
       .listen((updates) {
     for (final update in updates) {
@@ -123,7 +124,10 @@ void subscribeToPageStream(List<int> ids) {
           // New entry inserted
           entries.insert(0, update); // add to top, or .add(update) for bottom
         }
+
+        
       });
+        entries.sort((a, b) => a['name'].compareTo(b['name']));
     }
   });
 
@@ -726,17 +730,19 @@ showDialog(
               setState(() {
                 
               });
-                                              final expdate = DateFormat('MM/dd/yyyy').parse(expController.text);
-                                              final actualexpdate = DateFormat('yyyy-MM-dd').format(expdate);
+                                             
+                                              final actualexpdate = expController.text.isNotEmpty ? DateFormat('yyyy-MM-dd').format(DateFormat('MM/dd/yyyy').parse(expController.text)) : '';
         
-                                              final dobdate = DateFormat('MM/dd/yyyy').parse(dobController.text);
-                                              final actualdobdate = DateFormat('yyyy-MM-dd').format(dobdate);
+                                              
+                                              final actualdobdate = dobController.text.isNotEmpty ? DateFormat('yyyy-MM-dd').format(DateFormat('MM/dd/yyyy').parse(dobController.text)) : '';
                                               final user = Supabase.instance.client.auth.currentUser;
           final email = user?.email;
           final response = await Supabase.instance.client.from('user').select().eq('email', email!).maybeSingle();
           final company = response?['company'];
+          final username = response?['username'];
                                               await Supabase.instance.client.from('materials').insert({
                                                 'company': company,
+                                                'usermat': username,
                                                 'name': nameController.text,
                                                 if (skuController.text.isNotEmpty)
                                                 'sku': skuController.text,
@@ -807,7 +813,7 @@ showDialog(
 @override
 Widget build(BuildContext context){
   final searchTerm = searchMController.text.toLowerCase();
-
+entries.sort((a, b) => a['name'].compareTo(b['name']));
     final filteredEntries = entries.where((entry) {
       final name = (entry['name'] ?? '').toString().toLowerCase();
       final sku = (entry['sku'] ?? '').toString().toLowerCase();
@@ -818,7 +824,7 @@ Widget build(BuildContext context){
       return name.contains(searchTerm) || sku.contains(searchTerm) || type.contains(searchTerm);
     }).toList();
 
-
+filteredEntries.sort((a, b) => a['name'].compareTo(b['name']));
 
    if (_role == 'user') {
       return Scaffold(
@@ -835,7 +841,7 @@ Widget build(BuildContext context){
     }
 
   return Scaffold(
-        backgroundColor:  Color(0xFFFAFAFA),
+       backgroundColor: Color.fromARGB(255, 236, 244, 254),
         floatingActionButton: FloatingActionButton.extended(
           backgroundColor:  const Color.fromARGB(255, 193, 223, 247),
           onPressed: (){
@@ -870,7 +876,7 @@ Widget build(BuildContext context){
           child: Column(
             children: [
               
-              SizedBox(height: 140),
+              SizedBox(height:MediaQuery.of(context).size.height * 0.15,),
              Align(
               alignment: Alignment.centerLeft,
                child: Row(
@@ -912,7 +918,7 @@ Widget build(BuildContext context){
                  ],
                ),
              ),
-              SizedBox(height:25,),
+              SizedBox(height:MediaQuery.of(context).size.height * 0.018,),
             Align(
               alignment: Alignment.centerLeft,
                child: Row(
@@ -957,7 +963,7 @@ Widget build(BuildContext context){
                  ],
                ),
              ),
-                SizedBox(height:25),
+                 SizedBox(height:MediaQuery.of(context).size.height * 0.018,),
                  Align(
               alignment: Alignment.centerLeft,
                child: Row(
@@ -1003,7 +1009,7 @@ Widget build(BuildContext context){
                ),
              ),
              
-              SizedBox(height: 25),
+               SizedBox(height:MediaQuery.of(context).size.height * 0.018,),
                Align(
               alignment: Alignment.centerLeft,
                child: Row(
@@ -1048,7 +1054,7 @@ Widget build(BuildContext context){
                  ],
                ),
              ),
-              SizedBox(height:25,),
+             SizedBox(height:MediaQuery.of(context).size.height * 0.018,),
             Align(
               alignment: Alignment.centerLeft,
                child: Row(
@@ -1093,7 +1099,7 @@ Widget build(BuildContext context){
                  ],
                ),
              ),
-              SizedBox(height:25,),
+             SizedBox(height:MediaQuery.of(context).size.height * 0.018,),
             Align(
               alignment: Alignment.centerLeft,
                child: Row(
@@ -1140,7 +1146,7 @@ Widget build(BuildContext context){
                  ],
                ),
              ),
-             SizedBox(height: 25,),
+            SizedBox(height:MediaQuery.of(context).size.height * 0.018,),
              Align(
               alignment: Alignment.centerLeft,
                child: Row(
@@ -1263,7 +1269,7 @@ Widget build(BuildContext context){
                 
                   
                             
-                            SizedBox(height: 40),
+                            SizedBox(height: 20),
                         SizedBox(
                       
                        child: SingleChildScrollView(
@@ -1271,7 +1277,6 @@ Widget build(BuildContext context){
                      child: SizedBox(
                        // Keep the fixed width you had for the content
                           width: 2620,
-                           height: 636,
                        child: Column(
                 children: [
                   // Your header container stays the same
@@ -1381,7 +1386,7 @@ Widget build(BuildContext context){
                      
                   // Expanded with ListView stays exactly the same
                   SizedBox(
-                    height: 500,
+                    height: MediaQuery.of(context).size.height * 0.62,
                     // child: StreamBuilder<List<Map<String, dynamic>>>(
                     //   stream: Supabase.instance.client
                     //       .from('materials')
@@ -1445,145 +1450,208 @@ Widget build(BuildContext context){
                     //     }).toList();
                      
                     //     return
-                  child: ListView.builder(
-      controller: _scrollController,
-      itemCount: filteredEntries.length + (hasMore ? 1 : 0),
-      itemBuilder: (context, index) {
-        if (index == filteredEntries.length) {
-          // Loading indicator at bottom
-          return SizedBox.shrink();
-        }
-        final entry = filteredEntries[index];
-                            return StatefulBuilder(
-                              
-                              
-                              builder: (context, setLocalState) {
-                                   
-      
-                                return Container(
-                                decoration: BoxDecoration(
-                                    border: Border(
-                                      bottom: BorderSide(
-                                          width: 1,
-                                          color: const Color.fromARGB(255, 118, 118, 118)),
-                                    ),
-                                    color: hoverIndex == entry['id']
-                                        ? const Color.fromARGB(255, 247, 247, 247)
-                                        : (entry['closed'] == 1)
-                                            ? Color.fromARGB(255, 172, 250, 175)
-                                            : Colors.white),
-                                child: MouseRegion(
-                                  cursor: SystemMouseCursors.click,
-                                  onHover: (event) {
-                                    setLocalState(() {
-                                      hoverIndex = entry['id'];
-                                    });
-                                  },
-                                  onExit: (event) {
-                                    setLocalState(() {
-                                      hoverIndex = null;
-                                    });
-                                  },
-                                  child: GestureDetector(
-                                    onTap: () {
-                                
-                                      // Navigator.push(
-                                      //     context,
-                                      //     MaterialPageRoute(
-                                      //         builder: (context) => DetailsM(
-                                      //               materialname: entry['name'],
-                                      //             )));
-                                    },
-                                    child: SizedBox(
-                                      height: 61,
-                                      child: Column(
-                                        children: [
-                                          SizedBox(height: 5),
-                                          Row(
+                  child: FutureBuilder(
+                                     future: Supabase.instance.client
+                        .from('materials').select().order('name', ascending: true),
+                        
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        
+                        return Center(child: CircularProgressIndicator());
+                      } else if (snapshot.hasError) {
+                        return Text('Error: ${snapshot.error}');
+                      }
+                      final data = snapshot.data ?? [];
+                      if (data.isEmpty) {
+                        return Center(
+                            child: Column(
+                          children: [
+                            SizedBox(height: 70),
+                            Stack(
+                              children: [
+                                Image(
+                                  image: AssetImage('images/search.png'),
+                                  width: 400,
+                                  height: 400,
+                                  fit: BoxFit.contain,
+                                ),
+                                Positioned(
+                                    left: 100,
+                                    top: 300,
+                                    child: Text(
+                                      'Nothing here yet...',
+                                      style: TextStyle(
+                                          color: const Color.fromARGB(255, 0, 55, 100),
+                                          fontSize: 25,
+                                          fontWeight: FontWeight.bold),
+                                    )),
+                              ],
+                            )
+                          ],
+                        ));
+                      }
+
+             
+               
+             
+                   
+                      final filteredData = data.where((entries) {
+                        final searchMControllerr = searchMController.text.toLowerCase();
+                        final names = entries['name'].toString().toLowerCase();
+                       final sku = entries['sku'].toString().toLowerCase();
+                            final type = entries['type'].toString().toLowerCase();
+                        if (searchMController.text.isNotEmpty) {
+                          if (names.contains(searchMControllerr) || sku.contains(searchMControllerr) || (type.contains(searchMControllerr)) ) {
+                            return true;
+                          } else {
+                            return false;
+                          }
+                        } else {
+                          return true;
+                        }
+                      }).toList();
+
+                      return ListView.builder(
+                            controller: _scrollController,
+                            itemCount: filteredData.length,
+                            itemBuilder: (context, index) {
+                              if (index == filteredData.length) {
+                                // Loading indicator at bottom
+                                return SizedBox.shrink();
+                              }
+                              final entry = filteredData[index];
+                                return StatefulBuilder(
+                                  
+                                  
+                                  builder: (context, setLocalState) {
+                                       
+                            
+                                    return Container(
+                                    decoration: BoxDecoration(
+                                        border: Border(
+                                          bottom: BorderSide(
+                                              width: 1,
+                                              color: const Color.fromARGB(255, 118, 118, 118)),
+                                        ),
+                                        color: hoverIndex == entry['id']
+                                            ? const Color.fromARGB(255, 247, 247, 247)
+                                            : (entry['closed'] == 1)
+                                                ? Color.fromARGB(255, 172, 250, 175)
+                                                : Colors.white),
+                                    child: MouseRegion(
+                                      cursor: SystemMouseCursors.click,
+                                      onHover: (event) {
+                                        setLocalState(() {
+                                          hoverIndex = entry['id'];
+                                        });
+                                      },
+                                      onExit: (event) {
+                                        setLocalState(() {
+                                          hoverIndex = null;
+                                        });
+                                      },
+                                      child: GestureDetector(
+                                        onTap: () {
+                                    
+                                          // Navigator.push(
+                                          //     context,
+                                          //     MaterialPageRoute(
+                                          //         builder: (context) => DetailsM(
+                                          //               materialname: entry['name'],
+                                          //             )));
+                                        },
+                                        child: SizedBox(
+                                          height: 61,
+                                          child: Column(
                                             children: [
-                                              SizedBox(width: 20),
-                                              SizedBox(
-                                                  width: 350,
-                                                  child: Text(entry['name'] ?? 'N/A',
-                                                      style: TextStyle(
-                                                          fontFamily: 'Inter',
-                                                          fontSize: 16))),
-                                              SizedBox(width: 20),
-                                              SizedBox(
-                                                  width: 200,
-                                                  child: Text(entry['sku'] ?? 'N/A',
-                                                      style: TextStyle(
-                                                          fontFamily: 'Inter',
-                                                          fontSize: 16))),
-                                                            SizedBox(width: 20),
-                                                          SizedBox(
-                                                  width: 200,
-                                                  child: Text(entry['type'] ?? 'N/A',
-                                                      style: TextStyle(
-                                                          fontFamily: 'Inter',
-                                                          fontSize: 16))),
-                                              SizedBox(width: 20),
-                                              SizedBox(
-                                                  width: 350,
-                                                  child: Text(entry['description'] ?? 'N/A',
-                                                      style: TextStyle(
-                                                          fontFamily: 'Inter',
-                                                          fontSize: 16))),
-                                              SizedBox(width: 20),
-                                              SizedBox(
-                                                  width: 250,
-                                                  child: Text(entry['dimensions'] ?? 'N/A',
-                                                      style: TextStyle(
-                                                          fontSize: 16,
-                                                          fontFamily: 'Inter'))),
-                                                          SizedBox(width: 20),
-                                                            SizedBox(
-                                                  width: 250,
-                                                  child: Text(entry['vendor'] ?? 'N/A',
-                                                      style: TextStyle(
-                                                          fontSize: 16,
-                                                          fontFamily: 'Inter'))),
-                                              SizedBox(width: 20),
-                                              SizedBox(
-                                                  width: 250,
-                                                  child: Text(entry['location'] ?? 'N/A',
-                                                      style: TextStyle(
-                                                          fontSize: 16,
-                                                          fontFamily: 'Inter'))),
-                                              SizedBox(width: 20),
-                                              SizedBox(
-                                                  width: 250,
-                                                  child: Text(entry['batch'] ?? 'N/A',
-                                                      style: TextStyle(
-                                                          fontSize: 16,
-                                                          fontFamily: 'Inter'))),
-                                              SizedBox(width: 20),
-                                              SizedBox(
-                                                  width: 150,
-                                                  child: Text(entry['expdate'] ?? 'N/A',
-                                                      style: TextStyle(
-                                                          fontSize: 16,
-                                                          fontFamily: 'Inter'))),
-                                              SizedBox(width: 20),
-                                              SizedBox(
-                                                  width: 150,
-                                                  child: Text(entry['dob'] ?? 'N/A',
-                                                      style: TextStyle(
-                                                          fontSize: 16,
-                                                          fontFamily: 'Inter'))),
-                                              SizedBox(width: 1, child: Column(children: [SizedBox(height: 45)])),
+                                              SizedBox(height: 5),
+                                              Row(
+                                                children: [
+                                                  SizedBox(width: 20),
+                                                  SizedBox(
+                                                      width: 350,
+                                                      child: Text(entry['name'] ?? 'N/A',
+                                                          style: TextStyle(
+                                                              fontFamily: 'Inter',
+                                                              fontSize: 16))),
+                                                  SizedBox(width: 20),
+                                                  SizedBox(
+                                                      width: 200,
+                                                      child: Text(entry['sku'] ?? 'N/A',
+                                                          style: TextStyle(
+                                                              fontFamily: 'Inter',
+                                                              fontSize: 16))),
+                                                                SizedBox(width: 20),
+                                                              SizedBox(
+                                                      width: 200,
+                                                      child: Text(entry['type'] ?? 'N/A',
+                                                          style: TextStyle(
+                                                              fontFamily: 'Inter',
+                                                              fontSize: 16))),
+                                                  SizedBox(width: 20),
+                                                  SizedBox(
+                                                      width: 350,
+                                                      child: Text(entry['description'] ?? 'N/A',
+                                                          style: TextStyle(
+                                                              fontFamily: 'Inter',
+                                                              fontSize: 16))),
+                                                  SizedBox(width: 20),
+                                                  SizedBox(
+                                                      width: 250,
+                                                      child: Text(entry['dimensions'] ?? 'N/A',
+                                                          style: TextStyle(
+                                                              fontSize: 16,
+                                                              fontFamily: 'Inter'))),
+                                                              SizedBox(width: 20),
+                                                                SizedBox(
+                                                      width: 250,
+                                                      child: Text(entry['vendor'] ?? 'N/A',
+                                                          style: TextStyle(
+                                                              fontSize: 16,
+                                                              fontFamily: 'Inter'))),
+                                                  SizedBox(width: 20),
+                                                  SizedBox(
+                                                      width: 250,
+                                                      child: Text(entry['location'] ?? 'N/A',
+                                                          style: TextStyle(
+                                                              fontSize: 16,
+                                                              fontFamily: 'Inter'))),
+                                                  SizedBox(width: 20),
+                                                  SizedBox(
+                                                      width: 250,
+                                                      child: Text(entry['batch'] ?? 'N/A',
+                                                          style: TextStyle(
+                                                              fontSize: 16,
+                                                              fontFamily: 'Inter'))),
+                                                  SizedBox(width: 20),
+                                                  SizedBox(
+                                                      width: 150,
+                                                      child: Text(entry['expdate'] ?? 'N/A',
+                                                          style: TextStyle(
+                                                              fontSize: 16,
+                                                              fontFamily: 'Inter'))),
+                                                  SizedBox(width: 20),
+                                                  SizedBox(
+                                                      width: 150,
+                                                      child: Text(entry['dob'] ?? 'N/A',
+                                                          style: TextStyle(
+                                                              fontSize: 16,
+                                                              fontFamily: 'Inter'))),
+                                                  SizedBox(width: 1, child: Column(children: [SizedBox(height: 45)])),
+                                                ],
+                                              ),
                                             ],
                                           ),
-                                        ],
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                ),
-                              );
+                                  );
+                                  },
+                                );
                               },
                             );
-                          },
-                        )
+                    }
+                  )
                     //   },
                     // ),
                   ),

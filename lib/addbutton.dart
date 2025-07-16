@@ -316,7 +316,7 @@ Future<String> fetchTo2() async {
                                        DropdownButtonHideUnderline(
                                        child: DropdownButton(
                                            icon: Icon(Icons.keyboard_arrow_down),
-                                                     value:  toNotifier.value ?? fetchhedd ?? 'N/A',
+                                                     value:  tot.value ?? fetchhedd ?? 'N/A',
                                                      items: [
                                                      DropdownMenuItem(
                                                        value: fetchhedd ?? 'N/A',
@@ -334,7 +334,7 @@ Future<String> fetchTo2() async {
                                                      ],
                                                      onChanged: (value){
                                                        setLocalState((){
-                                               toNotifier.value = value!.toString();
+                                               tot.value = value!.toString();
                                                        });
                                                        setState(() {
                                                          
@@ -1022,22 +1022,22 @@ if (insertedMaster == null || !insertedMaster.containsKey('id')) {
 
  
  
-  final response10 = await Supabase.instance.client
-      .from('process_users')
-      .select()
-      .eq('userpu', username).or('disabled.is.null,disabled.not.eq.true');
+  // final response10 = await Supabase.instance.client
+  //     .from('process_users')
+  //     .select()
+  //     .eq('userpu', username).or('disabled.is.null,disabled.not.eq.true');
 
-  final response18 = await Supabase.instance.client
-      .from('user_machine')
-      .select()
-      .eq('user_mac', username)
-      .maybeSingle();
+  // final response18 = await Supabase.instance.client
+  //     .from('user_machine')
+  //     .select()
+  //     .eq('user_mac', username)
+  //     .maybeSingle();
 
-  if (response10.length > 1) {
-    toNotifier.value = response18?['machine'] ?? 'N/A';
-  } else {
-    toNotifier.value = response10[0]['processpu'];
-  }
+  // if (response10.length > 1) {
+  //   toNotifier.value = response18?['machine'] ?? 'N/A';
+  // } else {
+  //   toNotifier.value = response10[0]['processpu'];
+  // }
 
 
 final masterId = insertedMaster['id']; 
@@ -1054,7 +1054,7 @@ await Supabase.instance.client.from('detail').insert({
   'neededby': selectedTime1,
   'created_at':  DateTime.now().toUtc().toIso8601String(),
     'detail_from': fromNotifier.value ?? 'N/A',
-    'detail_to': toNotifier.value ?? 'N/A',
+    'detail_to':tot ?? 'N/A',
     // if (forklift)
     // 'detail_from2': frommt2,
     //  if (forklift)
@@ -1076,7 +1076,6 @@ void dispose() {
 }
 void popUp(){
  showDialog(
-  barrierDismissible: false,
     context: context, 
     builder: (_) => StatefulBuilder(
 
@@ -1233,6 +1232,7 @@ _debounce = Timer(const Duration(milliseconds: 400), (){
                       valueListenable: fromt,
                       builder: (context, frommt, child) {
                         return ValueListenableBuilder(
+                          
                           valueListenable: selectedStep1Notifier,
                           builder: (context, value, child) {
                             return ValueListenableBuilder(
@@ -1407,14 +1407,15 @@ _debounce = Timer(const Duration(milliseconds: 400), (){
                ]),
                                  
             SizedBox(
-              width: 1400,
-                  height: 640,
+            height: MediaQuery.of(context).size.height * 0.7,
+                  width: MediaQuery.of(context).size.width * 0.8,
+                  
               child: Column(children: [
                SizedBox(height: 10),
                         Row(
               children: [
                 SizedBox(width: 30),
-              
+            
               ],
                         ),
                       Expanded(
@@ -1611,7 +1612,7 @@ _debounce = Timer(const Duration(milliseconds: 400), (){
                             ),
                             ),
                            ),
-                                        SizedBox(width: 250)
+                                      Spacer()
                                         ,
                                    //      Tooltip(
             //                    
@@ -1823,7 +1824,7 @@ _debounce = Timer(const Duration(milliseconds: 400), (){
                        scrollDirection: Axis.horizontal,
                        child: SizedBox(
                         width: MediaQuery.of(context).size.width * 2, 
-                           
+                           height: MediaQuery.of(context).size.height * 0.6,
                          child: Column(
                   children: [
                     Container(
@@ -1934,8 +1935,8 @@ _debounce = Timer(const Duration(milliseconds: 400), (){
                     ),
                        
                     // Expanded with ListView stays exactly the same
-                    SizedBox(
-                      height: 500,
+                    Expanded(
+                      
                       child: FutureBuilder<List<Map<String, dynamic>>>(
                         future: Supabase.instance.client
                             .from('materials').select().order('name', ascending: true),

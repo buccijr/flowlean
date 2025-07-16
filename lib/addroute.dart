@@ -69,15 +69,15 @@ void initState() {
   super.initState();
       _loadUserRole();
   fetchDropdownItems();
-  fetchNextPage();
+  // fetchNextPage();
 
-  _scrollController.addListener(() {
-    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200 &&
-        !isLoading && hasMore) {
-      print('📩 Near bottom → fetchNextPage triggered');
-      fetchNextPage();
-    }
-  });
+  // _scrollController.addListener(() {
+  //   if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200 &&
+  //       !isLoading && hasMore) {
+  //     print('📩 Near bottom → fetchNextPage triggered');
+  //     fetchNextPage();
+  //   }
+  // });
 }
 
 
@@ -87,9 +87,7 @@ bool gapsPresent() {
   print('steps (sorted unique): $steps');
   
   for (int i = 0; i < steps.length - 1; i++) {
-    print('Comparing ${steps[i]} and ${steps[i+1]}');
     if (steps[i + 1] != steps[i]! + 1) {
-      print('Gap found between ${steps[i]} and ${steps[i + 1]}');
       return true; // Gap found
     }
   }
@@ -111,7 +109,7 @@ Future<void> fetchNextPage() async {
       .from('route')
       .select()
       .or('disabled.is.null,disabled.not.eq.true')
-      .order('material_route', ascending: true)
+     
       .range(from, to)
       ;
 
@@ -143,7 +141,7 @@ Future<void> fetchNextPage() async {
 
 void subscribeToPageStream(List<int> ids) {
   final sub = Supabase.instance.client
-      .from('masterdata')
+      .from('route')
       .stream(primaryKey: ['id'])
       .listen((updates) {
     for (final update in updates) {
@@ -551,18 +549,21 @@ print('Insert response: $insertResponse');
 }
 
 
-void editRoute(i, entry) async {
-
+Future editRoute(i, entry) async {
+print('editing route for index $i');
   final user = Supabase.instance.client.auth.currentUser;
   final email = user?.email;
+  print('tapindexes $tapIndexes');
     final responses = await Supabase.instance.client.from('materials').select().eq('id', tapIndexes[i]!).maybeSingle();
   final materialname = responses?['name'];
-  final processname = responses?['process'];
+ print('mat name $materialname and $processed and ${processed[i]}');
   final response = await Supabase.instance.client.from('user').select().eq('email', email!).maybeSingle();
   final company = response?['company'];
   final username = response?['username'];
-  
-final responser = await Supabase.instance.client.from('route').select().eq('step', i+1).eq('material_route', entry).or('disabled.is.null,disabled.not.eq.true');
+print('Fetching route with id: ${fetchedIds[i]}');
+final responser = await Supabase.instance.client.from('route').select().eq('id', fetchedIds[i]).or('disabled.is.null,disabled.not.eq.true');
+print('responser $responser');
+print('responser $responser, sele ${selectedValues[i]}');
 if (responser.isNotEmpty){
   print('delete ${delete}');
   print('fetchid $fetchedIds');
@@ -570,12 +571,16 @@ if (responser.isNotEmpty){
     
  await Supabase.instance.client.from('route').update({'disabled': 'true'}).eq('material_route', entry).eq('id', fetchedIds[i]);
   } 
-  
-  else
-   {
-                  await Supabase.instance.client.from('route').update({
+
+  else{
+
+    print('mat $materialname');
+    print(' step ${selectedValues[i] ?? 1}');
+    print('process ${processed[i]}');
+   print('matr $entry');
+               final res9 =    await Supabase.instance.client.from('route').update({
   'material': materialname,
-  'step': selectedValues[i] ?? -1 +1,
+  'step': (selectedValues[i] ?? 1),
   'process': processed[i],
   'company': company,
   'userr': username,
@@ -583,18 +588,20 @@ if (responser.isNotEmpty){
   'to_route': fromTo[i]?['To'] ?? 'N/A',
   'material_route': entry,
   
-}).eq('material_route', entry).eq('step', i+1);
+}).eq('material_route', entry).eq('step', selectedValues[i] ?? -1).select();
+print('res9 $res9');
 } } else {
-       await Supabase.instance.client.from('route').insert({
+     final res10 =  await Supabase.instance.client.from('route').insert({
   'material': materialname,
-  'step':  selectedValues[i] ?? -1 +1,
+  'step':  selectedValues[i] ?? 1,
   'process': processed[i],
   'company': company,
   'userr': username,
   'from_route': fromTo[i]?['From'] ?? 'N/A',
   'to_route': fromTo[i]?['To'] ?? 'N/A',
   'material_route': entry,
-});
+}).select();
+print('res10 $res10');
 }
 
 
@@ -679,7 +686,6 @@ if (count > 1) {
 }
 }
  showDialog(
-  barrierDismissible: false,
     context: context, 
     builder: (_) => StatefulBuilder(
 
@@ -865,11 +871,14 @@ Future.delayed(Duration(seconds: 5), () {
               },);
             }
 else {
-             for (int i = 0; i < selectedValues.length; i++) {
-                               print('Adding route for index $i');  
-
-                       editRoute(i, entry);
-                                         }
+            for (int i = 0; i < selectedValues.length; i++) {
+  if (i >= tapIndexes.length || i >= processed.length || i >= fetchedIds.length || i >= delete.length || i >= fromTo.length) {
+    print('Index $i is out of range for one of the supporting lists');
+    continue;  // or break or throw error
+  }
+  await editRoute(i, entry);
+  print('adding route for $i');
+}
                                        
 }
            
@@ -966,7 +975,7 @@ SizedBox(width: 30),
                     ),
                     ),
                    ),
-                                SizedBox(width: 600),
+                                SizedBox(width:   MediaQuery.of(context).size.width * 0.32,),
                                     Center(child: Text('Steps', style: TextStyle(fontFamily: 'WorkSans', 
              fontWeight: FontWeight.bold,
              color:  const Color.fromARGB(255, 0, 75, 132), fontSize: 21 ),)),
@@ -1003,6 +1012,7 @@ SizedBox(width: 30),
                    child: SizedBox(
                     width: MediaQuery.of(context).size.width * 2, 
                       
+                          height: MediaQuery.of(context).size.height * 0.6,
                      child: Column(
               children: [
                 Container(
@@ -1113,8 +1123,8 @@ SizedBox(width: 30),
                 ),
                    
                 // Expanded with ListView stays exactly the same
-                SizedBox(
-                  height: 500,
+                Expanded(
+                  
                   child: FutureBuilder<List<Map<String, dynamic>>>(
                     future: Supabase.instance.client
                         .from('materials').select().order('name', ascending: true),
@@ -1603,7 +1613,7 @@ double fontSizeBasedOnLength(String text) {
                                                                                            onChanged: (value){
                                                                                            selectedProcess.value = value!.toString();
                                                                                            processed[index] = selectedProcess.value;
-                                                                                           print('combine: $combine ${combine[selectedValues[index].toString()]}');
+                                                                                           print('processed index ${processed[index]} and $processed and ${selectedProcess.value}');
                                                                                     // Check if selectedValues[index] is a value anywhere in combine
                                                                                     final step = selectedValues[index];
 
@@ -1856,7 +1866,7 @@ setLocallyState(() {
                                                                    
                                                                               selected.value[selectedValues.length] = true;
                                                                           
-                                                                             selectedValues.add(selectedValues.length+1);
+                                                                              selectedValues.add(selectedValues.last!+1);
                                                                             
                                                                               
                                                                            
@@ -1948,7 +1958,6 @@ String? too;
 
 void routePopUp(){
  showDialog(
-  barrierDismissible: false,
     context: context, 
     builder: (_) => StatefulBuilder(
 
@@ -2199,7 +2208,7 @@ SizedBox(width: 30),
                     ),
                     ),
                    ),
-                                SizedBox(width: 600),
+                                SizedBox(width:   MediaQuery.of(context).size.width * 0.32,),
                                     Center(child: Text('Steps', style: TextStyle(fontFamily: 'WorkSans', 
              fontWeight: FontWeight.bold,
              color:  const Color.fromARGB(255, 0, 75, 132), fontSize: 21 ),)),
@@ -2215,19 +2224,21 @@ SizedBox(width: 30),
              SizedBox(height: 10,),
                 Row(
                   children: [
-
-  Expanded(
-         child: SingleChildScrollView(
-               scrollDirection: Axis.horizontal,
-           child: SingleChildScrollView(
-            scrollDirection: Axis.vertical,
-             child: Row(
+                
+                  Expanded(
+                         child: SingleChildScrollView(
+                               scrollDirection: Axis.horizontal,
+                           child: SingleChildScrollView(
+                            scrollDirection: Axis.vertical,
+                             child: Row(
                      children: [
-              SizedBox(width: 10),
-              Container(
-                child: Column(children: [
-               
-              
+                              SizedBox(width: 10),
+                              Container(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                               
+                              
                 
                       SizedBox(
                     
@@ -2235,9 +2246,9 @@ SizedBox(width: 30),
                    scrollDirection: Axis.horizontal,
                    child: SizedBox(
                     width: MediaQuery.of(context).size.width * 2, 
-                      
+                          height: MediaQuery.of(context).size.height * 0.6,
                      child: Column(
-              children: [
+                              children: [
                 Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
@@ -2346,8 +2357,7 @@ SizedBox(width: 30),
                 ),
                    
                 // Expanded with ListView stays exactly the same
-                SizedBox(
-                  height: 500,
+                Expanded(
                   child: FutureBuilder<List<Map<String, dynamic>>>(
                     future: Supabase.instance.client
                         .from('materials').select().order('name', ascending: true),
@@ -2386,10 +2396,10 @@ SizedBox(width: 30),
                           ],
                         ));
                       }
-
-             
-               
-             
+                
+                             
+                               
+                             
                    
                       final filteredData = data.where((entries) {
                         final searchMControllerr = searchMController.text.toLowerCase();
@@ -2416,10 +2426,10 @@ SizedBox(width: 30),
                             builder: (context, setLocalState) {
                           
                                   final entry = filteredData[index];
-  
-      tapIndexMap.putIfAbsent(entry['id'], () => false);
-                                      
-             
+                  
+                      tapIndexMap.putIfAbsent(entry['id'], () => false);
+                                      print('height ${MediaQuery.of(context).size.height}');
+                             
                               return ValueListenableBuilder(
                                 valueListenable: tapIndexNotifier,
                                 builder: (context, tapIndex, _) {
@@ -2566,30 +2576,35 @@ SizedBox(width: 30),
                     },
                   ),
                 ),
-              ],
+                // SizedBox(height:   MediaQuery.of(context).size.height >  840 ?  0  :  MediaQuery.of(context).size.height >  800 ? 
+                //           200 :
+                //         MediaQuery.of(context).size.height >  700 ? 
+                //       300  :                       0)
+                              ],
                      ),
                    ),
                      ),
                       )
                 ]),
                    )
+                  
                      ],
                    ),
-           ),
-         ),
-       ),
-               
-              
+                           ),
+                         ),
+                       ),
+                               
+                              
                 
-               
-           StatefulBuilder(
-               builder: (context, setLocallyState) {
+                               
+                           StatefulBuilder(
+                               builder: (context, setLocallyState) {
                  return Column(
                    children: [
                           
                    SizedBox(width: 200),
                     SizedBox(height: 10,),
-//                
+                //                
                     Align(
                       alignment: Alignment.topCenter,
                            
@@ -2620,21 +2635,21 @@ SizedBox(width: 30),
                                         ...List.generate(selectedValues.length, (index) {
                                         
                           
-
-  String truncateWithEllipsis(int cutoff, String myString) {
-  return (myString.length <= cutoff) ? myString : '${myString.substring(0, cutoff)}...';
-}
+                
+                  String truncateWithEllipsis(int cutoff, String myString) {
+                  return (myString.length <= cutoff) ? myString : '${myString.substring(0, cutoff)}...';
+                }
                                         double fontSizeBasedOnLength(String text) {
-  if (text.length > 15){
-    return 13.5;
-  }
-   else if (text.length > 30){
-    return 10.00;
-  } else {
-    return 17;
-  }
-}
-
+                  if (text.length > 15){
+                    return 13.5;
+                  }
+                   else if (text.length > 30){
+                    return 10.00;
+                  } else {
+                    return 17;
+                  }
+                }
+                
                                             return 
                                         Column(
                                          
@@ -2657,7 +2672,7 @@ SizedBox(width: 30),
                                                                                                 builder: (context, value, child) {
                                                                                                   return GestureDetector(
                                                                                                      onTap: (){
-
+                
                                                                                                         selectedProcess.value = processed[index] ?? 
                                                                                                        
                                                                                                  'Select a process....';
@@ -2717,12 +2732,12 @@ SizedBox(width: 30),
                                                                                    selected.value[index] == true ?
                                                                                     FutureBuilder(
                                                                                       future: Supabase.instance.client.from('materials').select().eq('id', tapIndexNotifier.value ?? -1).maybeSingle(),
-
-
+                
+                
                                                                                   builder: (context, snapshot) {
                                                                                  
                                                                                    
-
+                
                                                                                    final data = snapshot.data ?? {};
                                                                                    tapIndexes[index] = tapIndexNotifier.value ?? -1;
                                                                                    if (data.isEmpty){
@@ -2787,13 +2802,13 @@ SizedBox(width: 30),
                                                                         builder:(context, snapshot) {
                                                                        
                                                                             if (snapshot.connectionState != ConnectionState.done ||
-        snapshot.hasError) {
-      return Center(child: Text('Loading...', style: TextStyle(fontFamily: 'Inter', fontSize: 16.5),));
-      
-    }
+                        snapshot.hasError) {
+                      return Center(child: Text('Loading...', style: TextStyle(fontFamily: 'Inter', fontSize: 16.5),));
+                      
+                    }
                                                                         
                                                                           final data = snapshot.data ?? [];
-
+                
                                                                           
                                                                           return ValueListenableBuilder(
                                                                             valueListenable: selectedProcess,
@@ -2826,21 +2841,21 @@ SizedBox(width: 30),
                                                                                            print('combine: $combine ${combine[selectedValues[index].toString()]}');
                                                                                     // Check if selectedValues[index] is a value anywhere in combine
                                                                                     final step = selectedValues[index];
-
-for (int i = 0; i < selectedValues.length; i++) {
-  if (selectedValues[i] == step) {
-    processed[i] = selectedProcess.value;
-    print('✅ Synced processed[$i] = ${selectedProcess.value}');
-  }
-}
-// if (combine.values.contains(selectedValues[index].toString())) {
-//   // Update processed at the current index (or key)
-//   processed[selectedValues[index]!] = selectedProcess.value;
-//   print('Updated processed[${selectedValues[index]}] to $selectedProcess.value');
-// }
-setLocallyState(() {
-  
-},);
+                
+                for (int i = 0; i < selectedValues.length; i++) {
+                  if (selectedValues[i] == step) {
+                    processed[i] = selectedProcess.value;
+                    print('✅ Synced processed[$i] = ${selectedProcess.value}');
+                  }
+                }
+                // if (combine.values.contains(selectedValues[index].toString())) {
+                //   // Update processed at the current index (or key)
+                //   processed[selectedValues[index]!] = selectedProcess.value;
+                //   print('Updated processed[${selectedValues[index]}] to $selectedProcess.value');
+                // }
+                setLocallyState(() {
+                  
+                },);
                                                                                            }),
                                                                                       ],
                                                                                     ),
@@ -2880,43 +2895,43 @@ setLocallyState(() {
                                                                       children: [
                                                                         IconButton(
                                                                          onPressed: index == 0 ? null : () async {
-
-
-  
-  selectedValues.removeAt(index);
-  selected.value.remove(index);
-  fromTo.remove(index);
-  tapIndexes.remove(index);
-  processed.remove(index);
-  combine.remove(index.toString());
-  
-delete[index] = true;
-  // void shiftKeysDownFrom(Map map, int deletedIndex) {
-  //   final keysToShift = map.keys
-  //       .where((key) => int.tryParse(key.toString()) != null)
-  //       .map((key) => int.parse(key.toString()))
-  //       .where((k) => k > deletedIndex)
-  //       .toList()
-  //     ..sort(); // ascending
-
-
-  //   for (final oldKey in keysToShift) {
-  //     final newKey = oldKey - 1;
-  //     map[newKey.toString()] = map.remove(oldKey.toString());
-    
-  //   }
-  // }
-
-  // shiftKeysDownFrom(selected.value, index);
-  // shiftKeysDownFrom(fromTo, index);
-  // shiftKeysDownFrom(tapIndexes, index);
-  // shiftKeysDownFrom(processed, index);
-  // shiftKeysDownFrom(combine, index);
-
-
-
-  setLocallyState(() {});
-},
+                
+                
+                  
+                  selectedValues.removeAt(index);
+                  selected.value.remove(index);
+                  fromTo.remove(index);
+                  tapIndexes.remove(index);
+                  processed.remove(index);
+                  combine.remove(index.toString());
+                  
+                delete[index] = true;
+                  // void shiftKeysDownFrom(Map map, int deletedIndex) {
+                  //   final keysToShift = map.keys
+                  //       .where((key) => int.tryParse(key.toString()) != null)
+                  //       .map((key) => int.parse(key.toString()))
+                  //       .where((k) => k > deletedIndex)
+                  //       .toList()
+                  //     ..sort(); // ascending
+                
+                
+                  //   for (final oldKey in keysToShift) {
+                  //     final newKey = oldKey - 1;
+                  //     map[newKey.toString()] = map.remove(oldKey.toString());
+                    
+                  //   }
+                  // }
+                
+                  // shiftKeysDownFrom(selected.value, index);
+                  // shiftKeysDownFrom(fromTo, index);
+                  // shiftKeysDownFrom(tapIndexes, index);
+                  // shiftKeysDownFrom(processed, index);
+                  // shiftKeysDownFrom(combine, index);
+                
+                
+                
+                  setLocallyState(() {});
+                },
                                                                          icon: Icon(Icons.delete, color: const Color.fromARGB(255, 255, 112, 102))),
                                                                          SizedBox(width: 15,),
                                                                          DropdownButtonHideUnderline(child: DropdownButton(
@@ -2938,18 +2953,18 @@ delete[index] = true;
                                                                              combine[index.toString()] == 'Default' ? selectedValues[index] = index+1:
                                                                               selectedValues[index] = int.parse(combine[index.toString()] ?? '-1');
                                                                                   for (int i = 0; i < selectedValues.length; i++) {
-      if (i != index && selectedValues[i] == selectedValues[index]) {
-        combine[i.toString()] = value;
-        
-    processed[index] = processed[i]!;
-    selectedProcess.value = processed[i]!;
-        print('🔗 Synced combine[$i] = $selected');
-      }
-    }
-//                                                                               if (selectedValues.contains(int.parse(combine[index.toString()]!))) {
-//  combine[selectedValues[index].toString()] = value;
-//   print('Updated processed[${selectedValues[index]}] to $selectedProcess.value');
-// }
+                      if (i != index && selectedValues[i] == selectedValues[index]) {
+                        combine[i.toString()] = value;
+                        
+                    processed[index] = processed[i]!;
+                    selectedProcess.value = processed[i]!;
+                        print('🔗 Synced combine[$i] = $selected');
+                      }
+                    }
+                //                                                                               if (selectedValues.contains(int.parse(combine[index.toString()]!))) {
+                //  combine[selectedValues[index].toString()] = value;
+                //   print('Updated processed[${selectedValues[index]}] to $selectedProcess.value');
+                // }
                                                                             });
                                                                            setState(() {
                                                                              
@@ -2973,7 +2988,7 @@ delete[index] = true;
                                                                                                                                                    ).eq('step', index+1).or('disabled.is.null,disabled.not.eq.true').maybeSingle(),
                                                                                                                                                    Supabase.instance.client.from('process').select().eq('description', processed[index] ?? 'Hi').maybeSingle(),
                                                                                                                                                    Supabase.instance.client.from('process').select()
-
+                
                                                                                                                                                   ]),
                                                                                                                                                 builder: (context, snapshot) {
                                                                                                                                                   final data = snapshot.data?[0] ?? {};
@@ -3097,6 +3112,7 @@ delete[index] = true;
                                                                               selected.value[selectedValues.length] = true;
                                                                               
                                                                             selectedValues.add(selectedValues.last!+1);
+                                                                           
                                                                             tapIndexes[selectedValues.length] = -1;
                                                                            tapIndexNotifier.value = null;
                                                                            selectedProcess.value = 'Select a process...';
@@ -3141,8 +3157,8 @@ delete[index] = true;
                  ),
                    ],
                  );
-               }
-             ),
+                               }
+                             ),
                   ])
     ],
                 ),
@@ -3167,11 +3183,7 @@ delete[index] = true;
                 }
                 groupedData[material]!.add(Map<String, dynamic>.from(entry));
               }
-           final uniqueMaterials = entries
-           .where((entry) => entry['disabled'] != 'true')
-    .map((e) => e['material_route'])
-    .toSet()
-    .toList();
+         
   
    if (_role == 'user') {
       return Scaffold(
@@ -3200,525 +3212,560 @@ delete[index] = true;
         icon: Icon(Icons.add, color:Color.fromARGB(255, 0, 74, 123),),
         label: Text('Add Route', style: TextStyle(color: Color.fromARGB(255, 0, 74, 123), fontWeight: FontWeight.bold),)
           ),
-          backgroundColor: Color(0xFFFAFAFA),
-          body: Row(children: [
-            Container(
-          height: double.infinity,
-          width: 200,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.only(
-           bottomLeft: Radius.circular(0,),
-           bottomRight: Radius.circular(6),
-          topRight: Radius.circular(6),
-          topLeft: Radius.circular(0)
-            ),
-           color: const Color.fromARGB(255, 0, 74, 123),
-          ),
-        
-          child: Column(
-            children: [
-              
-              SizedBox(height: 140),
-             Align(
-              alignment: Alignment.centerLeft,
-               child: Row(
-                 children: [
-                  SizedBox(width: 10), 
-                   MouseRegion(
-                    cursor: SystemMouseCursors.click,
-                     child: GestureDetector(
-                         onTap: (){
-                          setState(() {
-                           context.go('/admindashboard');
-                            selected1 = true;
-                            selected2 = false;
-                            selected3 = false;
-                            selected4 = false;
-                            selected5 = false;
-                          });
-                          },
-                          child: Container(
-                            width: 165,
-                            height: 60,
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              color: selected1 ?  const Color.fromARGB(255, 0, 55, 100) : null,
-                            ),
-                          child: Row(
-                            children: [
-                                SizedBox(width: 7),
-                                 Icon(Icons.home, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
-                                 SizedBox(width: 5),
-                              Text('Dashboard',  textAlign: TextAlign.center, style: TextStyle(
-                                color: selected1 ? const Color.fromARGB(255, 255, 255, 255) : const Color.fromARGB(255, 255, 255, 255),
-                                fontSize: 20, fontWeight: FontWeight.w500),),
-                            ],
-                          )),
-                                   ),
-                   ),
-                 ],
-               ),
-             ),
-              SizedBox(height:25,),
-            Align(
-              alignment: Alignment.centerLeft,
-               child: Row(
-                 children: [
-                  SizedBox(width: 10), 
-                   MouseRegion(
-                    cursor: SystemMouseCursors.click,
-                     child: GestureDetector(
-                         onTap: (){
-                          setState(() {
-                           context.go('/materials');
-                            selected1 = false;
-                            selected2 = true;
-                            selected3 = false;
-                            selected4 = false;
-                             selected5 = false;
-                          });
-                          },
-                          child: Container(
-                            width: 165,
-                            height: 60,
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              color: selected2 ?  const Color.fromARGB(255, 0, 55, 100) : null,
-                            ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Row(
-                              children: [
-                                  SizedBox(width: 7),
-                                   Icon(Icons.pageview_outlined, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
-                                   SizedBox(width: 5),
-                                Text('Materials',  textAlign: TextAlign.center, style: TextStyle(
-                                  color: const Color.fromARGB(255, 255, 255, 255),
-                                  fontSize: 20, fontWeight: FontWeight.w500),),
-                              ],
-                            ),
-                          )),
-                                   ),
-                   ),
-                 ],
-               ),
-             ),
-                SizedBox(height:25),
-                 Align(
-              alignment: Alignment.centerLeft,
-               child: Row(
-                 children: [
-                  SizedBox(width: 10), 
-                   MouseRegion(
-                    cursor: SystemMouseCursors.click,
-                     child: GestureDetector(
-                         onTap: (){
-                          setState(() {
-                          context.go('/process');
-                            selected1 = false;
-                            selected2 = false;
-                            selected3 = false;
-                            selected4 = false;
-                            selected5 = false;
-                            selected6 = true;
-                          });
-                          },
-                          child: Container(
-                            width: 165,
-                            height: 60,
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              color: selected6 ?  const Color.fromARGB(255, 0, 55, 100) : null,
-                            ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Row(
-                              children: [
-                                  SizedBox(width: 7),
-                                   Icon(Icons.forklift, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
-                                   SizedBox(width: 5),
-                                Text('Process',  textAlign: TextAlign.center, style: TextStyle(
-                                  color: const Color.fromARGB(255, 255, 255, 255),
-                                  fontSize: 20, fontWeight: FontWeight.w500),),
-                              ],
-                            ),
-                          )),
-                                   ),
-                   ),
-                 ],
-               ),
-             ),
-              SizedBox(height:25,),
-            Align(
-              alignment: Alignment.centerLeft,
-               child: Row(
-                 children: [
-                  SizedBox(width: 10), 
-                   MouseRegion(
-                    cursor: SystemMouseCursors.click,
-                     child: GestureDetector(
-                         onTap: (){
-                          setState(() {
-                            
-                            selected1 = false;
-                            selected2 = false;
-                            selected3 = true;
-                            selected4 = false;
-                             selected5 = false;
-                                selected6 = false;
-       Navigator.push(
-         context,
-                                PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => AdminData(),
-        transitionDuration: Duration.zero,
-        reverseTransitionDuration: Duration.zero,
-         )
-       );                 
-                          });
-                        
-                          },
-                          child: Container(
-                            width: 165,
-                            height: 60,
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              color: selected3 ?  const Color.fromARGB(255, 0, 55, 100) : null,
-                            ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Row(
-                              children: [
-                                  SizedBox(width: 7),
-                                   Icon(Icons.table_view, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
-                                   SizedBox(width: 5),
-                                Text('Data',  textAlign: TextAlign.center, style: TextStyle(
-                                  color: const Color.fromARGB(255, 255, 255, 255),
-                                  fontSize: 20, fontWeight: FontWeight.w500),),
-                              ],
-                            ),
-                          )),
-                                   ),
-                   ),
-                 ],
-               ),
-             ),
-              SizedBox(height: 25),
-               Align(
-              alignment: Alignment.centerLeft,
-               child: Row(
-                 children: [
-                  SizedBox(width: 10), 
-                   MouseRegion(
-                    cursor: SystemMouseCursors.click,
-                     child: GestureDetector(
-                         onTap: (){
-                          setState(() {
-                            context.go('/users');
-                            selected1 = false;
-                            selected2 = false;
-                            selected3 = false;
-                            selected4 = true;
-                             selected5 = false;
-                                selected6 = false;
-                          });
-                          },
-                          child: Container(
-                            width: 165,
-                            height: 60,
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              color: selected4 ?  const Color.fromARGB(255, 0, 55, 100) : null,
-                            ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Row(
-                              children: [
-                                  SizedBox(width: 7),
-                                   Icon(Icons.group, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
-                                   SizedBox(width: 5),
-                                Text('Users',  textAlign: TextAlign.center, style: TextStyle(
-                                  color: const Color.fromARGB(255, 255, 255, 255),
-                                  fontSize: 20, fontWeight: FontWeight.w500),),
-                              ],
-                            ),
-                          )),
-                                   ),
-                   ),
-                 ],
-               ),
-             ),
-              SizedBox(height:25,),
-            Align(
-              alignment: Alignment.centerLeft,
-               child: Row(
-                 children: [
-                  SizedBox(width: 10), 
-                   MouseRegion(
-                    cursor: SystemMouseCursors.click,
-                     child: GestureDetector(
-                         onTap: (){
-                          setState(() {
-                            
-                            selected1 = false;
-                            selected2 = false;
-                            selected3 = false;
-                            selected4 = false;
-                            selected5 = true;
-       selected6 = false;
-                            
-                          });
-                        
-                          },
-                          child: Container(
-                            width: 165,
-                            height: 60,
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              color: selected5 ?  const Color.fromARGB(255, 0, 55, 100) : null,
-                            ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Row(
-                              children: [
-                                  SizedBox(width: 7),
-                                   Icon(Icons.turn_slight_right, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
-                                   SizedBox(width: 5),
-                                Text('Route',  textAlign: TextAlign.center, style: TextStyle(
-                                  color: const Color.fromARGB(255, 255, 255, 255),
-                                  fontSize: 20, fontWeight: FontWeight.w500),),
-                              ],
-                            ),
-                          )),
-                                   ),
-                   ),
-                 ],
-               ),
-             ),
-             SizedBox(height: 25,),
-              Align(
-              alignment: Alignment.centerLeft,
-               child: Row(
-                 children: [
-                  SizedBox(width: 10), 
-                   MouseRegion(
-                    cursor: SystemMouseCursors.click,
-                     child: GestureDetector(
-                         onTap: (){
-                          setState(() {
-                                    context.go('/reports');
-                         
-                          });
-                        
-                          },
-                          child: Container(
-                            width: 165,
-                            height: 60,
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                           
-                            ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Row(
-                              children: [
-                                  SizedBox(width: 7),
-                                   Icon(Icons.bar_chart, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
-                                   SizedBox(width: 5),
-                                Text('Reports',  textAlign: TextAlign.center, style: TextStyle(
-                                  color: const Color.fromARGB(255, 255, 255, 255),
-                                  fontSize: 20, fontWeight: FontWeight.w500),),
-                              ],
-                            ),
-                          )),
-                                   ),
-                   ),
-                 ],
-               ),
-             ),
-                          Spacer(),
-                             Row(
-                              children: [
-                                SizedBox(width: 40),
-                                TextButton(
-                                  onPressed: () async {
-                                      context.go('/login');
-                                    await Supabase.instance.client.auth.signOut();
-                                 
-                                        setState(() {
-                                          
-                                        });
-                                  },
-                                  child: Text('Logout',  textAlign: TextAlign.center, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, 
-                                color:  const Color.fromARGB(255, 177, 220, 255),),)),
-                                 SizedBox(width: 10),
-                           Icon(Icons.logout, color:  const Color.fromARGB(255, 177, 220, 255),)
-                           
-                              ],
-                            ), SizedBox(height: 20,), 
-                                ],
-          ),
-        ),
-                             Row(
-          children: [
-            SizedBox(width: 10),
-            SizedBox(
-              width: 1515,
-                  height: 825,
-              child: Column(children: [
-               SizedBox(height: 20),
-                        Row(
-              children: [
-                SizedBox(width: 30),
-                Text('Routes', style: TextStyle( fontFamily: 'Inter',
-                  color: const Color.fromARGB(255, 23, 85, 161), fontWeight: FontWeight.bold, fontSize: 30)),
-              ],
-                        ),
-                         SizedBox(height: 20,),
-                       Expanded(
-                    child: ListView.builder(
-                      controller: _scrollController,
-                      itemCount: uniqueMaterials.length  + (hasMore ? 1 : 0),
-                      itemBuilder: (context, index) {
-                          if (index == uniqueMaterials.length) {
-          return SizedBox.shrink();
-        }
-       final entry = uniqueMaterials[index];
-       
-       final routesForMaterial = entries
-        .where((e) => e['material_route'] == entry)
-        .toList();
-       
-       // Sort them by step
-       routesForMaterial.sort((a, b) =>
-         (a['step'] as int).compareTo(b['step'] as int));
-              
-              
-       
-       
-         String truncateWithEllipsis(int cutoff, String myString) {
-         return (myString.length <= cutoff) ? myString : '${myString.substring(0, cutoff)}...';
-       }
-                        return Padding(
-              padding: EdgeInsets.all(10),
-              child: Material(
-                elevation: 3,
-                borderRadius: BorderRadius.circular(10),
-                color: Colors.white,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  padding: EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Material header row
-                      Row(
-                        children: [
-                          Text(truncateWithEllipsis(72, entry), style: TextStyle(fontFamily: 'Inter', fontSize: 30)),
-                          Spacer(),
-                          ValueListenableBuilder(
-                            valueListenable: tapIndexNotifier,
-                            builder: (context, tapIndex, _) {
-                              return IconButton(
-                                onPressed: (){
-                                 
-                                 routeEditPopUp(entry);
-                                },
-                                icon: Icon(Icons.edit));
-                            }
-                          ),
-                          SizedBox(width: 10),
-                          IconButton(
-                                onPressed: () {
-                               
-              final routeId = uniqueMaterials[index]; 
-                               deletePopUp(routeId);
-                                },
-                                icon:  Icon(Icons.delete, color: Colors.red),
-                              )
-                            
-                          
-                      ] 
-                      ),
-              
-                      SizedBox(height: 20),
-                       
-                      SizedBox(
-                       width: 1450,
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            children: routesForMaterial.map((routeEntry) {
-                             double fontSizeBasedOnLength(String text) {
-         if (text.length > 15){
-        return 13.5;
-         }
-       else if (text.length > 30){
-        return 10.00;
-         } else {
-        return 17;
-         }
-       }
-       
-                              return Row(
-                                children: [
-                                  SizedBox(width: 10),
-                                  routeEntry['step'] == 1 ? SizedBox.shrink() : Icon(Icons.arrow_forward),
-                                  routeEntry['material']  != entries[routeEntry['step'] - 1]['material'] ?
-                                  Container(
-                                    height: 40,
-                                    width: 200,
-                                  decoration: BoxDecoration(
-                                    color: const Color.fromARGB(255, 0, 98, 178),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child:  Center(
-                                    child: Text(
-                                              truncateWithEllipsis(31, routeEntry['material'] ?? ''),
-                                              style: TextStyle(fontFamily: 'Inter', fontSize: fontSizeBasedOnLength(  '${routeEntry['material']}'), color: Colors.white),
-                                            ),
-                                  ),
-                                  ) : SizedBox.shrink(),
-                                          Icon(Icons.arrow_forward),
-                                  SizedBox(width: 5),
-                                  Container(
-                                    width: 150, 
-                                    height: 40,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(10),
-                                      color: Color(0xFFEDEDED),
-                                    ),
-                                    child: Center(
-                                      child: Text(
-                                        
-                                        truncateWithEllipsis(31, routeEntry['process'] ?? ''),
-                                        style: TextStyle(fontFamily: 'Inter', fontSize: fontSizeBasedOnLength('${routeEntry['process']}')),
-                                      ),
-                                    ),
-                                  ),
-                                 
-                                ],
-                              );
-                            }).toList(),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+         backgroundColor: Color.fromARGB(255, 236, 244, 254),
+          body: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(children: [
+              Container(
+            height: double.infinity,
+            width: 200,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.only(
+             bottomLeft: Radius.circular(0,),
+             bottomRight: Radius.circular(6),
+            topRight: Radius.circular(6),
+            topLeft: Radius.circular(0)
               ),
-                        );
-                      },
+             color: const Color.fromARGB(255, 0, 74, 123),
+            ),
+                    
+            child: Column(
+              children: [
+                
+                 SizedBox(height:MediaQuery.of(context).size.height * 0.15,),
+               Align(
+                alignment: Alignment.centerLeft,
+                 child: Row(
+                   children: [
+                    SizedBox(width: 10), 
+                     MouseRegion(
+                      cursor: SystemMouseCursors.click,
+                       child: GestureDetector(
+                           onTap: (){
+                            setState(() {
+                             context.go('/admindashboard');
+                              selected1 = true;
+                              selected2 = false;
+                              selected3 = false;
+                              selected4 = false;
+                              selected5 = false;
+                            });
+                            },
+                            child: Container(
+                              width: 165,
+                              height: 60,
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10),
+                                color: selected1 ?  const Color.fromARGB(255, 0, 55, 100) : null,
+                              ),
+                            child: Row(
+                              children: [
+                                  SizedBox(width: 7),
+                                   Icon(Icons.home, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
+                                   SizedBox(width: 5),
+                                Text('Dashboard',  textAlign: TextAlign.center, style: TextStyle(
+                                  color: selected1 ? const Color.fromARGB(255, 255, 255, 255) : const Color.fromARGB(255, 255, 255, 255),
+                                  fontSize: 20, fontWeight: FontWeight.w500),),
+                              ],
+                            )),
+                                     ),
+                     ),
+                   ],
+                 ),
+               ),
+                SizedBox(height:MediaQuery.of(context).size.height * 0.018,),
+              Align(
+                alignment: Alignment.centerLeft,
+                 child: Row(
+                   children: [
+                    SizedBox(width: 10), 
+                     MouseRegion(
+                      cursor: SystemMouseCursors.click,
+                       child: GestureDetector(
+                           onTap: (){
+                            setState(() {
+                             context.go('/materials');
+                              selected1 = false;
+                              selected2 = true;
+                              selected3 = false;
+                              selected4 = false;
+                               selected5 = false;
+                            });
+                            },
+                            child: Container(
+                              width: 165,
+                              height: 60,
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10),
+                                color: selected2 ?  const Color.fromARGB(255, 0, 55, 100) : null,
+                              ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Row(
+                                children: [
+                                    SizedBox(width: 7),
+                                     Icon(Icons.pageview_outlined, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
+                                     SizedBox(width: 5),
+                                  Text('Materials',  textAlign: TextAlign.center, style: TextStyle(
+                                    color: const Color.fromARGB(255, 255, 255, 255),
+                                    fontSize: 20, fontWeight: FontWeight.w500),),
+                                ],
+                              ),
+                            )),
+                                     ),
+                     ),
+                   ],
+                 ),
+               ),
+                  SizedBox(height:MediaQuery.of(context).size.height * 0.018,),
+                   Align(
+                alignment: Alignment.centerLeft,
+                 child: Row(
+                   children: [
+                    SizedBox(width: 10), 
+                     MouseRegion(
+                      cursor: SystemMouseCursors.click,
+                       child: GestureDetector(
+                           onTap: (){
+                            setState(() {
+                            context.go('/process');
+                              selected1 = false;
+                              selected2 = false;
+                              selected3 = false;
+                              selected4 = false;
+                              selected5 = false;
+                              selected6 = true;
+                            });
+                            },
+                            child: Container(
+                              width: 165,
+                              height: 60,
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10),
+                                color: selected6 ?  const Color.fromARGB(255, 0, 55, 100) : null,
+                              ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Row(
+                                children: [
+                                    SizedBox(width: 7),
+                                     Icon(Icons.forklift, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
+                                     SizedBox(width: 5),
+                                  Text('Process',  textAlign: TextAlign.center, style: TextStyle(
+                                    color: const Color.fromARGB(255, 255, 255, 255),
+                                    fontSize: 20, fontWeight: FontWeight.w500),),
+                                ],
+                              ),
+                            )),
+                                     ),
+                     ),
+                   ],
+                 ),
+               ),
+                SizedBox(height:MediaQuery.of(context).size.height * 0.018,),
+              Align(
+                alignment: Alignment.centerLeft,
+                 child: Row(
+                   children: [
+                    SizedBox(width: 10), 
+                     MouseRegion(
+                      cursor: SystemMouseCursors.click,
+                       child: GestureDetector(
+                           onTap: (){
+                            setState(() {
+                              
+                              selected1 = false;
+                              selected2 = false;
+                              selected3 = true;
+                              selected4 = false;
+                               selected5 = false;
+                                  selected6 = false;
+                   Navigator.push(
+                     context,
+                                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) => AdminData(),
+                    transitionDuration: Duration.zero,
+                    reverseTransitionDuration: Duration.zero,
+                     )
+                   );                 
+                            });
+                          
+                            },
+                            child: Container(
+                              width: 165,
+                              height: 60,
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10),
+                                color: selected3 ?  const Color.fromARGB(255, 0, 55, 100) : null,
+                              ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Row(
+                                children: [
+                                    SizedBox(width: 7),
+                                     Icon(Icons.table_view, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
+                                     SizedBox(width: 5),
+                                  Text('Data',  textAlign: TextAlign.center, style: TextStyle(
+                                    color: const Color.fromARGB(255, 255, 255, 255),
+                                    fontSize: 20, fontWeight: FontWeight.w500),),
+                                ],
+                              ),
+                            )),
+                                     ),
+                     ),
+                   ],
+                 ),
+               ),
+                SizedBox(height:MediaQuery.of(context).size.height * 0.018,),
+                 Align(
+                alignment: Alignment.centerLeft,
+                 child: Row(
+                   children: [
+                    SizedBox(width: 10), 
+                     MouseRegion(
+                      cursor: SystemMouseCursors.click,
+                       child: GestureDetector(
+                           onTap: (){
+                            setState(() {
+                              context.go('/users');
+                              selected1 = false;
+                              selected2 = false;
+                              selected3 = false;
+                              selected4 = true;
+                               selected5 = false;
+                                  selected6 = false;
+                            });
+                            },
+                            child: Container(
+                              width: 165,
+                              height: 60,
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10),
+                                color: selected4 ?  const Color.fromARGB(255, 0, 55, 100) : null,
+                              ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Row(
+                                children: [
+                                    SizedBox(width: 7),
+                                     Icon(Icons.group, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
+                                     SizedBox(width: 5),
+                                  Text('Users',  textAlign: TextAlign.center, style: TextStyle(
+                                    color: const Color.fromARGB(255, 255, 255, 255),
+                                    fontSize: 20, fontWeight: FontWeight.w500),),
+                                ],
+                              ),
+                            )),
+                                     ),
+                     ),
+                   ],
+                 ),
+               ),
+                SizedBox(height:MediaQuery.of(context).size.height * 0.018,),
+              Align(
+                alignment: Alignment.centerLeft,
+                 child: Row(
+                   children: [
+                    SizedBox(width: 10), 
+                     MouseRegion(
+                      cursor: SystemMouseCursors.click,
+                       child: GestureDetector(
+                           onTap: (){
+                            setState(() {
+                              
+                              selected1 = false;
+                              selected2 = false;
+                              selected3 = false;
+                              selected4 = false;
+                              selected5 = true;
+                   selected6 = false;
+                              
+                            });
+                          
+                            },
+                            child: Container(
+                              width: 165,
+                              height: 60,
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10),
+                                color: selected5 ?  const Color.fromARGB(255, 0, 55, 100) : null,
+                              ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Row(
+                                children: [
+                                    SizedBox(width: 7),
+                                     Icon(Icons.turn_slight_right, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
+                                     SizedBox(width: 5),
+                                  Text('Route',  textAlign: TextAlign.center, style: TextStyle(
+                                    color: const Color.fromARGB(255, 255, 255, 255),
+                                    fontSize: 20, fontWeight: FontWeight.w500),),
+                                ],
+                              ),
+                            )),
+                                     ),
+                     ),
+                   ],
+                 ),
+               ),
+               SizedBox(height:MediaQuery.of(context).size.height * 0.018,),
+                Align(
+                alignment: Alignment.centerLeft,
+                 child: Row(
+                   children: [
+                    SizedBox(width: 10), 
+                     MouseRegion(
+                      cursor: SystemMouseCursors.click,
+                       child: GestureDetector(
+                           onTap: (){
+                            setState(() {
+                                      context.go('/reports');
+                           
+                            });
+                          
+                            },
+                            child: Container(
+                              width: 165,
+                              height: 60,
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10),
+                             
+                              ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Row(
+                                children: [
+                                    SizedBox(width: 7),
+                                     Icon(Icons.bar_chart, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
+                                     SizedBox(width: 5),
+                                  Text('Reports',  textAlign: TextAlign.center, style: TextStyle(
+                                    color: const Color.fromARGB(255, 255, 255, 255),
+                                    fontSize: 20, fontWeight: FontWeight.w500),),
+                                ],
+                              ),
+                            )),
+                                     ),
+                     ),
+                   ],
+                 ),
+               ),
+                            Spacer(),
+                               Row(
+                                children: [
+                                  SizedBox(width: 40),
+                                  TextButton(
+                                    onPressed: () async {
+                                        context.go('/login');
+                                      await Supabase.instance.client.auth.signOut();
+                                   
+                                          setState(() {
+                                            
+                                          });
+                                    },
+                                    child: Text('Logout',  textAlign: TextAlign.center, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, 
+                                  color:  const Color.fromARGB(255, 177, 220, 255),),)),
+                                   SizedBox(width: 10),
+                             Icon(Icons.logout, color:  const Color.fromARGB(255, 177, 220, 255),)
+                             
+                                ],
+                              ), SizedBox(height: 20,), 
+                                  ],
+            ),
                     ),
-                  )
-               ],
-                    ),
-        )
-          ])
-         
-          ])
+                               Row(
+            children: [
+              SizedBox(width: 10),
+              SizedBox(
+             width: MediaQuery.of(context).size.width * 0.85,
+                      height: 825,
+                child: Column(children: [
+                 SizedBox(height: 20),
+                          Row(
+                children: [
+                  SizedBox(width: 30),
+                  Text('Routes', style: TextStyle( fontFamily: 'Inter',
+                    color: const Color.fromARGB(255, 23, 85, 161), fontWeight: FontWeight.bold, fontSize: 30)),
+                ],
+                          ),
+                           SizedBox(height: 20,),
+                         Expanded(
+                      child: StreamBuilder(
+                        stream: Supabase.instance.client
+                  .from('route')
+                  .stream(primaryKey: ['id']),
+                        builder: (context,snapshot) {
+               
+                          final data = snapshot.data ?? [];
+                          if (data.isEmpty){
+                            return SizedBox.shrink();
+                          }
+                          
+                            final uniqueMaterials = data
+             .where((entry) => entry['disabled'] != 'true')
+                .map((e) => e['material_route'])
+                .toSet()
+                .toList();
+            
+                          return ListView.builder(
+                            itemCount: uniqueMaterials.length ,
+                            itemBuilder: (context, index) {
+                                
+                                
+                                 final entry = uniqueMaterials[index];
+                                 
+                                 final routesForMaterial = data
+                                  .where((e) => e['material_route'] == entry)
+                                  .toList();
+                                 
+                                 // Sort them by step
+                                 routesForMaterial.sort((a, b) =>
+                                   (a['step'] as int).compareTo(b['step'] as int));
+                                        
+                                         final isDuplicates = routesForMaterial.where((entrye) => entrye['step'] == 1).toList();
+
+                           
+                                 
+                                   String truncateWithEllipsis(int cutoff, String myString) {
+                                   return (myString.length <= cutoff) ? myString : '${myString.substring(0, cutoff)}...';
+                                 }
+                              return SizedBox(
+                                    width: MediaQuery.of(context).size.width * 0.88,
+                                                    height:  MediaQuery.of(context).size.width >  1500 ?  MediaQuery.of(context).size.height * 0.21  :  MediaQuery.of(context).size.width >  1450 ? 
+                          MediaQuery.of(context).size.height *  0.26 :
+                        MediaQuery.of(context).size.height*  0.28,
+                                child: Padding(
+                                          padding: EdgeInsets.all(10),
+                                          child: Material(
+                                            elevation: 3,
+                                            borderRadius: BorderRadius.circular(10),
+                                            color: Colors.white,
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                        color: Colors.white,
+                                                        borderRadius: BorderRadius.circular(10),
+                                              ),
+                                              padding: EdgeInsets.all(20),
+                                              child: Column(
+                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                        children: [
+                                                          // Material header row
+                                                          Row(
+                                children: [
+                                  Text(truncateWithEllipsis(72, entry), style: TextStyle(fontFamily: 'Inter', fontSize: 30)),
+                                  Spacer(),
+                                  ValueListenableBuilder(
+                                    valueListenable: tapIndexNotifier,
+                                    builder: (context, tapIndex, _) {
+                                      return IconButton(
+                                        onPressed: (){
+                                         
+                                         routeEditPopUp(entry);
+                                        },
+                                        icon: Icon(Icons.edit));
+                                    }
+                                  ),
+                                  SizedBox(width: 10),
+                                  IconButton(
+                                        onPressed: () {
+                                       
+                                          final routeId = uniqueMaterials[index]; 
+                                       deletePopUp(routeId);
+                                        },
+                                        icon:  Icon(Icons.delete, color: Colors.red),
+                                      )
+                                    
+                                  
+                                                          ] 
+                                                          ),
+                                          
+                                                          SizedBox(height: 20),
+                                                         
+                                                          SizedBox(
+                            
+                                child: SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: Row(
+                                    children: routesForMaterial.map((routeEntry) {
+                                     double fontSizeBasedOnLength(String text) {
+                                     if (text.length > 15){
+                                    return 13.5;
+                                     }
+                                   else if (text.length > 30){
+                                    return 10.00;
+                                     } else {
+                                    return 17;
+                                     }
+                                   }
+                                  
+                                    
+
+  bool isStepOne = routeEntry['step'] == 1;
+                                    int occurrenceIndex = isStepOne ? isDuplicates.indexWhere((e) => e == routeEntry) : -1;
+
+  bool showArrow = !isStepOne || (isStepOne && occurrenceIndex > 0);
+                                      return 
+                                      Center(
+                                     child: Row(
+                                        children: [
+                                          SizedBox(width: 10),
+                                        showArrow == false ? SizedBox.shrink() : Icon(Icons.arrow_forward),
+                                          routeEntry['material']  != data[routeEntry['step'] - 1]['material'] ?
+                                          Container(
+                                       width: MediaQuery.of(context).size.width * 0.12,
+                                                    height: MediaQuery.of(context).size.height * 0.06,
+                                          decoration: BoxDecoration(
+                                            color: const Color.fromARGB(255, 0, 98, 178),
+                                            borderRadius: BorderRadius.circular(10),
+                                          ),
+                                          child:  Center(
+                                            child: Text(
+                                                      truncateWithEllipsis(31, routeEntry['material'] ?? ''),
+                                                      style: TextStyle(fontFamily: 'Inter', fontSize: fontSizeBasedOnLength(  '${routeEntry['material']}'), color: Colors.white),
+                                                    ),
+                                          ),
+                                          ) : SizedBox.shrink(),
+                                                  Icon(Icons.arrow_forward),
+                                          SizedBox(width: 5),
+                                          Container(
+                                             width: MediaQuery.of(context).size.width * 0.07,
+                                                    height: MediaQuery.of(context).size.height * 0.06,
+                                            decoration: BoxDecoration(
+                                              borderRadius: BorderRadius.circular(10),
+                                              color: Color(0xFFEDEDED),
+                                            ),
+                                            child: Center(
+                                              child: Text(
+                                                
+                                                truncateWithEllipsis(31, routeEntry['process'] ?? ''),
+                                                style: TextStyle(fontFamily: 'Inter', fontSize: fontSizeBasedOnLength('${routeEntry['process']}')),
+                                              ),
+                                            ),
+                                          ),
+                                         
+                                        ],
+                                      ));
+                                    }).toList(),
+                                  ),
+                                ),
+                                                          ),
+                                                        ],
+                                              ),
+                                            ),
+                                          ),
+                                ),
+                              );
+                            },
+                          );
+                        }
+                      ),
+                    )
+                 ],
+                      ),
+                    )
+            ])
+                     
+            ]),
+          )
        );
   
     

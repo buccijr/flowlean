@@ -119,19 +119,22 @@ Widget build(BuildContext content){
     if (_role == 'user') {
       return Scaffold(
         backgroundColor: Colors.white,
-        body: Center(
-          child: Image.asset(
-            'images/restrict.png',
-            width: 400,
-            height: 400,
-            fit: BoxFit.contain,
+        body: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Center(
+            child: Image.asset(
+              'images/restrict.png',
+              width: 400,
+              height: 400,
+              fit: BoxFit.contain,
+            ),
           ),
         ),
       );
     }
 return
    Scaffold(
-      backgroundColor: Color(0xFFFAFAFA),
+      backgroundColor: Color.fromARGB(255, 236, 244, 254),
       body: Row(children: [
         Container(
           height: double.infinity,
@@ -149,7 +152,7 @@ return
           child: Column(
             children: [
               
-              SizedBox(height: 140),
+              SizedBox(height:MediaQuery.of(context).size.height * 0.15,),
              Align(
               alignment: Alignment.centerLeft,
                child: Row(
@@ -190,7 +193,7 @@ return
                  ],
                ),
              ),
-              SizedBox(height:25,),
+              SizedBox(height:MediaQuery.of(context).size.height * 0.018,),
             Align(
               alignment: Alignment.centerLeft,
                child: Row(
@@ -235,7 +238,7 @@ return
                  ],
                ),
              ),
-                SizedBox(height:25),
+                SizedBox(height:MediaQuery.of(context).size.height * 0.018,),
                  Align(
               alignment: Alignment.centerLeft,
                child: Row(
@@ -280,7 +283,7 @@ return
                  ],
                ),
              ),
-              SizedBox(height:25,),
+            SizedBox(height:MediaQuery.of(context).size.height * 0.018,),
             Align(
               alignment: Alignment.centerLeft,
                child: Row(
@@ -326,7 +329,7 @@ return
                ),
              ),
         
-              SizedBox(height: 25),
+            SizedBox(height:MediaQuery.of(context).size.height * 0.018,),
                Align(
               alignment: Alignment.centerLeft,
                child: Row(
@@ -372,7 +375,7 @@ return
                  ],
                ),
              ),
-                 SizedBox(height:25,),
+                 SizedBox(height:MediaQuery.of(context).size.height * 0.018,),
             Align(
               alignment: Alignment.centerLeft,
                child: Row(
@@ -423,7 +426,7 @@ return
                  ],
                ),
              ),
-             SizedBox(height: 25,),
+             SizedBox(height:MediaQuery.of(context).size.height * 0.018,),
               Align(
               alignment: Alignment.centerLeft,
                child: Row(
@@ -514,8 +517,8 @@ return
                   elevation: 11,
                   borderRadius: BorderRadius.circular(16),
                    child: Container(
-                    width: 1400,
-                    height: 250,
+                    width: MediaQuery.of(context).size.width * 0.78,
+                    height: MediaQuery.of(context).size.height * 0.3 ,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(16),
                       // gradient: LinearGradient(
@@ -620,14 +623,14 @@ return
            final responsenumber = datara.length;
                    double fontSizeBasedOnLength(String text) {
       if (text.length > 4 && text.length <= 10){
-        return 34;
+        return MediaQuery.of(context).size.width * 0.02;
       }
        else if (text.length > 15){
-        return 25;
+        return MediaQuery.of(context).size.width * 0.015;
       } else if (text.length > 20) {
-        return 10;
+        return MediaQuery.of(context).size.width * 0.011;
        }  else  {
-        return 34;
+       return MediaQuery.of(context).size.width * 0.02;
         
       }
     }
@@ -636,7 +639,7 @@ return
              return Row(
               
                children: [
-                SizedBox(width: 40),
+                SizedBox(width: MediaQuery.of(context).size.width * 0.023),
                  Row(
                 
                    children: [
@@ -662,10 +665,10 @@ return
                                           : EdgeInsets.symmetric(horizontal: 2),
                                       child: AnimatedContainer(
                                         duration: Duration(milliseconds: 200),
-                            width: isHovered1 ? 310 : 300,
-                            height: isHovered1 ? 131 : 120,
+ width: isHovered1 ?  MediaQuery.of(context).size.width * .185 : MediaQuery.of(context).size.width * .18,
+                  height: isHovered1 ? MediaQuery.of(context).size.width * 0.075 : MediaQuery.of(context).size.width * 0.07,
                            decoration: BoxDecoration(
-                            color: const Color.fromARGB(255, 222, 238, 249),
+                            color:  const Color.fromARGB(255, 254, 254, 254),
                             borderRadius: BorderRadius.circular(16),
                              boxShadow: isHovered1 ?  [ BoxShadow(color: const Color.fromARGB(255, 206, 186, 85), blurRadius: 10)] :   
                              [ BoxShadow(color: const Color.fromARGB(255, 174, 174, 174), blurRadius: 5)]
@@ -686,37 +689,53 @@ return
                                 // ), child: Icon(Icons.pending_outlined, color:  const Color.fromARGB(255, 0, 55, 100), size: 30)),
                                 // ),
                          
-                              Column(
+                              Row(
                             
                                 children: [
-                                  SizedBox(height: 20,),
+                                  SizedBox(height: 10,),
                                     Row(
                                       children: [
                                         SizedBox(width: 20,),
                                         //  Center(child: 
                                  Container(
-                                   width: 35,
-                                height: 35,
+                                   width: MediaQuery.of(context).size.width * .06,
+                  height: MediaQuery.of(context).size.height * 0.11 ,
                                 decoration: BoxDecoration(
-                                  color: const Color.fromARGB(255, 189, 225, 255),
+                                  color: const Color.fromARGB(255, 208, 104, 0),
                                   borderRadius: BorderRadius.circular(10),
                                  
-                                ), child: Icon(Icons.pending_outlined, color:  const Color.fromARGB(255, 0, 55, 100), size: 30)),
+                                ), child: Icon(Icons.forklift, color:  const Color.fromARGB(255, 255, 255, 255), size: MediaQuery.of(context).size.width * .017)),
                                 // ),
-                                SizedBox(width: 15),
-                                        Text('Active requests', style: TextStyle(color:  const Color.fromARGB(255, 151, 151, 151), 
-                                                                          fontSize: 19, fontFamily: 'WorkSans',)),
-                                                                              SizedBox(width: 20),
+                               
+                                        
                                       ],
                                     ),
-                                   SizedBox(height: 5),
-                                  Row(
-                                    children: [
-                                      
-                                      Text('$responsenumber', style: TextStyle(fontFamily: 'Inter', fontSize: 34),),
-                                      SizedBox(width: 160,),
-                                    ],
-                                  ),
+                                    SizedBox(width:MediaQuery.of(context).size.width * 0.006 ,),
+                                 Row(
+                                   mainAxisAlignment: MainAxisAlignment.start,
+                                   crossAxisAlignment: CrossAxisAlignment.start,
+                                   children: [
+                                     Column(
+                                                               children: [
+                                                                   SizedBox(height: 15),
+                                                                 Text('Active Requests', style: TextStyle(color:  const Color.fromARGB(255, 0, 0, 0), 
+                                                                              fontSize: MediaQuery.of(context).size.width * 0.0118, fontFamily: 'WorkSans',)),
+                                                                                
+                                                                 SizedBox(height: 5),
+                                                                 Row(
+                                                                 
+                                                                   children: [
+                                                                  
+                                                                     Text('$responsenumber', style: TextStyle(fontFamily: 'Inter', fontSize: MediaQuery.of(context).size.width * 0.02, color: const Color.fromARGB(255, 0, 0, 0)),),
+                                     
+                                                                   ],
+                                                                 ),
+                                                              
+                                                               ],
+                                                             ),
+                                                            
+                                   ],
+                                 ),
                                 
                                 ],
                               ),
@@ -728,7 +747,7 @@ return
                          );
                        }
                      ),
-                     SizedBox(width: 40),
+                     SizedBox(width: MediaQuery.of(context).size.width * 0.018),
                                           StatefulBuilder(
                        builder: (context, setLocalState) {
                          return MouseRegion(
@@ -752,52 +771,60 @@ return
                                           : EdgeInsets.symmetric(horizontal: 2),
                                       child: AnimatedContainer(
                                         duration: Duration(milliseconds: 200),
-                                                       width: isHovered2 ? 310 : 300,
-                            height: isHovered2 ? 131 : 120,
+                                                      width: isHovered2 ?  MediaQuery.of(context).size.width * .185 : MediaQuery.of(context).size.width * .18,
+                  height: isHovered2 ? MediaQuery.of(context).size.width * 0.075 : MediaQuery.of(context).size.width * 0.07,
                            decoration: BoxDecoration(
-                            color: const Color.fromARGB(255, 228, 240, 250),
+                            color: const Color.fromARGB(255, 255, 255, 255),
                             borderRadius: BorderRadius.circular(16),
                              boxShadow: isHovered2 ?  [ BoxShadow(color: const Color.fromARGB(255, 206, 186, 85), blurRadius: 10)] : 
                              [ BoxShadow(color: const Color.fromARGB(255, 174, 174, 174), blurRadius: 5)]
                            ),
                      child: Padding(
                       padding: const EdgeInsets.all(0),
-                      child: Column(
+                      child: Row(
                         children: [
                        
-                       SizedBox(height: 20),
+                       SizedBox(height: 10),
                                     Row(
                                       children: [
                                         SizedBox(width: 20,),
                                         //  Center(child: 
                                  Container(
-                                   width: 35,
-                                height: 35,
+                               width: MediaQuery.of(context).size.width * .06,
+                  height: MediaQuery.of(context).size.height * 0.11 ,
                                 decoration: BoxDecoration(
-                                  color: const Color.fromARGB(255, 189, 225, 255),
+                                  color: const Color.fromARGB(255, 0, 40, 73),
                                   borderRadius: BorderRadius.circular(10),
                                  
-                                ), child: Icon(Icons.task_alt, color:  const Color.fromARGB(255, 0, 55, 100), size: 30)),
+                                ), child: Icon(Icons.task_alt, color:  const Color.fromARGB(255, 255, 255, 255), size: MediaQuery.of(context).size.width * .017)),
                                 // ),
-                                SizedBox(width: 15),
-                                        Text('Finished Today', style: TextStyle(color:  const Color.fromARGB(255, 151, 151, 151), 
-                                                                          fontSize: 19, fontFamily: 'WorkSans',)),
-                                                                              SizedBox(width: 20),
+                                
+                                        
                                       ],
                                     ),
                                   
-                        SizedBox(width: 20),
-                        Column(
+                        SizedBox(width:MediaQuery.of(context).size.width * 0.006 ,),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                                   crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            SizedBox(height: 5),
-                            Row(
+                            Column(
                               children: [
-                             SizedBox(width: 30),
-                                Text('$finishedToday', style: TextStyle(fontFamily: 'Inter', fontSize: 34),),
-                                
+                                  SizedBox(height: 15),
+                                Text('Finished Today', style: TextStyle(color:  const Color.fromARGB(255, 0, 0, 0), 
+                                                                              fontSize: MediaQuery.of(context).size.width * 0.0118, fontFamily: 'WorkSans',)),
+                                                                                
+                                SizedBox(height: 5),
+                                Row(
+                                  children: [
+                                 
+                                    Text('$finishedToday', style: TextStyle(fontFamily: 'Inter', fontSize: MediaQuery.of(context).size.width * 0.02, color: const Color.fromARGB(255, 0, 0, 0)),),
+                                   
+                                  ],
+                                ),
+                             
                               ],
                             ),
-                         
                           ],
                         ),
                      
@@ -808,7 +835,7 @@ return
                       
                    ],
                  ),
-                 SizedBox(width: 40),
+                    SizedBox(width: MediaQuery.of(context).size.width * 0.018),
                         Row(
                    children: [
                     StatefulBuilder(
@@ -833,49 +860,60 @@ return
                                           : EdgeInsets.symmetric(horizontal: 2),
                                       child: AnimatedContainer(
                                         duration: Duration(milliseconds: 200),
-                                                        width: isHovered3 ? 310 : 300,
-                            height: isHovered3 ? 131 : 120,
+                                                      width: isHovered3 ?  MediaQuery.of(context).size.width * .185 : MediaQuery.of(context).size.width * .18,
+                  height: isHovered3 ? MediaQuery.of(context).size.width * 0.075 : MediaQuery.of(context).size.width * 0.07,
                            decoration: BoxDecoration(
-                            color: const Color.fromARGB(255, 228, 240, 250),
+                            color: const Color.fromARGB(255, 255, 255, 255),
                             borderRadius: BorderRadius.circular(16),
                              boxShadow: isHovered3 ?  [ BoxShadow(color: const Color.fromARGB(255, 206, 186, 85), blurRadius: 10)] : 
                              [ BoxShadow(color: const Color.fromARGB(255, 174, 174, 174), blurRadius: 5)]
                            ),
                       
                      child: Padding(
-                      padding: const EdgeInsets.all(10),
-                      child: Column(
+                      padding: const EdgeInsets.all(0),
+                      child: Row(
                         children: [
-                          SizedBox(width: 10),
+                          SizedBox(height: 10),
                         Row(
                           children: [
                             SizedBox(width: 20),
                             Container(
-                                       width: 35,
-                                    height: 35,
+                                      width: MediaQuery.of(context).size.width * .06,
+                  height: MediaQuery.of(context).size.height * 0.11 ,
                                     decoration: BoxDecoration(
                                       color: const Color.fromARGB(255, 189, 225, 255),
                                       borderRadius: BorderRadius.circular(10),
                                      
-                                    ), child: Icon(Icons.calendar_month, color:  const Color.fromARGB(255, 0, 55, 100), size: 30)),
-                                    SizedBox(width: 15),
-                                    Text('Total (30 days)', style: TextStyle(color:  const Color.fromARGB(255, 151, 151, 151), 
-                                                                          fontSize: 19, fontFamily: 'WorkSans',))
+                                    ), child: Icon(Icons.calendar_month, color:  const Color.fromARGB(255, 255, 255, 255), size:  MediaQuery.of(context).size.width * .017)),
+                                   
+                                    
                           ],
                         ),
-                        SizedBox(width: 20),
-                        Column(
+                         SizedBox(width:MediaQuery.of(context).size.width * 0.006 ,),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                                   crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                           SizedBox(height: 3),
-                            Row(
+                            Column(
                               children: [
-                                 SizedBox(width: 30),
-                                Text('${filteredData1.length}', style: TextStyle(fontFamily: 'Inter', fontSize: 34)),
+                                   SizedBox(height: 15),
+                                Text('Total (30 days)', style: TextStyle(color:  const Color.fromARGB(255, 0, 0, 0), 
+                                                                              fontSize: MediaQuery.of(context).size.width * 0.0118, fontFamily: 'WorkSans',)),
+                               SizedBox(height: 3),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    
+                                    Text('${filteredData1.length}', style: TextStyle(fontFamily: 'Inter', fontSize: MediaQuery.of(context).size.width * 0.02, color: const Color.fromARGB(255, 0, 0, 0))),
+                                   
+                                  ],
+                                ),
                                 
                               ],
                             ),
-                            
                           ],
+                          
                         ),
                      
                       ],),
@@ -883,7 +921,7 @@ return
                      ))
                          ));
                        }),
-                     SizedBox(width: 40),
+                        SizedBox(width: MediaQuery.of(context).size.width * 0.018),
                      
                      
                    StatefulBuilder(
@@ -908,50 +946,59 @@ return
                                           : EdgeInsets.symmetric(horizontal: 2),
                                       child: AnimatedContainer(
                                         duration: Duration(milliseconds: 200),
-                                                        width: isHovered4 ? 310 : 300,
-                            height: isHovered4 ? 131 : 120,
+                                                      width: isHovered4 ?  MediaQuery.of(context).size.width * .185 : MediaQuery.of(context).size.width * .18,
+                  height: isHovered4 ? MediaQuery.of(context).size.width * 0.075 : MediaQuery.of(context).size.width * 0.07,
                            decoration: BoxDecoration(
-                            color: const Color.fromARGB(255, 228, 240, 250),
+                            color:  const Color.fromARGB(255, 255, 255, 255),
                             borderRadius: BorderRadius.circular(16),
                              boxShadow: isHovered4 ?  [ BoxShadow(color: const Color.fromARGB(255, 206, 186, 85), blurRadius: 10)] : 
                              [ BoxShadow(color: const Color.fromARGB(255, 174, 174, 174), blurRadius: 5)]
                            ),
                      child: Padding(
-                      padding: const EdgeInsets.all(10),
-                      child: Column(
+                      padding: const EdgeInsets.all(0),
+                      child: Row(
                         children: [
-                            SizedBox(width: 10),
+                            SizedBox(height: 10),
                        Row(
                           children: [
                             SizedBox(width: 20),
                             Container(
-                                       width: 35,
-                                    height: 35,
+                                       width: MediaQuery.of(context).size.width * .06,
+                  height: MediaQuery.of(context).size.height * 0.11 ,
                                     decoration: BoxDecoration(
-                                      color: const Color.fromARGB(255, 189, 225, 255),
+                                      color: const Color.fromARGB(255, 0, 0, 0),
                                       borderRadius: BorderRadius.circular(10),
                                      
-                                    ), child: Icon(Icons.schedule, color:  const Color.fromARGB(255, 0, 55, 100), size: 30)),
-                                    SizedBox(width: 15),
-                                    Text('Avg. Time', style: TextStyle(color:  const Color.fromARGB(255, 151, 151, 151), 
-                                                                          fontSize: 19, fontFamily: 'WorkSans',))
+                                    ), child: Icon(Icons.schedule, color:  const Color.fromARGB(255, 255, 255, 255), size: MediaQuery.of(context).size.width * .017)),
+                                   
                           ],
                         ),
-                        SizedBox(width: 20),
-                        Column(
+                        SizedBox(width:MediaQuery.of(context).size.width * 0.006 ,),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                                   crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            SizedBox(height: 3,),
-                            Row(
+                            Column(
                               children: [
-                                   SizedBox(width: 30),
-                                Text(avg == -1 ? 'N/A' : '$avg', style: TextStyle(fontFamily: 'Inter', fontSize: fontSizeBasedOnLength('${avg}'))),
-                             
+                                   SizedBox(height: 15),
+                                Text('Avg. Time', style: TextStyle(color:  const Color.fromARGB(255, 0, 0, 0), 
+                                                                              fontSize: MediaQuery.of(context).size.width * 0.0118, fontFamily: 'WorkSans',)),
+                               SizedBox(height: 3),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    
+                                    Text(avg == -1 ? 'N/A' : '$avg', style: TextStyle(fontFamily: 'Inter', fontSize: MediaQuery.of(context).size.width * 0.02, color: const Color.fromARGB(255, 0, 0, 0))),
+                                  
+                                  ],
+                                ),
+                                
                               ],
                             ),
-                            SizedBox(height: 3),
-                            
                           ],
                         ),
+                          
                      
                       ],),
                      ),
@@ -979,8 +1026,8 @@ return
               children: [
                 SizedBox(width: 30,),
                 Container(
-                  width: 1400,
-                  height: 320,
+                  width: MediaQuery.of(context).size.width * .79,
+                  height: MediaQuery.of(context).size.height * 0.37,
                   child: Material(
                     borderRadius: BorderRadius.circular(20),
                     elevation: 5,
@@ -997,12 +1044,14 @@ return
                               ],
                             )),
                           SizedBox(height: 10,),
+
                         SizedBox(
-                             width: 1400,
-                             height: 250,
+                            width: MediaQuery.of(context).size.width * .79,
+                  height: MediaQuery.of(context).size.height * 0.290,
                            child: FutureBuilder(
                              future: Supabase.instance.client.from('masterdata').select(),
                              builder: (context, snapshot) {
+                              print('width: ${MediaQuery.of(context).size.width}, height: ${MediaQuery.of(context).size.height} ');
                               double roundMaxY(double maxY) {
       if (maxY <= 5) return 5;
     
@@ -1092,31 +1141,32 @@ return
                         //   ),
                         // ),
                                  barGroups: [
-                                 BarChartGroupData(x: 0 ,barRods: [BarChartRodData(toY: mondayData.length.toDouble(),  width: 45, gradient:LinearGradient(colors: [const Color.fromARGB(255, 183, 223, 255), const Color.fromARGB(197, 19, 101, 169)],
+                                 BarChartGroupData(x: 0 ,barRods: [BarChartRodData(toY: mondayData.length.toDouble(),  width:  MediaQuery.of(context).size.width * .026,
+ gradient:LinearGradient(colors: [const Color.fromARGB(255, 183, 223, 255), const Color.fromARGB(197, 19, 101, 169)],
                                   begin: Alignment.topCenter, end: Alignment.bottomCenter,
                                   ),
                                    borderRadius: BorderRadius.circular(10))]),
-                                  BarChartGroupData(x: 1 ,barRods: [BarChartRodData(toY: tuesdayData.length.toDouble(),  width: 45, gradient:LinearGradient(colors:[const Color.fromARGB(255, 183, 223, 255), const Color.fromARGB(197, 19, 101, 169)],
+                                  BarChartGroupData(x: 1 ,barRods: [BarChartRodData(toY: tuesdayData.length.toDouble(),  width:  MediaQuery.of(context).size.width * .026, gradient:LinearGradient(colors:[const Color.fromARGB(255, 183, 223, 255), const Color.fromARGB(197, 19, 101, 169)],
                                   begin: Alignment.topCenter, end: Alignment.bottomCenter,
                                   ),
                                    borderRadius: BorderRadius.circular(10))]),
-                                  BarChartGroupData(x: 2 ,barRods: [BarChartRodData(toY: wednesdayData.length.toDouble(),  width: 45, gradient:LinearGradient(colors:[const Color.fromARGB(255, 183, 223, 255), const Color.fromARGB(197, 19, 101, 169)],
+                                  BarChartGroupData(x: 2 ,barRods: [BarChartRodData(toY: wednesdayData.length.toDouble(), width:  MediaQuery.of(context).size.width * .026, gradient:LinearGradient(colors:[const Color.fromARGB(255, 183, 223, 255), const Color.fromARGB(197, 19, 101, 169)],
                                   begin: Alignment.topCenter, end: Alignment.bottomCenter,
                                   ),
                                    borderRadius: BorderRadius.circular(10))]),
-                                  BarChartGroupData(x: 3 ,barRods: [BarChartRodData(toY: thursdayData.length.toDouble(), width: 45, gradient:LinearGradient(colors:[const Color.fromARGB(255, 183, 223, 255), const Color.fromARGB(197, 19, 101, 169)],
+                                  BarChartGroupData(x: 3 ,barRods: [BarChartRodData(toY: thursdayData.length.toDouble(),width:  MediaQuery.of(context).size.width * .026, gradient:LinearGradient(colors:[const Color.fromARGB(255, 183, 223, 255), const Color.fromARGB(197, 19, 101, 169)],
                                   begin: Alignment.topCenter, end: Alignment.bottomCenter,
                                   ),
                                    borderRadius: BorderRadius.circular(10))]),
-                                  BarChartGroupData(x: 4 ,barRods: [BarChartRodData(toY: fridayData.length.toDouble(), width: 45, gradient:LinearGradient(colors: [const Color.fromARGB(255, 183, 223, 255), const Color.fromARGB(197, 19, 101, 169)],
+                                  BarChartGroupData(x: 4 ,barRods: [BarChartRodData(toY: fridayData.length.toDouble(),width:  MediaQuery.of(context).size.width * .026, gradient:LinearGradient(colors: [const Color.fromARGB(255, 183, 223, 255), const Color.fromARGB(197, 19, 101, 169)],
                                   begin: Alignment.topCenter, end: Alignment.bottomCenter,
                                   ),
                                    borderRadius: BorderRadius.circular(10))]),
-                                  BarChartGroupData(x: 5 ,barRods: [BarChartRodData(toY: satData.length.toDouble(),  width: 45, gradient:LinearGradient(colors: [const Color.fromARGB(255, 183, 223, 255), const Color.fromARGB(197, 19, 101, 169)],
+                                  BarChartGroupData(x: 5 ,barRods: [BarChartRodData(toY: satData.length.toDouble(),  width:  MediaQuery.of(context).size.width * .026, gradient:LinearGradient(colors: [const Color.fromARGB(255, 183, 223, 255), const Color.fromARGB(197, 19, 101, 169)],
                                   begin: Alignment.topCenter, end: Alignment.bottomCenter,
                                   ),
                                    borderRadius: BorderRadius.circular(10))]),
-                                  BarChartGroupData(x: 6 ,barRods: [BarChartRodData(toY: sunData.length.toDouble(),  width: 45, gradient:LinearGradient(colors: [const Color.fromARGB(255, 183, 223, 255), const Color.fromARGB(197, 19, 101, 169)],
+                                  BarChartGroupData(x: 6 ,barRods: [BarChartRodData(toY: sunData.length.toDouble(),  width:  MediaQuery.of(context).size.width * .026, gradient:LinearGradient(colors: [const Color.fromARGB(255, 183, 223, 255), const Color.fromARGB(197, 19, 101, 169)],
                                   ),
                                    borderRadius: BorderRadius.circular(10))]),
                                  

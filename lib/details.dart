@@ -42,7 +42,6 @@ Timer.periodic(Duration(minutes: 1), (timer){
   
 
 
-
 });
 
 }
@@ -51,40 +50,46 @@ bool loadingUser = false;
   @override
   Widget build (BuildContext context){
   return Scaffold(
-  backgroundColor: Color(0xFFFAFAFA),
-  body: Column(
-children: [
-  SizedBox(height: 50),
-    MouseRegion(
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector (
-        onTap: (){
-        context.go(widget.route!);
-        },
-  child: Align(
-    alignment: Alignment.topLeft,
-    child: Row(children: [
-      SizedBox(width: 50),
-     Icon(Icons.keyboard_backspace),
-     SizedBox(width: 10),
-  Text('Back', style: TextStyle(fontSize: 20),)]),
-    ),
-      )),
-    Row(
-      children: [
-        SizedBox(width: 10),
-        SizedBox(
-            width: 1710,
-                  height: 750,
-          child: Expanded(
+  backgroundColor: Color.fromARGB(255, 236, 244, 254),
+  body: SingleChildScrollView(
+    scrollDirection: Axis.vertical,
+    child: Column(
+    children: [
+    SizedBox(height: 50),
+      MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector (
+          onTap: (){
+
+      context.go(widget.route ?? '/dashboard');
+    
+    
+          },
+    child: Align(
+      alignment: Alignment.topLeft,
+      child: Row(children: [
+        SizedBox(width: 50),
+       Icon(Icons.keyboard_backspace),
+       SizedBox(width: 10),
+    Text('Back', style: TextStyle(fontSize: 20),)]),
+      ),
+        )),
+      Row(
+        children: [
+          SizedBox(width: 10),
+          SizedBox(
+              
+              height: MediaQuery.of(context).size.height * 0.8,
+                 width: MediaQuery.of(context).size.width * 0.98,
             child: Column(children: [
              SizedBox(height: 20),
-          Row(
+                      Row(
             children: [
               SizedBox(width: 40),
               FutureBuilder(
                 future: Supabase.instance.client.from('detail').select().eq('idreq', widget.id),
                 builder: (context, snapshot) {
+                  
                   if (snapshot.connectionState == ConnectionState.waiting){
                    return CircularProgressIndicator();
                   }
@@ -96,8 +101,8 @@ children: [
                 }
               ),
             ],
-          ),
-          SizedBox(height: 80),
+                      ),
+                      SizedBox(height: 80),
             Container(
               
                decoration: BoxDecoration(
@@ -109,44 +114,45 @@ children: [
                 height: 50,
                 width: double.infinity,
                 child: Row(children: [
-                  SizedBox(width: 20),
+                  SizedBox(width: MediaQuery.of(context).size.width * 0.009),
                   
-                    SizedBox(width: 250, child: Text('Process', style: TextStyle(fontSize: 15,  fontFamily: 'Inter', fontWeight: FontWeight.bold))),
-                       SizedBox(width: 20),
-                    SizedBox(width: 150, child: Text('Request Time', style: TextStyle(fontSize: 15,  fontFamily: 'Inter', fontWeight: FontWeight.bold))),
-                       SizedBox(width: 20),
+                    SizedBox(width: MediaQuery.of(context).size.width * 0.15, child: Text('Process', style: TextStyle(fontSize: 15,  fontFamily: 'Inter', fontWeight: FontWeight.bold))),
+                      SizedBox(width: MediaQuery.of(context).size.width * 0.009),
+                    SizedBox(width: MediaQuery.of(context).size.width * 0.1, child: Text('Request Time', style: TextStyle(fontSize: 15,  fontFamily: 'Inter', fontWeight: FontWeight.bold))),
+                     SizedBox(width: MediaQuery.of(context).size.width * 0.009),
                      
-                    SizedBox(width: 150, child: Text('Start time', style: TextStyle(fontSize: 15,  fontFamily: 'Inter', fontWeight: FontWeight.bold))),
-                       SizedBox(width: 20),
-                    SizedBox(width: 150, child: Text('End time', style: TextStyle(fontSize: 15,  fontFamily: 'Inter', fontWeight: FontWeight.bold))),
-                       SizedBox(width: 20),
-                    SizedBox(width: 80, child: Text('Status', style: TextStyle(fontSize: 15,  fontFamily: 'Inter', fontWeight: FontWeight.bold))),
-                       SizedBox(width: 40),
-                    SizedBox(width: 250, child: Text('Next process', style: TextStyle(fontSize: 15,  fontFamily: 'Inter', fontWeight: FontWeight.bold))),
-                       SizedBox(width: 20),
-                    SizedBox(width: 150, child: Text('Current User', style: TextStyle(fontSize: 15,  fontFamily: 'Inter', fontWeight: FontWeight.bold))),
-                       SizedBox(width: 20),
-                    SizedBox(width: 150, child: Text('Total Time (min)', style: TextStyle(fontSize: 15,  fontFamily: 'Inter', fontWeight: FontWeight.bold))),
+                    SizedBox(width: MediaQuery.of(context).size.width * 0.1, child: Text('Start time', style: TextStyle(fontSize: 15,  fontFamily: 'Inter', fontWeight: FontWeight.bold))),
+                       SizedBox(width: MediaQuery.of(context).size.width * 0.009),
+                    SizedBox(width: MediaQuery.of(context).size.width * 0.1, child: Text('End time', style: TextStyle(fontSize: 15,  fontFamily: 'Inter', fontWeight: FontWeight.bold))),
+                       SizedBox(width: MediaQuery.of(context).size.width * 0.009),
+                    SizedBox(width:  MediaQuery.of(context).size.width * 0.06, child: Text('Status', style: TextStyle(fontSize: 15,  fontFamily: 'Inter', fontWeight: FontWeight.bold))),
+                        SizedBox(width: MediaQuery.of(context).size.width * 0.009),
+                    SizedBox(width: MediaQuery.of(context).size.width * 0.15, child: Text('Next process', style: TextStyle(fontSize: 15,  fontFamily: 'Inter', fontWeight: FontWeight.bold))),
+                      SizedBox(width: MediaQuery.of(context).size.width * 0.009),
+                    SizedBox(width: MediaQuery.of(context).size.width * 0.1, child: Text('Current User', style: TextStyle(fontSize: 15,  fontFamily: 'Inter', fontWeight: FontWeight.bold))),
+                       SizedBox(width: MediaQuery.of(context).size.width * 0.01),
+                    SizedBox(width: MediaQuery.of(context).size.width * 0.088, child: Text('Total Time', style: TextStyle(fontSize: 15,  fontFamily: 'Inter', fontWeight: FontWeight.bold))),
                 ],)
             ),
             Expanded(
-            child: StreamBuilder<List<Map<String, dynamic>>>(
-          stream: Supabase.instance.client
+            child: StreamBuilder(
+                      stream: Supabase.instance.client
               .from('detail')
               .stream(primaryKey: ['id'])
               .order('id'),
-          builder: (context, snapshot) {
+                      builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
              loadingUser = true;
             } else if (snapshot.hasError) {
               return Center(child: Text('Error: ${snapshot.error}'));
             }
-          
+                      
             final data = snapshot.data ?? [];
             final filteredData = data
                 .where((entry) => entry['idreq'] == widget.id)
                 .toList();
-          
+                      
+                     
             if (filteredData.isEmpty) {
               return Center(child: Column(
                 children: [
@@ -167,12 +173,12 @@ children: [
                 ],
               ));
             }
-          
+                      
             return ListView.builder(
               itemCount: filteredData.length,
               itemBuilder: (context, index) {
                 final entry = filteredData[index];
-          
+                      
                  final startTimeStr = DateTime.parse(entry['starttime']).toLocal();
               final startTime = DateFormat("MM-dd h:mm a").format(startTimeStr);
               
@@ -181,13 +187,13 @@ children: [
               
               final endTime = (entry['endtime'] != null) ? DateFormat("MM-dd h:mm a").format(DateTime.parse(entry['endtime']).toLocal()) : 'N/A';
              
-          
+                      
               final idreq = widget.id;
-          
-           final process = entry['process'];
-          final originalneed = entry['originalneed'];
-          final username = entry['usernamed'];
-          
+                      
+                       final process = entry['process'];
+                      final originalneed = entry['originalneed'];
+                      final username = entry['usernamed'];
+                      
                 return FutureBuilder(
                   future:  Supabase.instance.client.from('process_users').select().eq('processpu', entry['process']).or('disabled.is.null,disabled.not.eq.true'),
                   builder: (context, snapshot) {
@@ -199,8 +205,8 @@ children: [
                           child: Text('')),
                       );
                     }
-
-
+            
+            
                              
                   int minutesElapsed;
                 final createdAt = DateTime.parse(entry['starttime']).toUtc();
@@ -242,18 +248,18 @@ children: [
                             Row(
                               children: [
                               
-                                                 SizedBox(width: 20),
-                                              SizedBox(width: 250, child: Text(process, style: TextStyle(fontSize: 15,  fontFamily: 'Inter', ))),
-                                                 SizedBox(width: 20),
-                                              SizedBox(width: 150, child: Text(startTime, style: TextStyle(fontSize: 15,  fontFamily: 'Inter', ))),
-                                                 SizedBox(width: 20),
-                                              SizedBox(width: 150, child: Text(startTimeU, style: TextStyle(fontSize: 15,  fontFamily: 'Inter', ))),
-                                                 SizedBox(width: 20),
-                                                    SizedBox(width: 150, child: Text(endTime, style: TextStyle(fontSize: 15,  fontFamily: 'Inter', ))),
-                                                 SizedBox(width: 20),
-                                              SizedBox(width: 80, child: Container(
-                                                width: 80,
-                                                height: 35,
+                                                  SizedBox(width: MediaQuery.of(context).size.width * 0.009),
+                                              SizedBox(width: MediaQuery.of(context).size.width * 0.15, child: Text(process, style: TextStyle(fontSize: 15,  fontFamily: 'Inter', ))),
+                                                 SizedBox(width: MediaQuery.of(context).size.width * 0.009),
+                                              SizedBox(width: MediaQuery.of(context).size.width * 0.1, child: Text(startTime, style: TextStyle(fontSize: 15,  fontFamily: 'Inter', ))),
+                                                 SizedBox(width: MediaQuery.of(context).size.width * 0.009),
+                                              SizedBox(width: MediaQuery.of(context).size.width * 0.1, child: Text(startTimeU, style: TextStyle(fontSize: 15,  fontFamily: 'Inter', ))),
+                                                 SizedBox(width: MediaQuery.of(context).size.width * 0.009),
+                                                    SizedBox(width: MediaQuery.of(context).size.width * 0.1, child: Text(endTime, style: TextStyle(fontSize: 15,  fontFamily: 'Inter', ))),
+                                                  SizedBox(width: MediaQuery.of(context).size.width * 0.009),
+                                              SizedBox(width:  MediaQuery.of(context).size.width * 0.04598, child: Container(
+                                               width: MediaQuery.of(context).size.width * 0.04598,
+                                                height: MediaQuery.of(context).size.height * 0.04147,
                                                 decoration: BoxDecoration(
                                                   borderRadius: BorderRadius.circular(12),
                                                 color: 
@@ -269,11 +275,9 @@ children: [
                                                 : const Color.fromARGB(255, 255, 255, 227),
                                                 )
                                                 ),
-                                                child: Padding(
-                                                  padding: const EdgeInsets.all(8.0),
-                                                  child: Row(
-                                                    children: [
-                                                      SizedBox(width: entry['status'] == 1 ? 6 : 0),
+                                                child: Center(
+                                                  child:
+                                                      
                                                       alone == true ?
                                                          Center(
                                                            child: Text(
@@ -281,7 +285,7 @@ children: [
                                                                 ? 'Done'
                                                                 : 'Pending',
                                                               style: TextStyle(
-                                                                fontSize: 15,
+                                                                fontSize: MediaQuery.of(context).size.height * 0.1,
                                                                 fontFamily: 'Inter',
                                                                 color: (entry['status'] == 1)
                                                                   ? const Color.fromARGB(255, 0, 130, 4)
@@ -289,40 +293,33 @@ children: [
                                                               ),
                                                             ),
                                                          ) : Center(
-                                                           child: Row(
-                                                             children: [
-                                                               Center(
-                                                                 child: Text(
-                                                                     entry['current_user'] == null ? 
-                                                                     'Pending' :
-                                                                    (entry['status'] == 1) 
-                                                                      ? 'Done'
-                                                                      : 'Active',
-                                                                    style: TextStyle(
-                                                                      fontSize: 15,
-                                                                      fontFamily: 'Inter',
-                                                                      color: 
-                                                                      entry['current_user'] == null ? const Color.fromARGB(255, 73, 73, 73) : 
-                                                                      (entry['status'] == 1)
-                                                                        ? const Color.fromARGB(255, 0, 130, 4)
-                                                                        : const Color.fromARGB(255, 205, 170, 0),
-                                                                    ),
-                                                                  ),
-                                                               ),
-                                                             ],
-                                                           ),
+                                                           child: Text(
+                                                               entry['current_user'] == null ? 
+                                                               'Pending' :
+                                                              (entry['status'] == 1) 
+                                                                ? 'Done'
+                                                                : 'Active',
+                                                              style: TextStyle(
+                                                                fontSize: MediaQuery.of(context).size.height * 0.018,
+                                                                fontFamily: 'Inter',
+                                                                color: 
+                                                                entry['current_user'] == null ? const Color.fromARGB(255, 73, 73, 73) : 
+                                                                (entry['status'] == 1)
+                                                                  ? const Color.fromARGB(255, 0, 130, 4)
+                                                                  : const Color.fromARGB(255, 205, 170, 0),
+                                                              ),
+                                                            ),
                                                          ) 
                                                         
                                                       
-                                                    ],
-                                                  ),
+                                                 
                                                 ))),
-                                                 SizedBox(width: 40),
-                                              SizedBox(width: 250, child: Text(entry['nextprocess'] ?? 'N/A', style: TextStyle(fontSize: 15))),
-                                               SizedBox(width: 20),
-                                                 SizedBox(width: 150, child: Text(entry['current_user'] ?? entry['user_unique'] ?? 'N/A', style: TextStyle(fontSize: 15))),
-                                                 SizedBox(width: 20),
-                                                 SizedBox(width: 150, child: Text('$minutesElapsed' ?? 'N/A', style: TextStyle(fontSize: 15))),
+                                                  SizedBox(width: MediaQuery.of(context).size.width * 0.021),
+                                              SizedBox(width: MediaQuery.of(context).size.width * 0.1, child: Text(entry['nextprocess'] ?? 'N/A', style: TextStyle(fontSize: 15))),
+                                                SizedBox(width: MediaQuery.of(context).size.width * 0.064),
+                                                 SizedBox(width: MediaQuery.of(context).size.width * 0.1, child: Text(entry['current_user'] ?? entry['user_unique'] ?? 'N/A', style: TextStyle(fontSize: 15))),
+                                                  SizedBox(width: MediaQuery.of(context).size.width * 0.01),
+                                                 SizedBox(width: MediaQuery.of(context).size.width * 0.088, child: Text('$minutesElapsed', style: TextStyle(fontSize: 15))),
                                               
                               ],
                             ),
@@ -334,14 +331,14 @@ children: [
                 );
               },
             );
-          },
+                      },
             ),)
             ]),
           ),
-        ),
-      ],
-    )
-],
+        ],
+      )
+    ],
+    ),
   )
   );
   }

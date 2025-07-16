@@ -58,7 +58,7 @@ class _MbiState extends State<Mbi> {
   } else if (text.length > 15){
     return 22;
   } else {
-    return 25;
+    return 20;
   }
 }
   // String? defaults;
@@ -86,7 +86,7 @@ initState(){
 Future machineFetch() async {
   final user = Supabase.instance.client.auth.currentUser;
   final email = user?.email;
-  final response0 = await Supabase.instance.client.from('user').select().eq('email', email!).maybeSingle();
+  final response0 = await Supabase.instance.client.from('user').select().eq('email', email ?? 'hi').maybeSingle();
   username = response0?['username'];
   final response1 = await Supabase.instance.client.from('user_machine').select().eq('user_mac', username).maybeSingle();
   final response3 = await Supabase.instance.client.from('process_users').select().eq('userpu', username).or('disabled.is.null,disabled.not.eq.true');
@@ -108,36 +108,40 @@ Future fetchUsername() async {
 
   final user = Supabase.instance.client.auth.currentUser;
 
-  if (user == null) {
-    setState(() {
-      loadingUser.value = false;
-    });
-   
-  }
+  print('user $user');
+  
 
 
   final email = user?.email;
-
+print('emil $email');
   final response = await Supabase.instance.client
       .from('user')
       .select()
-      .eq('email', email!)
+      .eq('email', email ?? 'hi')
       .maybeSingle();
 
-  fetchedUsername = response?['username'];
+  fetchedUsername = response?['username'] ?? 'hi';
 
   if (fetchedUsername != null) {
-    final response3 = await Supabase.instance.client.from('user_machine').select().eq('user_mac', fetchedUsername!).maybeSingle();
+    final response3 = await Supabase.instance.client.from('user_machine').select().eq('user_mac', fetchedUsername ?? 'hi').maybeSingle();
     if (response3 != null){
       allowedProcess = response3['machine'];
 
-    } else {
+    } 
+  } else {
     final response2 = await Supabase.instance.client
         .from('process_users')
         .select()
-        .eq('userpu', fetchedUsername!).or('disabled.is.null,disabled.not.eq.true');
-       
-        allowedProcess = response2[0]['processpu'];
+        .eq('userpu', fetchedUsername ?? 'hi')
+        .or('disabled.is.null,disabled.not.eq.true');
+
+    if (response2 != null && response2.isNotEmpty) {
+      allowedProcess = response2[0]['processpu'];
+    } else {
+      allowedProcess = ''; // or handle the missing data case
+    
+  
+
     
     }}
        final response10 = await Supabase.instance.client.from('process_users').select().eq('processpu', allowedProcess).or('disabled.is.null,disabled.not.eq.true');
@@ -209,7 +213,7 @@ bool processSelected = false;
      
    return Scaffold(
     floatingActionButton: AddButton(),
-  backgroundColor: Color(0xFFFAFAFA),
+ backgroundColor: Color.fromARGB(255, 236, 244, 254),
   body: SingleChildScrollView(
     scrollDirection: Axis.horizontal,
     child: Row(children: [
@@ -230,7 +234,7 @@ bool processSelected = false;
           children: [
             Column(
               children: [
-                SizedBox(height: 170),
+                 SizedBox(height:MediaQuery.of(context).size.height * 0.15,),
                Align(
                 alignment: Alignment.centerLeft,
                  child: Row(
@@ -272,7 +276,7 @@ bool processSelected = false;
                    ],
                  ),
                ),
-                SizedBox(height:25,),
+               SizedBox(height:MediaQuery.of(context).size.height * 0.018,),
               Align(
                 alignment: Alignment.centerLeft,
                  child: Row(
@@ -315,7 +319,7 @@ bool processSelected = false;
                    ],
                  ),
                ),
-                SizedBox(height: 25),
+                SizedBox(height:MediaQuery.of(context).size.height * 0.018,),
                  Align(
                 alignment: Alignment.centerLeft,
                  child: Row(
@@ -358,7 +362,7 @@ bool processSelected = false;
                    ],
                  ),
                ),
-                             SizedBox(height: 300),
+                             Spacer(),
                               MouseRegion(
                                 cursor: SystemMouseCursors.click,
                                 child: GestureDetector(
@@ -366,31 +370,44 @@ bool processSelected = false;
                                    Supabase.instance.client.auth.signOut();
                                   context.go('/login');
                                   },
-                                  child: Row(
-                                    children: [
-                                      SizedBox(width: 40),
-                                      Text('Logout',  textAlign: TextAlign.center, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, 
-                                      color:  const Color.fromARGB(255, 177, 220, 255),),),
-                                       SizedBox(width: 10),
-                                                               Icon(Icons.logout, color:  const Color.fromARGB(255, 177, 220, 255),)
-                                    ],
-                                  ),
+                                  child:  Column(
+                                      children: [
+                                        Row(
+                                          children: [
+                                            SizedBox(width: 40),
+                                            Column(
+                                              children: [
+                                                Text('Logout',  textAlign: TextAlign.center, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, 
+                                                color:  const Color.fromARGB(255, 177, 220, 255),),),
+                                              ],
+                                            ),
+                                             SizedBox(width: 10),
+                                                                     Icon(Icons.logout, color:  const Color.fromARGB(255, 177, 220, 255),)
+                                          ],
+                                        ),
+                                         SizedBox(height: 20,),
+                                      ],
+                                    ),
                                 ),
                               ),
+                               SizedBox(height: 20,)
               ],
             ),
+           
           ],
         ),
       ),
-     loadingUser.value ? Center(
+    //  loadingUser.value ? Center(
       
-      child: Row(
-        children: [
-          SizedBox(width: 750,),
-          CircularProgressIndicator(color: Colors.blue,),
-        ],
-      )) : 
+    //   child: Row(
+    //     children: [
+    //       SizedBox(width: 750,),
+    //       CircularProgressIndicator(color: Colors.blue,),
+    //     ],
+    //   )) : 
     Column(
+       mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
             mainAxisAlignment: MainAxisAlignment.start,
@@ -406,99 +423,103 @@ bool processSelected = false;
               Align(
                 alignment: Alignment.topLeft,
                 child: Row(
+
                   children: [
                     SizedBox(width: 40),
                   
-                                          FutureBuilder(
-                                            future: machineFetch(),
-                                            builder: (context, snapshot) {
-                                             if (snapshot.connectionState == ConnectionState.waiting || snapshot.data == null){
-                                              loadingUser.value = true;
-                                             }
-                                           
-                                             final datas = snapshot.data ?? [];
-
-                                         
-
+                                          Align(
+                                            alignment: Alignment.topLeft,
+                                            child: FutureBuilder(
+                                              future: machineFetch(),
+                                              builder: (context, snapshot) {
+                                               if (snapshot.connectionState == ConnectionState.waiting || snapshot.data == null){
+                                                loadingUser.value = true;
+                                               }
                                              
-                                             
-                  if (datas is! List || datas.length < 2 || snapshot.data == null) {
-                    loadingUser.value = true;
-                     return Text('Dashboard - ', style: TextStyle(
-                                                                    fontFamily: 'WorkSans',
-                                                                    color: const Color.fromARGB(255, 23, 85, 161), fontWeight: FontWeight.bold, fontSize: 30));
-                                                                    
-                  }
-              
-                                              final data = snapshot.data[0] ?? {};
-                                             
-                                             final data2 = snapshot.data[1] ?? {};
-              final machine = (data2 is Map<String, dynamic>) ? data2['machine'] : null;
-                                         
-                                                
-                                           data.sort((a, b) {
-                if (a['processpu'] == machine) return -1;
-                if (b['processpu'] == machine) return 1;
-                return 0;
-              });
-              final processList = data.map((e) => e['processpu']).toList();
-             String? defaults = processList.contains(machine)
-    ? machine
-    : (processList.isNotEmpty ? processList.first : null);
-                                         
-                                              if (data.length == 1){
-                                              return Text('Dashboard - $defaults', style: TextStyle(
-                                                                    fontFamily: 'WorkSans',
-                                                                    color: const Color.fromARGB(255, 23, 85, 161), fontWeight: FontWeight.bold, fontSize: 30));
-                                            } else {
-                                              return Row(children: [
-                                               Text('Dashboard - ', style: TextStyle(
-                                                                    fontFamily: 'WorkSans',
-                                                                    color: const Color.fromARGB(255, 23, 85, 161), fontWeight: FontWeight.bold, fontSize: 30)),
-                                                                    SizedBox(width: 5,),
-                                                                    DropdownButtonHideUnderline(
-                                                                      child: DropdownButton<String>(
-                                                                        value: defaults,
-                                                                       items: processList.toSet().map<DropdownMenuItem<String>>((process) {
-                return DropdownMenuItem<String>(
-                  value: process,
-                  child: Text(
-                    process,
-                    style: TextStyle(
-                      fontFamily: 'WorkSans',
-                      color: const Color.fromARGB(255, 23, 85, 161),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 30,
-                    ),
-                  ),
-                );
-              }).toList(),
-                                                                        onChanged: (value) async {
+                                               final datas = snapshot.data ?? [];
+                                            
+                                                                                     
+                                            
+                                               
+                                               
+                                                              if (datas is! List || datas.length < 2 || snapshot.data == null) {
+                                                                loadingUser.value = true;
+                                                                 return Text('Dashboard - ', style: TextStyle(
+                                                                      fontFamily: 'WorkSans',
+                                                                      color: const Color.fromARGB(255, 23, 85, 161), fontWeight: FontWeight.bold, fontSize: 30));
+                                                                      
+                                                              }
+                                                          
+                                                final data = snapshot.data[0] ?? {};
+                                               
+                                               final data2 = snapshot.data[1] ?? {};
+                                                          final machine = (data2 is Map<String, dynamic>) ? data2['machine'] : null;
+                                                                                     
+                                                  
+                                             data.sort((a, b) {
+                                                            if (a['processpu'] == machine) return -1;
+                                                            if (b['processpu'] == machine) return 1;
+                                                            return 0;
+                                                          });
+                                                          final processList = data.map((e) => e['processpu']).toList();
+                                                         String? defaults = processList.contains(machine)
+                                                ? machine
+                                                : (processList.isNotEmpty ? processList.first : null);
+                                                                                     
+                                                if (data.length == 1){
+                                                return Text('Dashboard - $defaults', style: TextStyle(
+                                                                      fontFamily: 'WorkSans',
+                                                                      color: const Color.fromARGB(255, 23, 85, 161), fontWeight: FontWeight.bold, fontSize: 30));
+                                              } else {
+                                                return Row(children: [
+                                                 Text('Dashboard - ', style: TextStyle(
+                                                                      fontFamily: 'WorkSans',
+                                                                      color: const Color.fromARGB(255, 23, 85, 161), fontWeight: FontWeight.bold, fontSize: 30)),
+                                                                      SizedBox(width: 5,),
+                                                                      DropdownButtonHideUnderline(
+                                                                        child: DropdownButton<String>(
+                                                                          value: defaults,
+                                                                         items: processList.toSet().map<DropdownMenuItem<String>>((process) {
+                                                            return DropdownMenuItem<String>(
+                                                              value: process,
+                                                              child: Text(
+                                                                process,
+                                                                style: TextStyle(
+                                                                  fontFamily: 'WorkSans',
+                                                                  color: const Color.fromARGB(255, 23, 85, 161),
+                                                                  fontWeight: FontWeight.bold,
+                                                                  fontSize: 30,
+                                                                ),
+                                                              ),
+                                                            );
+                                                          }).toList(),
+                                                                          onChanged: (value) async {
+                                                                            
+                                                                           final user = Supabase.instance.client.auth.currentUser;
+                                                            final email = user?.email;
+                                                            final response0 = await Supabase.instance.client.from('user').select().eq('email', email ?? 'hi').maybeSingle();
+                                                            final company = response0?['company'];
+                                                            final responses = await Supabase.instance.client.from('user_machine').select().eq('user_mac', username).maybeSingle();
+                                                     defaults = value!;
                                                                           
-                                                                         final user = Supabase.instance.client.auth.currentUser;
-                final email = user?.email;
-                final response0 = await Supabase.instance.client.from('user').select().eq('email', email!).maybeSingle();
-                final company = response0?['company'];
-                final responses = await Supabase.instance.client.from('user_machine').select().eq('user_mac', username).maybeSingle();
-                                                   defaults = value!;
-                                                                        
-                                                                        responses == null ?
-                                                                        await Supabase.instance.client.from('user_machine').insert({
-                                                                          'machine': defaults,
-                                                                          'company': company,
-                                                                          'user_mac': username,
-                                                                        }) : await Supabase.instance.client.from('user_machine').update({
-                                                                         'machine': defaults,
-                                                                        }).eq('user_mac', username);
-                                                                      setState(() {
-                                                                          defaults = value;
-                                                                        });
-                                                                        },
+                                                                          responses == null ?
+                                                                          await Supabase.instance.client.from('user_machine').insert({
+                                                                            'machine': defaults,
+                                                                            'company': company,
+                                                                            'user_mac': username,
+                                                                          }) : await Supabase.instance.client.from('user_machine').update({
+                                                                           'machine': defaults,
+                                                                          }).eq('user_mac', username);
+                                                                        setState(() {
+                                                                            defaults = value;
+                                                                          });
+                                                                          },
+                                                                        ),
                                                                       ),
-                                                                    ),
-                                              ],);
-                                            }
-                                            }
+                                                ],);
+                                              }
+                                              }
+                                            ),
                                           ),
                                         
                   ],
@@ -516,20 +537,18 @@ bool processSelected = false;
               elevation: 11,
               borderRadius: BorderRadius.circular(16),
                child: Container(
-                width: 1350,
-                height: 280,
+               width: MediaQuery.of(context).size.width * 0.78,
+                    height: MediaQuery.of(context).size.height * 0.3 ,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
-                  gradient: LinearGradient(
-                    colors: [Colors.white, Colors.white,  const Color.fromARGB(255, 177, 220, 255)],
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight
-                    )
+                  color: const Color.fromARGB(255, 0, 69, 125)
+                  
+                  
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(20),
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                     FutureBuilder(
@@ -545,58 +564,61 @@ bool processSelected = false;
                   for(final entry in filteredData){
                    usernames = entry['username'];
                   }
-                        return ShaderMask(
-  shaderCallback: (bounds) => LinearGradient(
-    colors: [const Color.fromARGB(255, 0, 80, 200), const Color.fromARGB(255, 255, 226, 81)],
-  ).createShader(Rect.fromLTWH(0, 0, bounds.width, bounds.height)),
-  blendMode: BlendMode.srcIn,
-  child: Text(
-    '${greeting()}, $usernames!', 
-    style: TextStyle(
-      fontSize: 40,
-      fontWeight: FontWeight.bold,
-      fontFamily: 'Inter',
-      color: Colors.white, // Needed for ShaderMask to work
-    ),
-  ),
-);
+                        return Align(
+                          alignment: Alignment.centerLeft,
+                          child: ShaderMask(
+                            shaderCallback: (bounds) => LinearGradient(
+                              colors: [const Color.fromARGB(255, 164, 200, 255), const Color.fromARGB(255, 255, 226, 81)],
+                            ).createShader(Rect.fromLTWH(0, 0, bounds.width, bounds.height)),
+                            blendMode: BlendMode.srcIn,
+                            child: Text(
+                              '${greeting()}, $usernames!', 
+                              style: TextStyle(
+                                fontSize: MediaQuery.of(context).size.height * 0.07,
+                              
+                                fontFamily: 'Inter',
+                                color: Colors.white, // Needed for ShaderMask to work
+                              ),
+                            ),
+                          ),
+                        );
                       }
                     ),
                  SizedBox(height: 20),
-                FutureBuilder(
-           future: Future.wait([
-            Supabase.instance.client.from('masterdata').select(),
-            fetchUsername(),
-            Supabase.instance.client.from('detail').select(),
-            ]),
-           builder: (context, snapshot) {
-             if (snapshot.connectionState == ConnectionState.waiting || snapshot.data == null){
-              loadingUser.value = true;
+//                 FutureBuilder(
+//            future: Future.wait([
+//             Supabase.instance.client.from('masterdata').select(),
+//             fetchUsername(),
+//             Supabase.instance.client.from('detail').select(),
+//             ]),
+//            builder: (context, snapshot) {
+//              if (snapshot.connectionState == ConnectionState.waiting || snapshot.data == null){
+//               loadingUser.value = true;
           
-             } else {
+//              } else {
             
-             } if (snapshot.hasError){
-              return Text('Error: ${snapshot.error}');
-             }
+//              } if (snapshot.hasError){
+//               return Text('Error: ${snapshot.error}');
+//              }
         
-        print('loadus $loadingUser');
-        final data3 = snapshot.data?[0] ?? [];
-   final userData = snapshot.data?[1];
-   final data = snapshot.data?[2] ?? [];
-if (userData == null || userData is! Map<String, dynamic> ) {
-  loadingUser.value = true;
-  return Text('');
-}
-  print('loadus2 $loadingUser');
-final usernamer = userData['username'];
-final allowedProcessa = userData['allowedProcess'];
-final aloner = userData['alone'];
+//         print('loadus $loadingUser');
+//         final data3 = snapshot.data?[0] ?? [];
+//    final userData = snapshot.data?[1];
+//    final data = snapshot.data?[2] ?? [];
+// if (userData == null || userData is! Map<String, dynamic> ) {
+//   loadingUser.value = true;
+//   return Text('');
+// }
+//   print('loadus2 $loadingUser');
+// final usernamer = userData['username'];
+// final allowedProcessa = userData['allowedProcess'];
+// final aloner = userData['alone'];
 
 
-        final filteredData = 
+//         final filteredData = 
         
-        data
-        .where((entry) => entry['usernamem'] == fetchedUsername && entry['closed'] == 1);
+//         data
+//         .where((entry) => entry['usernamem'] == fetchedUsername && entry['closed'] == 1);
            
          
         
@@ -604,389 +626,389 @@ final aloner = userData['alone'];
          
         
         
-          final filteredData7 = 
-        aloner == 'false' ?
-        data3
-        .where((entry) => entry['current_user'] == fetchedUsername )
-        .where((entry) {
-        final start = DateTime.parse(entry['starttime']);
-        final finish = entry['finishedtime'];
-        if (finish == null) return false;
-        final finish1 = DateTime.parse(entry['finishedtime']);
-         return start.difference(finish1).inDays.abs() <= 1;
+//           final filteredData7 = 
+//         aloner == 'false' ?
+//         data3
+//         .where((entry) => entry['current_user'] == fetchedUsername )
+//         .where((entry) {
+//         final start = DateTime.parse(entry['starttime']);
+//         final finish = entry['finishedtime'];
+//         if (finish == null) return false;
+//         final finish1 = DateTime.parse(entry['finishedtime']);
+//          return start.difference(finish1).inDays.abs() <= 1;
          
         
-        }).toList()
-        : 
-        data
-        .where((entry) => entry['user_unique'] == fetchedUsername)
-        .where((entry) {
-        final start = DateTime.parse(entry['starttime']);
-        final finish = entry['finishedtime'];
-        if (finish == null) return false;
-        final finish1 = DateTime.parse(entry['finishedtime']);
-         return start.difference(finish1).inDays.abs() <= 1;
+//         }).toList()
+//         : 
+//         data
+//         .where((entry) => entry['user_unique'] == fetchedUsername)
+//         .where((entry) {
+//         final start = DateTime.parse(entry['starttime']);
+//         final finish = entry['finishedtime'];
+//         if (finish == null) return false;
+//         final finish1 = DateTime.parse(entry['finishedtime']);
+//          return start.difference(finish1).inDays.abs() <= 1;
          
         
-        }).toList();
+//         }).toList();
         
         
-        final filteredData1 = data3
-        .where((entry) => entry['usernamem'] == usernamer);
+//         final filteredData1 = data3
+//         .where((entry) => entry['usernamem'] == usernamer);
         
       
-          final filteredData3 = 
+//           final filteredData3 = 
       
-        data
-        .where((entry) => (entry['current_user'] == fetchedUsername|| entry['user_unique'] == fetchedUsername ) && entry['usernamem'] != fetchedUsername);
+//         data
+//         .where((entry) => (entry['current_user'] == fetchedUsername|| entry['user_unique'] == fetchedUsername ) && entry['usernamem'] != fetchedUsername);
         
           
-        final filteredData2 = data
-         .where((entry) => (entry['current_user'] == fetchedUsername|| entry['user_unique'] == fetchedUsername ) && entry['usernamed'] != fetchedUsername)
-          .where((entry) => entry['endtime'] != null)
+//         final filteredData2 = data
+//          .where((entry) => (entry['current_user'] == fetchedUsername|| entry['user_unique'] == fetchedUsername ) && entry['usernamed'] != fetchedUsername)
+//           .where((entry) => entry['endtime'] != null)
        
-          .toList();
-          int total = 0;
-for (final entry in filteredData2){
-            final startTime = DateTime.parse(entry['starttime']);
-            final endTime = DateTime.parse(entry['endtime']);
-            total += endTime.difference(startTime).inSeconds;
-           }
+//           .toList();
+//           int total = 0;
+// for (final entry in filteredData2){
+//             final startTime = DateTime.parse(entry['starttime']);
+//             final endTime = DateTime.parse(entry['endtime']);
+//             total += endTime.difference(startTime).inSeconds;
+//            }
        
-       final avg1 = filteredData2.isNotEmpty ? (total / filteredData2.length  /60).toStringAsFixed(2): -1;
+//        final avg1 = filteredData2.isNotEmpty ? (total / filteredData2.length  /60).toStringAsFixed(2): -1;
       
-       final filteredData19 = data
-         .where((entry) => entry['usernamed'] == fetchedUsername)
-          .where((entry) => entry['endtime'] != null)
+//        final filteredData19 = data
+//          .where((entry) => entry['usernamed'] == fetchedUsername)
+//           .where((entry) => entry['endtime'] != null)
        
-          .toList();
-          int total2 = 0;
-for (final entry in filteredData19){
-            final startTime = DateTime.parse(entry['starttime']);
-            final endTime = DateTime.parse(entry['endtime']);
-            total2 += endTime.difference(startTime).inSeconds;
-           }
+//           .toList();
+//           int total2 = 0;
+// for (final entry in filteredData19){
+//             final startTime = DateTime.parse(entry['starttime']);
+//             final endTime = DateTime.parse(entry['endtime']);
+//             total2 += endTime.difference(startTime).inSeconds;
+//            }
        
-       final avg2 = filteredData19.isNotEmpty ? (total2 / filteredData19.length  /60).toStringAsFixed(2): -1;
+//        final avg2 = filteredData19.isNotEmpty ? (total2 / filteredData19.length  /60).toStringAsFixed(2): -1;
       
         
-final filteredData9 = data.where((entry) => (entry['current_user'] == fetchedUsername || entry['user_unique'] == fetchedUsername)  && entry['endtime'] != null && DateTime.now().difference(DateTime.parse(entry['endtime'])).abs().inDays <= 1);
-       final filteredData10 = data.where((entry) => (entry['usernamed'] == fetchedUsername  && entry['endtime'] != null && DateTime.now().difference(DateTime.parse(entry['starttime'])).inDays <= 1));
+// final filteredData9 = data.where((entry) => (entry['current_user'] == fetchedUsername || entry['user_unique'] == fetchedUsername)  && entry['endtime'] != null && DateTime.now().difference(DateTime.parse(entry['endtime'])).abs().inDays <= 1);
+//        final filteredData10 = data.where((entry) => (entry['usernamed'] == fetchedUsername  && entry['endtime'] != null && DateTime.now().difference(DateTime.parse(entry['starttime'])).inDays <= 1));
     
 
-             return 
-                 Row(
+//              return 
+//                  Row(
                 
-                   children: [
-                     Material(
-                     elevation: 8,
-                     borderRadius: BorderRadius.circular(16),
-                     child: MouseRegion(
-                      cursor: SystemMouseCursors.click,
-                       child: GestureDetector(
- onTap: (){
-                                 context.go('/inbound');
-                                  },
-                         child: Container(
-                          width: 350,
-                          height: 150,
-                         decoration: BoxDecoration(
-                          color: const Color.fromARGB(255, 228, 240, 250),
-                          borderRadius: BorderRadius.circular(16),
-                         ),
-                         child: Padding(
-                          padding: const EdgeInsets.all(10),
-                          child: Row(
-                            children: [
-                              SizedBox(width: 10),
-                            Column(
-                              children: [
-                                    SizedBox(height: 10),
-                                Row(
-                                  children: [
-                                Container(
-                                  width: 40,
-                                                          height: 40,
-                                                          decoration: BoxDecoration(
-                                 color: const Color.fromARGB(255, 177, 220, 255),
-                                 borderRadius: BorderRadius.circular(10),
-                                                          ), child: Icon(Icons.call_received_outlined, color:  const Color.fromARGB(255, 0, 55, 100), size: 30)),
-                                                                 
-                                                                SizedBox(width: 30),
-                                                                Text('Inbound (${filteredData3.length})' , style: TextStyle(color:  const Color.fromARGB(255, 0, 55, 100), fontWeight: FontWeight.bold, 
-                                                                fontSize: 22, fontFamily: 'WorkSans')),
-                                                              
-                              ]),
-                                       SizedBox(height: 10),                          
-                                  Row(
-                                                      children: [
-                                                               
-                                                                
-                                                                SizedBox(height: 3),
-                                                                Text('Finished Today:', style: TextStyle(color:  const Color.fromARGB(255, 0, 55, 100), fontWeight: FontWeight.bold, fontFamily: 'Inter', 
-                                                                fontSize: 16)),
-                                                            
-                                                                  SizedBox(width: 10),
-                                Text('${filteredData9.length}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
-                                SizedBox(width: 20),
-                                                                 
-                                                      ],
-                                                    ),
-                                                      SizedBox(height: 10),
-                                                       Row(
-                                                                 children: [
-                                                                  SizedBox(width: 20,),
-                                                                  Text('Avg. Duration (min)', style: TextStyle(color:  const Color.fromARGB(255, 0, 55, 100), fontWeight: FontWeight.bold, fontFamily: 'Inter',
-                                                       fontSize: 16)),
-                                                           SizedBox(width: 10),
-                                                                   Text(avg1 != -1 ?'$avg1' : 'N/A', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
-                                                               
-                                                       
-                                                       SizedBox(height: 3),
-                                                       
-                                                                 ],
-                                                       ),
-                              ],
-                            ),
-                         
-                          ],),
-                         ),
-                         ),
-                       ),
-                     ),
-                     ),
-                     SizedBox(width: 20),
-                      Material(
-                     elevation: 8,
-                     borderRadius: BorderRadius.circular(16),
-                     child: MouseRegion(
-                      cursor: SystemMouseCursors.click,
-                       child: GestureDetector(
- onTap: (){
-                                 context.go('/outbound');
-                                  },
-                         child: Container(
-                          width: 350,
-                          height: 150,
-                         decoration: BoxDecoration(
-                          color: const Color.fromARGB(255, 228, 240, 250),
-                          borderRadius: BorderRadius.circular(16),
-                         ),
-                         child: Padding(
-                          padding: const EdgeInsets.all(10),
-                          child: Row(
-                            children: [
-                              SizedBox(width: 10),
-                            Column(
-                              children: [
-                                    SizedBox(height: 10),
-                                Row(
-                                  children: [
-                                Container(
-                                  width: 40,
-                                                          height: 40,
-                                                          decoration: BoxDecoration(
-                                 color: const Color.fromARGB(255, 177, 220, 255),
-                                 borderRadius: BorderRadius.circular(10),
-                                                          ), child: Icon(Icons.call_made_outlined, color:  const Color.fromARGB(255, 0, 55, 100), size: 30)),
-                                                                 
-                                                                SizedBox(width: 30),
-                                                                Text('Outbound (${filteredData1.length})' , style: TextStyle(color:  const Color.fromARGB(255, 0, 55, 100), fontWeight: FontWeight.bold, 
-                                                                fontSize: 22, fontFamily: 'WorkSans')),
-                                                              
-                              ]),
-                                       SizedBox(height: 10),                          
-                                  Row(
-                                                      children: [
-                                                               
-                                                                
-                                                                SizedBox(height: 3),
-                                                                Text('Finished Today:', style: TextStyle(color:  const Color.fromARGB(255, 0, 55, 100), fontWeight: FontWeight.bold, fontFamily: 'Inter', 
-                                                                fontSize: 16)),
-                                                            
-                                                                  SizedBox(width: 10),
-                                Text('${filteredData10.length}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
-                                SizedBox(width: 20),
-                                                                 
-                                                      ],
-                                                    ),
-                                                      SizedBox(height: 10),
-                                                       Row(
-                                                                 children: [
-                                                                  SizedBox(width: 20,),
-                                                                  Text('Avg. Duration (min)', style: TextStyle(color:  const Color.fromARGB(255, 0, 55, 100), fontWeight: FontWeight.bold, fontFamily: 'Inter',
-                                                       fontSize: 16)),
-                                                           SizedBox(width: 10),
-                                                                   Text(avg2 != -1 ?'$avg2' : 'N/A', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
-                                                               
-                                                       
-                                                       SizedBox(height: 3),
-                                                       
-                                                                 ],
-                                                       ),
-                              ],
-                            ),
-                         
-                          ],),
-                         ),
-                         ),
-                       ),
-                     ),
-                     ),
-//                         Row(
 //                    children: [
 //                      Material(
-//                      elevation: 11,
+//                      elevation: 8,
 //                      borderRadius: BorderRadius.circular(16),
 //                      child: MouseRegion(
 //                       cursor: SystemMouseCursors.click,
 //                        child: GestureDetector(
 //  onTap: (){
-//                                    Navigator.push(context, PageRouteBuilder(
-//                                          pageBuilder: (context, animation, secondaryAnimation) => Outbound(
+//                                  context.go('/inbound');
+//                                   },
+//                          child: Container(
+//                           width: 350,
+//                           height: 150,
+//                          decoration: BoxDecoration(
+//                           color: const Color.fromARGB(255, 228, 240, 250),
+//                           borderRadius: BorderRadius.circular(16),
+//                          ),
+//                          child: Padding(
+//                           padding: const EdgeInsets.all(10),
+//                           child: Row(
+//                             children: [
+//                               SizedBox(width: 10),
+//                             Column(
+//                               children: [
+//                                     SizedBox(height: 10),
+//                                 Row(
+//                                   children: [
+//                                 Container(
+//                                   width: 40,
+//                                                           height: 40,
+//                                                           decoration: BoxDecoration(
+//                                  color: const Color.fromARGB(255, 177, 220, 255),
+//                                  borderRadius: BorderRadius.circular(10),
+//                                                           ), child: Icon(Icons.call_received_outlined, color:  const Color.fromARGB(255, 0, 55, 100), size: 30)),
+                                                                 
+//                                                                 SizedBox(width: 30),
+//                                                                 Text('Inbound (${filteredData3.length})' , style: TextStyle(color:  const Color.fromARGB(255, 0, 55, 100), fontWeight: FontWeight.bold, 
+//                                                                 fontSize: 22, fontFamily: 'WorkSans')),
+                                                              
+//                               ]),
+//                                        SizedBox(height: 10),                          
+//                                   Row(
+//                                                       children: [
+                                                               
+                                                                
+//                                                                 SizedBox(height: 3),
+//                                                                 Text('Finished Today:', style: TextStyle(color:  const Color.fromARGB(255, 0, 55, 100), fontWeight: FontWeight.bold, fontFamily: 'Inter', 
+//                                                                 fontSize: 16)),
+                                                            
+//                                                                   SizedBox(width: 10),
+//                                 Text('${filteredData9.length}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
+//                                 SizedBox(width: 20),
+                                                                 
+//                                                       ],
+//                                                     ),
+//                                                       SizedBox(height: 10),
+//                                                        Row(
+//                                                                  children: [
+//                                                                   SizedBox(width: 20,),
+//                                                                   Text('Avg. Duration (min)', style: TextStyle(color:  const Color.fromARGB(255, 0, 55, 100), fontWeight: FontWeight.bold, fontFamily: 'Inter',
+//                                                        fontSize: 16)),
+//                                                            SizedBox(width: 10),
+//                                                                    Text(avg1 != -1 ?'$avg1' : 'N/A', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
+                                                               
+                                                       
+//                                                        SizedBox(height: 3),
+                                                       
+//                                                                  ],
+//                                                        ),
+//                               ],
+//                             ),
+                         
+//                           ],),
+//                          ),
+//                          ),
+//                        ),
+//                      ),
+//                      ),
+//                      SizedBox(width: 20),
+//                       Material(
+//                      elevation: 8,
+//                      borderRadius: BorderRadius.circular(16),
+//                      child: MouseRegion(
+//                       cursor: SystemMouseCursors.click,
+//                        child: GestureDetector(
+//  onTap: (){
+//                                  context.go('/outbound');
+//                                   },
+//                          child: Container(
+//                           width: 350,
+//                           height: 150,
+//                          decoration: BoxDecoration(
+//                           color: const Color.fromARGB(255, 228, 240, 250),
+//                           borderRadius: BorderRadius.circular(16),
+//                          ),
+//                          child: Padding(
+//                           padding: const EdgeInsets.all(10),
+//                           child: Row(
+//                             children: [
+//                               SizedBox(width: 10),
+//                             Column(
+//                               children: [
+//                                     SizedBox(height: 10),
+//                                 Row(
+//                                   children: [
+//                                 Container(
+//                                   width: 40,
+//                                                           height: 40,
+//                                                           decoration: BoxDecoration(
+//                                  color: const Color.fromARGB(255, 177, 220, 255),
+//                                  borderRadius: BorderRadius.circular(10),
+//                                                           ), child: Icon(Icons.call_made_outlined, color:  const Color.fromARGB(255, 0, 55, 100), size: 30)),
+                                                                 
+//                                                                 SizedBox(width: 30),
+//                                                                 Text('Outbound (${filteredData1.length})' , style: TextStyle(color:  const Color.fromARGB(255, 0, 55, 100), fontWeight: FontWeight.bold, 
+//                                                                 fontSize: 22, fontFamily: 'WorkSans')),
+                                                              
+//                               ]),
+//                                        SizedBox(height: 10),                          
+//                                   Row(
+//                                                       children: [
+                                                               
+                                                                
+//                                                                 SizedBox(height: 3),
+//                                                                 Text('Finished Today:', style: TextStyle(color:  const Color.fromARGB(255, 0, 55, 100), fontWeight: FontWeight.bold, fontFamily: 'Inter', 
+//                                                                 fontSize: 16)),
+                                                            
+//                                                                   SizedBox(width: 10),
+//                                 Text('${filteredData10.length}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
+//                                 SizedBox(width: 20),
+                                                                 
+//                                                       ],
+//                                                     ),
+//                                                       SizedBox(height: 10),
+//                                                        Row(
+//                                                                  children: [
+//                                                                   SizedBox(width: 20,),
+//                                                                   Text('Avg. Duration (min)', style: TextStyle(color:  const Color.fromARGB(255, 0, 55, 100), fontWeight: FontWeight.bold, fontFamily: 'Inter',
+//                                                        fontSize: 16)),
+//                                                            SizedBox(width: 10),
+//                                                                    Text(avg2 != -1 ?'$avg2' : 'N/A', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
+                                                               
+                                                       
+//                                                        SizedBox(height: 3),
+                                                       
+//                                                                  ],
+//                                                        ),
+//                               ],
+//                             ),
+                         
+//                           ],),
+//                          ),
+//                          ),
+//                        ),
+//                      ),
+//                      ),
+// //                         Row(
+// //                    children: [
+// //                      Material(
+// //                      elevation: 11,
+// //                      borderRadius: BorderRadius.circular(16),
+// //                      child: MouseRegion(
+// //                       cursor: SystemMouseCursors.click,
+// //                        child: GestureDetector(
+// //  onTap: (){
+// //                                    Navigator.push(context, PageRouteBuilder(
+// //                                          pageBuilder: (context, animation, secondaryAnimation) => Outbound(
                                           
-//                                          ),
-//                                          transitionDuration: Duration.zero,
-//                                          reverseTransitionDuration: Duration.zero,
+// //                                          ),
+// //                                          transitionDuration: Duration.zero,
+// //                                          reverseTransitionDuration: Duration.zero,
                                        
                                      
                                    
-//                                    ));
-//                                   },
-//                                child:   Container(
-//                       width: 220,
-//                       height: 100,
-//                      decoration: BoxDecoration(
-//                       color: const Color.fromARGB(255, 228, 240, 250),
-//                       borderRadius: BorderRadius.circular(16),
-//                      ),
-//                      child: Padding(
-//                       padding: const EdgeInsets.all(10),
-//                       child: Row(
-//                         children: [
-//                           SizedBox(width: 10),
-//                         Center(child: Container(
-//                            width: 40,
-//                           height: 40,
-//                           decoration: BoxDecoration(
-//                             color: const Color.fromARGB(255, 177, 220, 255),
-//                             borderRadius: BorderRadius.circular(10),
-//                           ),child: Icon(Icons.call_made, color:  const Color.fromARGB(255, 0, 55, 100), size: 30))),
-//                         SizedBox(width: 20),
-//                         Column(
-//                           children: [
-//                            SizedBox(height: 2),
-//                             Row(
-//                               children: [
-//                                 Text('${filteredData1.length}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
-//                                 SizedBox(width: 60),
-//                               ],
-//                             ),
-//                             SizedBox(height: 3),
-//                             Text('Outbound', style: TextStyle(color:  const Color.fromARGB(255, 0, 55, 100), fontWeight: FontWeight.bold, 
-//                             fontSize: 16))
-//                           ],
-//                         ),
+// //                                    ));
+// //                                   },
+// //                                child:   Container(
+// //                       width: 220,
+// //                       height: 100,
+// //                      decoration: BoxDecoration(
+// //                       color: const Color.fromARGB(255, 228, 240, 250),
+// //                       borderRadius: BorderRadius.circular(16),
+// //                      ),
+// //                      child: Padding(
+// //                       padding: const EdgeInsets.all(10),
+// //                       child: Row(
+// //                         children: [
+// //                           SizedBox(width: 10),
+// //                         Center(child: Container(
+// //                            width: 40,
+// //                           height: 40,
+// //                           decoration: BoxDecoration(
+// //                             color: const Color.fromARGB(255, 177, 220, 255),
+// //                             borderRadius: BorderRadius.circular(10),
+// //                           ),child: Icon(Icons.call_made, color:  const Color.fromARGB(255, 0, 55, 100), size: 30))),
+// //                         SizedBox(width: 20),
+// //                         Column(
+// //                           children: [
+// //                            SizedBox(height: 2),
+// //                             Row(
+// //                               children: [
+// //                                 Text('${filteredData1.length}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
+// //                                 SizedBox(width: 60),
+// //                               ],
+// //                             ),
+// //                             SizedBox(height: 3),
+// //                             Text('Outbound', style: TextStyle(color:  const Color.fromARGB(255, 0, 55, 100), fontWeight: FontWeight.bold, 
+// //                             fontSize: 16))
+// //                           ],
+// //                         ),
                      
-//                       ],),
-//                      ),
-//                      ),
-//                      ))),
-//                            SizedBox(width: 30),
+// //                       ],),
+// //                      ),
+// //                      ),
+// //                      ))),
+// //                            SizedBox(width: 30),
                    
-//                                    Material(
-//                      elevation: 11,
-//                      borderRadius: BorderRadius.circular(16),
-//                      child: Container(
-//                       width: 220,
-//                       height: 100,
-//                      decoration: BoxDecoration(
-//                       color: const Color.fromARGB(255, 228, 240, 250),
-//                       borderRadius: BorderRadius.circular(16),
-//                      ),
-//                      child: Padding(
-//                       padding: const EdgeInsets.all(10),
-//                       child: Row(
-//                         children: [
-//                           SizedBox(width: 10),
-//                         Center(child: Container(
-//                            width: 40,
-//                           height: 40,
-//                           decoration: BoxDecoration(
-//                             color: const Color.fromARGB(255, 177, 220, 255),
-//                             borderRadius: BorderRadius.circular(10),
-//                           ),child: Icon(Icons.task_alt, color:  const Color.fromARGB(255, 0, 55, 100), size: 30))),
-//                         SizedBox(width: 20),
-//                         Column(
-//                           children: [
-//                            SizedBox(height: 2),
-//                             Row(
-//                               children: [
-//                                 Text('$finishedToday', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
-//                                 SizedBox(width: 70),
-//                               ],
-//                             ),
-//                             SizedBox(height: 3),
-//                             Text('Finished Today', style: TextStyle(color:  const Color.fromARGB(255, 0, 55, 100), fontWeight: FontWeight.bold, 
-//                             fontSize: 15.5))
-//                           ],
-//                         ),
+// //                                    Material(
+// //                      elevation: 11,
+// //                      borderRadius: BorderRadius.circular(16),
+// //                      child: Container(
+// //                       width: 220,
+// //                       height: 100,
+// //                      decoration: BoxDecoration(
+// //                       color: const Color.fromARGB(255, 228, 240, 250),
+// //                       borderRadius: BorderRadius.circular(16),
+// //                      ),
+// //                      child: Padding(
+// //                       padding: const EdgeInsets.all(10),
+// //                       child: Row(
+// //                         children: [
+// //                           SizedBox(width: 10),
+// //                         Center(child: Container(
+// //                            width: 40,
+// //                           height: 40,
+// //                           decoration: BoxDecoration(
+// //                             color: const Color.fromARGB(255, 177, 220, 255),
+// //                             borderRadius: BorderRadius.circular(10),
+// //                           ),child: Icon(Icons.task_alt, color:  const Color.fromARGB(255, 0, 55, 100), size: 30))),
+// //                         SizedBox(width: 20),
+// //                         Column(
+// //                           children: [
+// //                            SizedBox(height: 2),
+// //                             Row(
+// //                               children: [
+// //                                 Text('$finishedToday', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
+// //                                 SizedBox(width: 70),
+// //                               ],
+// //                             ),
+// //                             SizedBox(height: 3),
+// //                             Text('Finished Today', style: TextStyle(color:  const Color.fromARGB(255, 0, 55, 100), fontWeight: FontWeight.bold, 
+// //                             fontSize: 15.5))
+// //                           ],
+// //                         ),
                      
-//                       ],),
-//                      ),
-//                      ),
-//                      ),
-//                      SizedBox(width: 30),
+// //                       ],),
+// //                      ),
+// //                      ),
+// //                      ),
+// //                      SizedBox(width: 30),
                    
-//                                    Material(
-//                      elevation: 11,
-//                      borderRadius: BorderRadius.circular(16),
-//                      child: Container(
-//                       width: 220,
-//                       height: 100,
-//                      decoration: BoxDecoration(
-//                       color: const Color.fromARGB(255, 228, 240, 250),
-//                       borderRadius: BorderRadius.circular(16),
-//                      ),
-//                      child: Padding(
-//                       padding: const EdgeInsets.all(10),
-//                       child: Row(
-//                         children: [
-//                           SizedBox(width: 10),
-//                         Center(child: Container(
-//                            width: 40,
-//                           height: 40,
-//                           decoration: BoxDecoration(
-//                             color: const Color.fromARGB(255, 177, 220, 255),
-//                             borderRadius: BorderRadius.circular(10),
-//                           ),child: Icon(Icons.schedule, color:  const Color.fromARGB(255, 0, 55, 100), size: 30))),
-//                         SizedBox(width: 20),
-//                         Column(
-//                           children: [
-//                            SizedBox(height: 2),
-//                             Row(
-//                               children: [
-//                                 Text('$average', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
-//                                 SizedBox(width: 70),
-//                               ],
-//                             ),
-//                             SizedBox(height: 3),
-//                             Text('Average Completion\n time (min)', style: TextStyle(color:  const Color.fromARGB(255, 0, 55, 100), fontWeight: FontWeight.bold, 
-//                             fontSize: 14))
-//                           ],
-//                         ),
+// //                                    Material(
+// //                      elevation: 11,
+// //                      borderRadius: BorderRadius.circular(16),
+// //                      child: Container(
+// //                       width: 220,
+// //                       height: 100,
+// //                      decoration: BoxDecoration(
+// //                       color: const Color.fromARGB(255, 228, 240, 250),
+// //                       borderRadius: BorderRadius.circular(16),
+// //                      ),
+// //                      child: Padding(
+// //                       padding: const EdgeInsets.all(10),
+// //                       child: Row(
+// //                         children: [
+// //                           SizedBox(width: 10),
+// //                         Center(child: Container(
+// //                            width: 40,
+// //                           height: 40,
+// //                           decoration: BoxDecoration(
+// //                             color: const Color.fromARGB(255, 177, 220, 255),
+// //                             borderRadius: BorderRadius.circular(10),
+// //                           ),child: Icon(Icons.schedule, color:  const Color.fromARGB(255, 0, 55, 100), size: 30))),
+// //                         SizedBox(width: 20),
+// //                         Column(
+// //                           children: [
+// //                            SizedBox(height: 2),
+// //                             Row(
+// //                               children: [
+// //                                 Text('$average', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
+// //                                 SizedBox(width: 70),
+// //                               ],
+// //                             ),
+// //                             SizedBox(height: 3),
+// //                             Text('Average Completion\n time (min)', style: TextStyle(color:  const Color.fromARGB(255, 0, 55, 100), fontWeight: FontWeight.bold, 
+// //                             fontSize: 14))
+// //                           ],
+// //                         ),
                      
-//                       ],),
-//                      ),
-//                      ),
-//                      ),
-//                    ],
-//                  )
-                 ]);
+// //                       ],),
+// //                      ),
+// //                      ),
+// //                      ),
+// //                    ],
+// //                  )
+//                  ]);
              
               
-           }
-         )
+//            }
+//          )
                     ]
                   ),
                 
@@ -1002,11 +1024,13 @@ final filteredData9 = data.where((entry) => (entry['current_user'] == fetchedUse
         ),
         SizedBox(height: 30),
     Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      SizedBox(width: 20),
+      SizedBox(width: 50),
       Container(
         height: 1,
-        width: 1300,
+        width: MediaQuery.of(context).size.width * 0.75,
         color: const Color.fromARGB(255, 106, 106, 106),
       ),
     ],
@@ -1027,8 +1051,10 @@ final filteredData9 = data.where((entry) => (entry['current_user'] == fetchedUse
       children: [
         SizedBox(width: 48),
         SizedBox(
-          width: 1250,
-          height: 173,
+          // width: 1250,
+          // height: 173,
+           width: MediaQuery.of(context).size.width * 0.72,
+                    height: MediaQuery.of(context).size.height * 0.20 ,
           child: FutureBuilder(
             future: Supabase.instance.client
   .from('detail')
@@ -1099,11 +1125,13 @@ final filteredData9 = data.where((entry) => (entry['current_user'] == fetchedUse
                                           ? EdgeInsets.symmetric(horizontal: 0)
                                           : EdgeInsets.symmetric(horizontal: 12),
                                       child: AnimatedContainer(
+                                        
+
                                         duration: Duration(milliseconds: 200),
-                                              width: isHovered2[index]  ?? ialwaysfalse ? 300 : 290,
-                                              height: isHovered2[index]  ?? ialwaysfalse ?165 : 158,
+                                              width: isHovered2[index]  ?? ialwaysfalse ? MediaQuery.of(context).size.height * 0.35 : MediaQuery.of(context).size.height * 0.33,
+                                              height: isHovered2[index]  ?? ialwaysfalse ? MediaQuery.of(context).size.height * 0.19 : MediaQuery.of(context).size.height * 0.17,
                                         decoration: BoxDecoration(
-                                          color:  const Color.fromARGB(255, 240, 245, 249),
+                                          color: const Color.fromARGB(255, 240, 245, 249),
                                           borderRadius: BorderRadius.circular(20),
                                                                       boxShadow: isHovered2[index] ?? ialwaysfalse ? [BoxShadow(color: const Color.fromARGB(255, 255, 233, 109),  blurRadius: 10)] : 
                                                                        [BoxShadow(color: const Color.fromARGB(255, 198, 198, 198),  blurRadius: 10)]
@@ -1114,7 +1142,7 @@ final filteredData9 = data.where((entry) => (entry['current_user'] == fetchedUse
                                           // )]
                                         ),
                               child: Padding(
-                                padding: const EdgeInsets.all(16),
+                                padding: const EdgeInsets.all(4.5),
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.start,
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1149,7 +1177,7 @@ final filteredData9 = data.where((entry) => (entry['current_user'] == fetchedUse
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(height: 20),
+        SizedBox(height: 10),
         Row(
           children: [
             SizedBox(width: 48,),
@@ -1166,13 +1194,13 @@ final filteredData9 = data.where((entry) => (entry['current_user'] == fetchedUse
       children: [
         SizedBox(width: 42),
         SizedBox(
-          width: 1250,
-          height: 150,
+         width: MediaQuery.of(context).size.width * 0.72,
+                    height: MediaQuery.of(context).size.height * 0.20,
           child: FutureBuilder(
             future:Supabase.instance.client
           .from('masterdata')
           .select()
-          .eq('usernamem', fetchedUsername!)
+          .eq('usernamem', fetchedUsername ?? 'h')
           .order('id', ascending: false)
           .limit(4),
             builder: (context, snapshot) {
@@ -1251,8 +1279,8 @@ final filteredData9 = data.where((entry) => (entry['current_user'] == fetchedUse
                                           : EdgeInsets.symmetric(horizontal: 12),
                                       child: AnimatedContainer(
                                         duration: Duration(milliseconds: 200),
-                                              width: isHovered[index]  ?? ialwaysfalse ? 300 : 290,
-                                              height: isHovered[index]  ?? ialwaysfalse ?130 : 128,
+                                             width: isHovered[index]  ?? ialwaysfalse ? MediaQuery.of(context).size.height * 0.35 : MediaQuery.of(context).size.height * 0.33,
+                                              height: isHovered[index]  ?? ialwaysfalse ? MediaQuery.of(context).size.height * 0.15 : MediaQuery.of(context).size.height * 0.14,
                                         decoration: BoxDecoration(
                                           color: const Color.fromARGB(255, 240, 245, 249),
                                           borderRadius: BorderRadius.circular(20),
@@ -1265,7 +1293,7 @@ final filteredData9 = data.where((entry) => (entry['current_user'] == fetchedUse
                                           // )]
                                         ),
                                         child: Padding(
-                                          padding: const EdgeInsets.all(16),
+                                          padding: const EdgeInsets.all(5),
                                           child: Column(
                                             mainAxisAlignment: MainAxisAlignment.start,
                                             crossAxisAlignment: CrossAxisAlignment.start,

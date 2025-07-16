@@ -72,8 +72,8 @@ showDialog(
         contentPadding: EdgeInsets.all(0),
           
         content: Container(
-          width: 500,
-          height: 600,
+                                           width: MediaQuery.of(context).size.width * 0.2867,
+                                  height: MediaQuery.of(context).size.height * 0.7109,
           decoration: BoxDecoration(
             color: const Color.fromARGB(255, 255, 255, 255),
             borderRadius: BorderRadius.circular(30)
@@ -110,8 +110,8 @@ showDialog(
             Divider(thickness: 1, indent: 20, endIndent: 20,),
             // SizedBox(height: 25),
             SizedBox(
-              height: 400,
-              width: 450,
+             width: 500,
+                                  height: MediaQuery.of(context).size.height * 0.41469,
               child: Column(
                 children: [
               //     Row(
@@ -190,8 +190,8 @@ showDialog(
                               return SingleChildScrollView(
                                 scrollDirection: Axis.vertical,
                                child: SizedBox(
-                                  width: 400,
-                                  height: 250,
+                                  width: 430,
+                                  height: MediaQuery.of(context).size.height * 0.29621,
                                child: Column(
                                  children: data.map((entry)  { 
                                   final usernames = entry['username'];
@@ -238,8 +238,7 @@ showDialog(
                     
                         : SizedBox.shrink(),
                        snackbarNotifier.value ?     SizedBox(width: 20,) : SizedBox.shrink(),
-            
-                                      SizedBox(height: 30,),
+
                                        Row(
                                         mainAxisAlignment: MainAxisAlignment.end,
                                         crossAxisAlignment: CrossAxisAlignment.end,
@@ -562,7 +561,7 @@ Text(successText ? 'Added successfully' : errorText, style: TextStyle(fontFamily
                             scrollDirection: Axis.vertical,
                            child: SizedBox(
                               width: 400,
-                              height: 250,
+                              height: 240,
                            child: Column(
                              children: data.map((entry) { 
                               final username = entry['username'];
@@ -596,7 +595,6 @@ Text(successText ? 'Added successfully' : errorText, style: TextStyle(fontFamily
         ),
        
         
-                                  SizedBox(height: 30,),
                                    Row(
                                     mainAxisAlignment: MainAxisAlignment.end,
                                     crossAxisAlignment: CrossAxisAlignment.end,
@@ -826,7 +824,7 @@ String isCheckeder = '';
       );
     }
     return Scaffold(
-       backgroundColor:  Color(0xFFFAFAFA),
+       backgroundColor: Color.fromARGB(255, 236, 244, 254),
     floatingActionButton: FloatingActionButton.extended(
       backgroundColor:  const Color.fromARGB(255, 193, 223, 247),
       onPressed: (){
@@ -836,560 +834,569 @@ String isCheckeder = '';
     icon: Icon(Icons.add, color:Color.fromARGB(255, 0, 74, 123),),
     label: Text('Add Process', style: TextStyle(color: Color.fromARGB(255, 0, 74, 123), fontWeight: FontWeight.bold),)
       ),
-    body: Row(children: [
-       Container(
-      height: double.infinity,
-      width: 200,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.only(
-       bottomLeft: Radius.circular(0,),
-       bottomRight: Radius.circular(6),
-      topRight: Radius.circular(6),
-      topLeft: Radius.circular(0)
+    body: SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(children: [
+         Container(
+        height: double.infinity,
+        width: 200,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.only(
+         bottomLeft: Radius.circular(0,),
+         bottomRight: Radius.circular(6),
+        topRight: Radius.circular(6),
+        topLeft: Radius.circular(0)
+          ),
+         color: const Color.fromARGB(255, 0, 74, 123),
         ),
-       color: const Color.fromARGB(255, 0, 74, 123),
-      ),
-    
-      child: Column(
-        children: [
-          
-          SizedBox(height: 140),
-         Align(
-          alignment: Alignment.centerLeft,
-           child: Row(
-             children: [
-              SizedBox(width: 10), 
-               MouseRegion(
-                cursor: SystemMouseCursors.click,
-                 child: GestureDetector(
-                     onTap: (){
-                      setState(() {
-                       context.go('/admindashboard');
-                        selected1 = true;
-                        selected2 = false;
-                        selected3 = false;
-                 selected5 = false;
-                        selected4 = false;
-                           selected6 = false;
-                      });
-                      },
-                      child: Container(
-                        width: 165,
-                        height: 60,
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          color: selected1 ?  const Color.fromARGB(255, 0, 55, 100) : null,
-                        ),
-                      child: Row(
-                        children: [
-                            SizedBox(width: 7),
-                             Icon(Icons.home, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
-                             SizedBox(width: 5),
-                          Text('Dashboard',  textAlign: TextAlign.center, style: TextStyle(
-                            color: selected1 ? const Color.fromARGB(255, 255, 255, 255) : const Color.fromARGB(255, 255, 255, 255),
-                            fontSize: 20, fontWeight: FontWeight.w500),),
-                        ],
-                      )),
-                               ),
-               ),
-             ],
-           ),
-         ),
-          SizedBox(height:25,),
-        Align(
-          alignment: Alignment.centerLeft,
-           child: Row(
-             children: [
-              SizedBox(width: 10), 
-               MouseRegion(
-                cursor: SystemMouseCursors.click,
-                 child: GestureDetector(
-                     onTap: (){
-                      setState(() {
-                      
-                                       context.go('/materials');
-   
-                        selected1 = false;
-                        selected2 = true;
-                        selected3 = false;
-                              selected5 = false;
-                       selected4 = false;
-                         selected6 = false;
-                      });
-                      },
-                      child: Container(
-                        width: 165,
-                        height: 60,
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          color: selected2 ?  const Color.fromARGB(255, 0, 55, 100) : null,
-                        ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Row(
-                          children: [
-                              SizedBox(width: 7),
-                               Icon(Icons.pageview_outlined, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
-                               SizedBox(width: 5),
-                            Text('Materials',  textAlign: TextAlign.center, style: TextStyle(
-                              color: const Color.fromARGB(255, 255, 255, 255),
-                              fontSize: 20, fontWeight: FontWeight.w500),),
-                          ],
-                        ),
-                      )),
-                               ),
-               ),
-             ],
-           ),
-         ),
-            SizedBox(height:25,),
-             Align(
-          alignment: Alignment.centerLeft,
-           child: Row(
-             children: [
-              SizedBox(width: 10), 
-               MouseRegion(
-                cursor: SystemMouseCursors.click,
-                 child: GestureDetector(
-                     onTap: (){
-                      setState(() {
-
-                        selected1 = false;
-                        selected2 = false;
-                        selected3 = false;
-                        selected4 = false;
-                        selected5 = false;
-                        selected6 = true;
-                      });
-                      },
-                      child: Container(
-                        width: 165,
-                        height: 60,
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          color: selected6 ?  const Color.fromARGB(255, 0, 55, 100) : null,
-                        ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Row(
-                          children: [
-                              SizedBox(width: 7),
-                               Icon(Icons.forklift, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
-                               SizedBox(width: 5),
-                            Text('Process',  textAlign: TextAlign.center, style: TextStyle(
-                              color: const Color.fromARGB(255, 255, 255, 255),
-                              fontSize: 20, fontWeight: FontWeight.w500),),
-                          ],
-                        ),
-                      )),
-                               ),
-               ),
-             ],
-           ),
-         ),
-          SizedBox(height: 25),
+      
+        child: Column(
+          children: [
+            
+            SizedBox(height:MediaQuery.of(context).size.height * 0.15,),
            Align(
-          alignment: Alignment.centerLeft,
-           child: Row(
-             children: [
-              SizedBox(width: 10), 
-               MouseRegion(
-                cursor: SystemMouseCursors.click,
-                 child: GestureDetector(
-                     onTap: (){
-                      setState(() {
-                   context.go('/data');
-                        selected1 = false;
-                        selected2 = false;
-                        selected3 = false;
-                        selected4 = true;
-                              selected5 = false;
-                                 selected6 = false;
-                      });
-                      },
-                      child: Container(
-                        width: 165,
-                        height: 60,
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          color: selected4 ?  const Color.fromARGB(255, 0, 55, 100) : null,
-                        ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
+            alignment: Alignment.centerLeft,
+             child: Row(
+               children: [
+                SizedBox(width: 10), 
+                 MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                   child: GestureDetector(
+                       onTap: (){
+                        setState(() {
+                         context.go('/admindashboard');
+                          selected1 = true;
+                          selected2 = false;
+                          selected3 = false;
+                   selected5 = false;
+                          selected4 = false;
+                             selected6 = false;
+                        });
+                        },
+                        child: Container(
+                          width: 165,
+                          height: 60,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            color: selected1 ?  const Color.fromARGB(255, 0, 55, 100) : null,
+                          ),
                         child: Row(
                           children: [
                               SizedBox(width: 7),
-                               Icon(Icons.table_view, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
+                               Icon(Icons.home, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
                                SizedBox(width: 5),
-                            Text('Data',  textAlign: TextAlign.center, style: TextStyle(
-                              color: const Color.fromARGB(255, 255, 255, 255),
+                            Text('Dashboard',  textAlign: TextAlign.center, style: TextStyle(
+                              color: selected1 ? const Color.fromARGB(255, 255, 255, 255) : const Color.fromARGB(255, 255, 255, 255),
                               fontSize: 20, fontWeight: FontWeight.w500),),
                           ],
-                        ),
-                      )),
-                               ),
-               ),
-             ],
+                        )),
+                                 ),
+                 ),
+               ],
+             ),
            ),
-         ),
-          SizedBox(height:25,),
-        Align(
-          alignment: Alignment.centerLeft,
-           child: Row(
-             children: [
-              SizedBox(width: 10), 
-               MouseRegion(
-                cursor: SystemMouseCursors.click,
-                 child: GestureDetector(
-                     onTap: (){
-                      setState(() {
-                        context.go('/users');
-                        selected1 = false;
-                        selected2 = false;
-                        selected3 = false;
-                        selected4 = true;
-                         selected5 = false;
-                            selected6 = false;
-                      });
-                      },
-                      child: Container(
-                        width: 165,
-                        height: 60,
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          color: selected4 ?  const Color.fromARGB(255, 0, 55, 100) : null,
-                        ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Row(
-                          children: [
-                              SizedBox(width: 7),
-                               Icon(Icons.group, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
-                               SizedBox(width: 5),
-                            Text('Users',  textAlign: TextAlign.center, style: TextStyle(
-                              color: const Color.fromARGB(255, 255, 255, 255),
-                              fontSize: 20, fontWeight: FontWeight.w500),),
-                          ],
-                        ),
-                      )),
-                               ),
-               ),
-             ],
-           ),
-         ),
-          SizedBox(height:25,),
-        Align(
-          alignment: Alignment.centerLeft,
-           child: Row(
-             children: [
-              SizedBox(width: 10), 
-               MouseRegion(
-                cursor: SystemMouseCursors.click,
-                 child: GestureDetector(
-                     onTap: (){
-                      setState(() {
-                            context.go('/route');
-                        selected1 = false;
-                        selected2 = false;
-                        selected3 = false;
-                        selected4 = false;
-                        selected5 = true;
-   selected6 = false;
-                 
-                      });
-                    
-                      },
-                      child: Container(
-                        width: 165,
-                        height: 60,
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          color: selected5 ?  const Color.fromARGB(255, 0, 55, 100) : null,
-                        ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Row(
-                          children: [
-                              SizedBox(width: 7),
-                               Icon(Icons.turn_slight_right, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
-                               SizedBox(width: 5),
-                            Text('Route',  textAlign: TextAlign.center, style: TextStyle(
-                              color: const Color.fromARGB(255, 255, 255, 255),
-                              fontSize: 20, fontWeight: FontWeight.w500),),
-                          ],
-                        ),
-                      )),
-                               ),
-               ),
-             ],
-           ),
-         ),
-          SizedBox(height: 25,),
+           SizedBox(height:MediaQuery.of(context).size.height * 0.018,),
           Align(
-          alignment: Alignment.centerLeft,
-           child: Row(
-             children: [
-              SizedBox(width: 10), 
-               MouseRegion(
-                cursor: SystemMouseCursors.click,
-                 child: GestureDetector(
-                     onTap: (){
-                      setState(() {
-                                context.go('/reports');
-                     
-                      });
-                    
-                      },
-                      child: Container(
-                        width: 165,
-                        height: 60,
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                       
-                        ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Row(
-                          children: [
-                              SizedBox(width: 7),
-                               Icon(Icons.bar_chart, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
-                               SizedBox(width: 5),
-                            Text('Reports',  textAlign: TextAlign.center, style: TextStyle(
-                              color: const Color.fromARGB(255, 255, 255, 255),
-                              fontSize: 20, fontWeight: FontWeight.w500),),
-                          ],
-                        ),
-                      )),
-                               ),
-               ),
-             ],
-           ),
-         ),
-                      Spacer(),
-                         Row(
-                          children: [
-                            SizedBox(width: 40),
-                            TextButton(
-                              onPressed: () async {
-                                context.go('/login');
-                                await Supabase.instance.client.auth.signOut();
-                                
-                                    setState(() {
-                                      
-                                    });
-                              },
-                              child: Text('Logout',  textAlign: TextAlign.center, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, 
-                            color:  const Color.fromARGB(255, 177, 220, 255),),)),
-                             SizedBox(width: 10),
-                       Icon(Icons.logout, color:  const Color.fromARGB(255, 177, 220, 255),)
-                       
-                          ],
-                        ), SizedBox(height: 20,), 
-        ],
-      ),
-    ),
-   Row(
-      children: [
-        SizedBox(width: 10),
-        SizedBox(
-          width: 1515,
-              height: 825,
-          child: Column(children: [
-           SizedBox(height: 20),
-                    Row(
-          children: [
-            SizedBox(width: 30),
-            Text('Add Process', style: TextStyle(color: const Color.fromARGB(255, 23, 85, 161), fontWeight: FontWeight.bold, fontSize: 30)),
-          ],
-                    ),
-                    SizedBox(height: 35),
-                    Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(children: [
-              SizedBox(width: 20),
-                    Spacer(),
-                  Container(
-              width: 400,
-              height: 40,
-              decoration: BoxDecoration(
-                border: Border.all(width: 1, color: Colors.grey), borderRadius: BorderRadius.circular(10),
-              ),
-              child: TextField(
-              controller: searchPController,
-              cursorColor: Colors.black,
-              decoration: InputDecoration(
-                label: Text('Search a process...'),
-                floatingLabelStyle: TextStyle(color:  Color(0xFFFAFAFA),),
-                enabledBorder: InputBorder.none,
-                  isDense: true,
-            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-              focusedBorder: InputBorder.none,
-              disabledBorder: InputBorder.none,
-              prefixIcon: Icon(Icons.search, color:const Color.fromARGB(255, 23, 85, 161), size: 26 )
-              ),
-              ),),
-            SizedBox(width: 1095,),
-           ],
-                     ),
-            
-            
-               ],),
-              SizedBox(height: 10,),
+            alignment: Alignment.centerLeft,
+             child: Row(
+               children: [
+                SizedBox(width: 10), 
+                 MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                   child: GestureDetector(
+                       onTap: (){
+                        setState(() {
+                        
+                                         context.go('/materials');
          
-          
-                    
-                    SizedBox(height: 20),
-                  SizedBox(
-                     width: 1515,
-                      height: 600,
-                       child: Column(
-                         children: [
-                           Container(
-                                         decoration: BoxDecoration(
-                                           gradient: LinearGradient(
-                                  colors: [ const Color.fromARGB(255, 186, 224, 254), const Color.fromARGB(255, 234, 245, 255) ],
-                                begin: Alignment.centerLeft, end: Alignment.centerRight),
-                                 borderRadius: BorderRadius.only(topLeft: Radius.circular(16), topRight: Radius.circular(16))
-                                               ),
-                                         height: 60,
-                                         width: double.infinity,
-                                         child: Row(children: [
-                                          
-                                           SizedBox(width: 20),
-                                             SizedBox(width: 400, child: Text('Description', style: TextStyle(fontSize: 15, fontFamily: 'Inter'
-                                             , fontWeight: FontWeight.bold))),
-                           SizedBox(width: 20),
-                           Spacer(),
-                                             SizedBox(width: 200, child: Text('', style: TextStyle(fontSize: 15, fontFamily: 'Inter'
-                                             , fontWeight: FontWeight.bold))),
-                           SizedBox(width: 30),
-                            
-                                         ],)
-                                     ),
-                                     Expanded(
-                                       child: StreamBuilder<List<Map<String, dynamic>>>(
-                                        stream: Supabase.instance.client.from('process').stream(primaryKey: ['id']).order('id'),
-                                        builder:(context, snapshot) {
-                                          if (snapshot.connectionState == ConnectionState.waiting){
-                                                      return Center(child: CircularProgressIndicator());
-                                          } else if (snapshot.hasError){
-                                            return Text('Error: ${snapshot.error}');
-                                          }
-                                          final data = snapshot.data ?? [];
-                                          if (data.isEmpty){
-                                              return Center(child: Column(
-                                                     children: [
-                                                       SizedBox(height: 70),
-                                                       Stack(
-                                                         children: [
-                                                          Image( image: AssetImage('images/search.png'
-                                                         ),
-                                                          width: 400,
-                                                           height: 400,
-                                                           fit: BoxFit.contain,),
-                                                         Positioned
-                                                         (
-                                                           left: 100,
-                                                           top: 300, child: Text('Nothing here yet...', style: TextStyle(color:  const Color.fromARGB(255, 0, 55, 100), fontSize: 25, 
-                                                           fontWeight: FontWeight.bold )))
-                                                         ])
-                                                     ],
-                                                   ));
-                                          }
-
-                                          final filteredData = data.where((entry){
-                                            final searchPControllerr = searchPController.text.toLowerCase();
-                                            final names = entry['description'].toString().toLowerCase();
-                                            if (searchPController.text.isNotEmpty){
-                                              if (names.contains(searchPControllerr)){
-                                          return true;
-                                          
-                                            } else {
+                          selected1 = false;
+                          selected2 = true;
+                          selected3 = false;
+                                selected5 = false;
+                         selected4 = false;
+                           selected6 = false;
+                        });
+                        },
+                        child: Container(
+                          width: 165,
+                          height: 60,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            color: selected2 ?  const Color.fromARGB(255, 0, 55, 100) : null,
+                          ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Row(
+                            children: [
+                                SizedBox(width: 7),
+                                 Icon(Icons.pageview_outlined, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
+                                 SizedBox(width: 5),
+                              Text('Materials',  textAlign: TextAlign.center, style: TextStyle(
+                                color: const Color.fromARGB(255, 255, 255, 255),
+                                fontSize: 20, fontWeight: FontWeight.w500),),
+                            ],
+                          ),
+                        )),
+                                 ),
+                 ),
+               ],
+             ),
+           ),
+              SizedBox(height:MediaQuery.of(context).size.height * 0.018,),
+               Align(
+            alignment: Alignment.centerLeft,
+             child: Row(
+               children: [
+                SizedBox(width: 10), 
+                 MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                   child: GestureDetector(
+                       onTap: (){
+                        setState(() {
+      
+                          selected1 = false;
+                          selected2 = false;
+                          selected3 = false;
+                          selected4 = false;
+                          selected5 = false;
+                          selected6 = true;
+                        });
+                        },
+                        child: Container(
+                          width: 165,
+                          height: 60,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            color: selected6 ?  const Color.fromARGB(255, 0, 55, 100) : null,
+                          ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Row(
+                            children: [
+                                SizedBox(width: 7),
+                                 Icon(Icons.forklift, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
+                                 SizedBox(width: 5),
+                              Text('Process',  textAlign: TextAlign.center, style: TextStyle(
+                                color: const Color.fromARGB(255, 255, 255, 255),
+                                fontSize: 20, fontWeight: FontWeight.w500),),
+                            ],
+                          ),
+                        )),
+                                 ),
+                 ),
+               ],
+             ),
+           ),
+            SizedBox(height: 25),
+             Align(
+            alignment: Alignment.centerLeft,
+             child: Row(
+               children: [
+                SizedBox(width: 10), 
+                 MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                   child: GestureDetector(
+                       onTap: (){
+                        setState(() {
+                     context.go('/data');
+                          selected1 = false;
+                          selected2 = false;
+                          selected3 = false;
+                          selected4 = true;
+                                selected5 = false;
+                                   selected6 = false;
+                        });
+                        },
+                        child: Container(
+                          width: 165,
+                          height: 60,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            color: selected4 ?  const Color.fromARGB(255, 0, 55, 100) : null,
+                          ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Row(
+                            children: [
+                                SizedBox(width: 7),
+                                 Icon(Icons.table_view, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
+                                 SizedBox(width: 5),
+                              Text('Data',  textAlign: TextAlign.center, style: TextStyle(
+                                color: const Color.fromARGB(255, 255, 255, 255),
+                                fontSize: 20, fontWeight: FontWeight.w500),),
+                            ],
+                          ),
+                        )),
+                                 ),
+                 ),
+               ],
+             ),
+           ),
+            SizedBox(height:MediaQuery.of(context).size.height * 0.018,),
+          Align(
+            alignment: Alignment.centerLeft,
+             child: Row(
+               children: [
+                SizedBox(width: 10), 
+                 MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                   child: GestureDetector(
+                       onTap: (){
+                        setState(() {
+                          context.go('/users');
+                          selected1 = false;
+                          selected2 = false;
+                          selected3 = false;
+                          selected4 = true;
+                           selected5 = false;
+                              selected6 = false;
+                        });
+                        },
+                        child: Container(
+                          width: 165,
+                          height: 60,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            color: selected4 ?  const Color.fromARGB(255, 0, 55, 100) : null,
+                          ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Row(
+                            children: [
+                                SizedBox(width: 7),
+                                 Icon(Icons.group, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
+                                 SizedBox(width: 5),
+                              Text('Users',  textAlign: TextAlign.center, style: TextStyle(
+                                color: const Color.fromARGB(255, 255, 255, 255),
+                                fontSize: 20, fontWeight: FontWeight.w500),),
+                            ],
+                          ),
+                        )),
+                                 ),
+                 ),
+               ],
+             ),
+           ),
+            SizedBox(height:MediaQuery.of(context).size.height * 0.018,),
+          Align(
+            alignment: Alignment.centerLeft,
+             child: Row(
+               children: [
+                SizedBox(width: 10), 
+                 MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                   child: GestureDetector(
+                       onTap: (){
+                        setState(() {
+                              context.go('/route');
+                          selected1 = false;
+                          selected2 = false;
+                          selected3 = false;
+                          selected4 = false;
+                          selected5 = true;
+         selected6 = false;
+                   
+                        });
+                      
+                        },
+                        child: Container(
+                          width: 165,
+                          height: 60,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            color: selected5 ?  const Color.fromARGB(255, 0, 55, 100) : null,
+                          ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Row(
+                            children: [
+                                SizedBox(width: 7),
+                                 Icon(Icons.turn_slight_right, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
+                                 SizedBox(width: 5),
+                              Text('Route',  textAlign: TextAlign.center, style: TextStyle(
+                                color: const Color.fromARGB(255, 255, 255, 255),
+                                fontSize: 20, fontWeight: FontWeight.w500),),
+                            ],
+                          ),
+                        )),
+                                 ),
+                 ),
+               ],
+             ),
+           ),
+           SizedBox(height:MediaQuery.of(context).size.height * 0.018,),
+            Align(
+            alignment: Alignment.centerLeft,
+             child: Row(
+               children: [
+                SizedBox(width: 10), 
+                 MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                   child: GestureDetector(
+                       onTap: (){
+                        setState(() {
+                                  context.go('/reports');
                        
-                                              return false;
+                        });
+                      
+                        },
+                        child: Container(
+                          width: 165,
+                          height: 60,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                         
+                          ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Row(
+                            children: [
+                                SizedBox(width: 7),
+                                 Icon(Icons.bar_chart, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
+                                 SizedBox(width: 5),
+                              Text('Reports',  textAlign: TextAlign.center, style: TextStyle(
+                                color: const Color.fromARGB(255, 255, 255, 255),
+                                fontSize: 20, fontWeight: FontWeight.w500),),
+                            ],
+                          ),
+                        )),
+                                 ),
+                 ),
+               ],
+             ),
+           ),
+                        Spacer(),
+                           Row(
+                            children: [
+                              SizedBox(width: 40),
+                              TextButton(
+                                onPressed: () async {
+                                  context.go('/login');
+                                  await Supabase.instance.client.auth.signOut();
+                                  
+                                      setState(() {
+                                        
+                                      });
+                                },
+                                child: Text('Logout',  textAlign: TextAlign.center, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, 
+                              color:  const Color.fromARGB(255, 177, 220, 255),),)),
+                               SizedBox(width: 10),
+                         Icon(Icons.logout, color:  const Color.fromARGB(255, 177, 220, 255),)
+                         
+                            ],
+                          ), SizedBox(height: 20,), 
+          ],
+        ),
+      ),
+         Row(
+        children: [
+          SizedBox(width: 10),
+          SizedBox(
+              width: MediaQuery.of(context).size.width * 0.87,
+                height:  MediaQuery.of(context).size.height * 0.98,
+            child: Column(children: [
+             SizedBox(height: 20),
+                      Row(
+            children: [
+              SizedBox(width: 30),
+              Text('Add Process', style: TextStyle(color: const Color.fromARGB(255, 23, 85, 161), fontWeight: FontWeight.bold, fontSize: 30)),
+            ],
+                      ),
+                      SizedBox(height: 35),
+                      Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(children: [
+                SizedBox(width: 20),
+                      
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Container(
+                                      width: 400,
+                                      height: 40,
+                                      decoration: BoxDecoration(
+                                        border: Border.all(width: 1, color: Colors.grey), borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: TextField(
+                                      controller: searchPController,
+                                      cursorColor: Colors.black,
+                                      decoration: InputDecoration(
+                                        label: Text('Search a process...'),
+                                        floatingLabelStyle: TextStyle(color:  Color(0xFFFAFAFA),),
+                                        enabledBorder: InputBorder.none,
+                      isDense: true,
+                                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                                      focusedBorder: InputBorder.none,
+                                      disabledBorder: InputBorder.none,
+                                      prefixIcon: Icon(Icons.search, color:const Color.fromARGB(255, 23, 85, 161), size: 26 )
+                                      ),
+                                      ),),
+                    ),
+              
+             ],
+                       ),
+              
+              
+                 ],),
+                SizedBox(height: 10,),
+           
+            
+                      
+                      SizedBox(height: 20),
+                    Align(
+                      alignment: Alignment.topLeft,
+                      child: SizedBox(
+                         width: MediaQuery.of(context).size.width * 0.9,
+                          height: MediaQuery.of(context).size.height * 0.76,
+                           child: Column(
+                             children: [
+                               Container(
+                                             decoration: BoxDecoration(
+                                               gradient: LinearGradient(
+                                      colors: [ const Color.fromARGB(255, 186, 224, 254), const Color.fromARGB(255, 234, 245, 255) ],
+                                    begin: Alignment.centerLeft, end: Alignment.centerRight),
+                                     borderRadius: BorderRadius.only(topLeft: Radius.circular(16), topRight: Radius.circular(16))
+                                                   ),
+                                             height: 60,
+                                             width: double.infinity,
+                                             child: Row(children: [
                                               
-                                            }
-                                          }
-                                            else {
-
-                                             
-                                               return true;
-                                          }}).toList();
-                                            
-                                          
-                                          return ListView.builder(
-                                            itemCount: filteredData.length,
-                                            itemBuilder:(context, index) {
-                                              final entry = filteredData[index];
-                                                     return StatefulBuilder(
-                                       builder: (context, setLocalState) => 
-                                                        Container(
-                                                         decoration: BoxDecoration(
-                                                           border: Border(bottom: BorderSide(width: 1, color: const Color.fromARGB(255, 118, 118, 118))),
-                                                         color: 
-                                                         hoverIndex == entry['id'] ? const Color.fromARGB(255, 247, 247, 247) :
-                                                        Colors.white),
-                                                         child: MouseRegion(
-                                                           cursor: SystemMouseCursors.click,
-                                                           onHover: (event){
-                                                             setLocalState(() {
-                                                                hoverIndex = entry['id'];
-                                                             });
-                                                           },
-                                                           onExit: (event) {
-                                                             setLocalState(() {
-                                                               hoverIndex = null;
-                                                             });
-                                                           },
-                                                           child: SizedBox(
-                                                             height: 61,
-                                                             child: Column(
-                                                               children: [
-                                                                 SizedBox(height: 5),
-                                                                 Row(
+                                               SizedBox(width: 20),
+                                                 SizedBox(width: 400, child: Text('Description', style: TextStyle(fontSize: 15, fontFamily: 'Inter'
+                                                 , fontWeight: FontWeight.bold))),
+                               SizedBox(width: 20),
+                               Spacer(),
+                                                 SizedBox(width: 200, child: Text('', style: TextStyle(fontSize: 15, fontFamily: 'Inter'
+                                                 , fontWeight: FontWeight.bold))),
+                               SizedBox(width: 30),
+                                
+                                             ],)
+                                         ),
+                                         Expanded(
+                                           child: StreamBuilder<List<Map<String, dynamic>>>(
+                                            stream: Supabase.instance.client.from('process').stream(primaryKey: ['id']).order('id'),
+                                            builder:(context, snapshot) {
+                                              if (snapshot.connectionState == ConnectionState.waiting){
+                                                          return Center(child: CircularProgressIndicator());
+                                              } else if (snapshot.hasError){
+                                                return Text('Error: ${snapshot.error}');
+                                              }
+                                              final data = snapshot.data ?? [];
+                                              if (data.isEmpty){
+                                                  return Center(child: Column(
+                                                         children: [
+                                                           SizedBox(height: 70),
+                                                           Stack(
+                                                             children: [
+                                                              Image( image: AssetImage('images/search.png'
+                                                             ),
+                                                              width: 400,
+                                                               height: 400,
+                                                               fit: BoxFit.contain,),
+                                                             Positioned
+                                                             (
+                                                               left: 100,
+                                                               top: 300, child: Text('Nothing here yet...', style: TextStyle(color:  const Color.fromARGB(255, 0, 55, 100), fontSize: 25, 
+                                                               fontWeight: FontWeight.bold )))
+                                                             ])
+                                                         ],
+                                                       ));
+                                              }
+                            
+                                              final filteredData = data.where((entry){
+                                                final searchPControllerr = searchPController.text.toLowerCase();
+                                                final names = entry['description'].toString().toLowerCase();
+                                                if (searchPController.text.isNotEmpty){
+                                                  if (names.contains(searchPControllerr)){
+                                              return true;
+                                              
+                                                } else {
+                           
+                                                  return false;
+                                                  
+                                                }
+                                              }
+                                                else {
+                            
+                                                 
+                                                   return true;
+                                              }}).toList();
+                                                
+                                              
+                                              return ListView.builder(
+                                                itemCount: filteredData.length,
+                                                itemBuilder:(context, index) {
+                                                  final entry = filteredData[index];
+                                                         return StatefulBuilder(
+                                           builder: (context, setLocalState) => 
+                                                            Container(
+                                                             decoration: BoxDecoration(
+                                                               border: Border(bottom: BorderSide(width: 1, color: const Color.fromARGB(255, 118, 118, 118))),
+                                                             color: 
+                                                             hoverIndex == entry['id'] ? const Color.fromARGB(255, 247, 247, 247) :
+                                                            Colors.white),
+                                                             child: MouseRegion(
+                                                               cursor: SystemMouseCursors.click,
+                                                               onHover: (event){
+                                                                 setLocalState(() {
+                                                                    hoverIndex = entry['id'];
+                                                                 });
+                                                               },
+                                                               onExit: (event) {
+                                                                 setLocalState(() {
+                                                                   hoverIndex = null;
+                                                                 });
+                                                               },
+                                                               child: SizedBox(
+                                                                 height: 61,
+                                                                 child: Column(
                                                                    children: [
+                                                                     SizedBox(height: 5),
+                                                                     Row(
+                                                                       children: [
+                                                                        
+                                                                         SizedBox(width: 20),
+                                                                                                       SizedBox(width: 400, child: Text('${entry['description']}', style: TextStyle(fontFamily: 'Inter', fontSize: 16))),
+                                                                         SizedBox(width: 20),
+                                                                         Spacer(),
+                                                                SizedBox(width: 50, child: IconButton(
+                                                                  onPressed: (){
+                                                                    final process = entry['description'];
+                                                                    final id = entry['id'];
                                                                     
-                                                                     SizedBox(width: 20),
-                                                                                                   SizedBox(width: 400, child: Text('${entry['description']}', style: TextStyle(fontFamily: 'Inter', fontSize: 16))),
-                                                                     SizedBox(width: 20),
-                                                                     Spacer(),
-                                                            SizedBox(width: 50, child: IconButton(
-                                                              onPressed: (){
-                                                                final process = entry['description'];
-                                                                final id = entry['id'];
-                                                                
-                                                              viewPopUp(process, id);
-                                                              },
-                                                              icon: Icon(Icons.visibility))),
-                                                              SizedBox(width: 30,),
+                                                                  viewPopUp(process, id);
+                                                                  },
+                                                                  icon: Icon(Icons.visibility))),
+                                                                  SizedBox(width: 30,),
+                                                                       ],
+                                                                     ),
                                                                    ],
                                                                  ),
-                                                               ],
+                                                               ),
                                                              ),
                                                            ),
-                                                         ),
-                                                       ),
-                                                     );
+                                                         );
+                                                },
+                                                );
+                                              
                                             },
-                                            );
-                                          
-                                        },
-                                        ),
-                                     )
-                         ],
-                       ),
-                     )
-          
-         ],
-          
+                                            ),
+                                         )
+                             ],
+                           ),
+                         ),
+                    )
+            
+           ],
+            
+            ),
           ),
-        ),
-      ],
-    )
-  ],),
-);
+        ],
+      )
+        ],),
+    ),
+    );
     
   }
 }

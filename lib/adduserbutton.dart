@@ -515,7 +515,7 @@ Future<void> addUser() async {
     'Authorization': 'Bearer $accessToken', 
   },
     body: jsonEncode({
-      'email': mailController.text.trim(),
+      'email': mailController.text.trim().toLowerCase(),
       'password': passwordController.text.trim(),
       'username': usernameController.text.trim(),
       'role': selectedRole,

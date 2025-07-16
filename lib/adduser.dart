@@ -1,17 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:mbi2/process.dart';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'addmaterial.dart';
-import 'admindashboard.dart';
+
 import 'adduserbutton.dart';
-import 'admindata.dart';
-import 'dart:async';
-import 'login.dart';
+
 import 'package:go_router/go_router.dart';
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 import 'routes.dart';
-
-import 'addroute.dart';
+import 'dart:async';
 void main() async {
   setUrlStrategy(PathUrlStrategy());
   WidgetsFlutterBinding.ensureInitialized();
@@ -76,30 +72,31 @@ _onSearchChanged2();
 Timer? _debounce;
 
 
-void _onSearchChanged2 (){
+void _onSearchChanged2() {
   if (_debounce?.isActive ?? false) _debounce!.cancel();
-_debounce = Timer(const Duration(milliseconds: 500), () {
-    
+  _debounce = Timer(const Duration(milliseconds: 500), () {
+    if (!mounted) return;  // <-- Prevent calling setState after dispose
     setState(() {
-    
+      // Your state updates here
     });
   });
 }
 
-
-void _onSearchChanged (setLocalState){
+void _onSearchChanged(setLocalState) {
   if (_debounce?.isActive ?? false) _debounce!.cancel();
-_debounce = Timer(const Duration(milliseconds: 500), () {
-    
+  _debounce = Timer(const Duration(milliseconds: 500), () {
+    if (!mounted) return;  // <-- Prevent calling setLocalState after dispose
     setLocalState(() {
-    
+      // Your state updates here
     });
   });
 }
+
 
 
 @override
 void dispose() {
+    _debounce?.cancel(); 
   searchController2.clear();
   searchController2.dispose();  // 
   super.dispose();
@@ -377,8 +374,8 @@ _onSearchChanged(setLocalState);
                                                               if (!snapshot.hasData || snapshot.data == null) {
                                                             return Text('No data found');
                                                               }
-                                                                   final List<dynamic> data = snapshot.data![0] as List;
-                                                            final List<dynamic> data2 = snapshot.data![1] as List;
+                                                                   final  data = snapshot.data![0];
+                                                            final  data2 = snapshot.data![1];
                                                             
                                                                  if (data.isEmpty){
                                                                   return Center(child: Text('No users found', style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.bold, fontSize: 16)));
@@ -410,31 +407,22 @@ _onSearchChanged(setLocalState);
                                                                             final usernames = entry['description'];
                                                                                         final isChecked = isCheckedMapEdit[usernames] ?? permittedProcesses.contains(usernames);
                                                                                                                                 
-                                                                            return Align(
-                                                                            alignment: Alignment.topLeft,
-                                                                             child: 
-                                                                                // if (snapshot.connectionState == ConnectionState.waiting){
-                                                                                //   return CircularProgressIndicator();
-                                                                                // }
-                                                                               
-                                                                                  CheckboxListTile(
-                                                                                  title: Text(entry['description'], style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.bold, fontSize: 16)),
-                                                                                  activeColor: Colors.blue,
-                                                                                  value: isChecked,
-                                                                                  onChanged: (value){
-                                                                                    setLocalState(() {
-                                                                                       isCheckedMapEdit[usernames] = value!;
-                                                                                    },);
-                                                                                 
-                                                                                  setLocalState
-                                                                                  (() {
-                                                                                    
-                                                                                  },);
-                                                                                  }
-                                                                                                   
-                                                                                  )
+                                                                            return CheckboxListTile(
+                                                                            title: Text(entry['description'], style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.bold, fontSize: 16)),
+                                                                            activeColor: Colors.blue,
+                                                                            value: isChecked,
+                                                                            onChanged: (value){
+                                                                              setLocalState(() {
+                                                                                 isCheckedMapEdit[usernames] = value!;
+                                                                              },);
+                                                                                                                                                             
+                                                                            setLocalState
+                                                                            (() {
                                                                               
-                                                                           );}).toList(),
+                                                                            },);
+                                                                            }
+                                                                                             
+                                                                            );}).toList(),
                                                                          ),
                                                                        ),
                                                                       ),
@@ -618,380 +606,381 @@ Widget build(BuildContext content){
     }
    return  Scaffold(
       floatingActionButton: AddNewUser(),
-     backgroundColor: Color(0xFFFAFAFA),
-      body: Row(children: [
-       Container(
-          height: double.infinity,
-          width: 200,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.only(
-           bottomLeft: Radius.circular(0,),
-           bottomRight: Radius.circular(6),
-          topRight: Radius.circular(6),
-          topLeft: Radius.circular(0)
+    backgroundColor: Color.fromARGB(255, 236, 244, 254),
+      body: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(children: [
+         Container(
+            height: double.infinity,
+            width: 200,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.only(
+             bottomLeft: Radius.circular(0,),
+             bottomRight: Radius.circular(6),
+            topRight: Radius.circular(6),
+            topLeft: Radius.circular(0)
+              ),
+             color: const Color.fromARGB(255, 0, 74, 123),
             ),
-           color: const Color.fromARGB(255, 0, 74, 123),
-          ),
-        
-          child: Column(
-            children: [
-              
-              SizedBox(height: 140),
-             Align(
-              alignment: Alignment.centerLeft,
-               child: Row(
-                 children: [
-                  SizedBox(width: 10), 
-                   MouseRegion(
-                    cursor: SystemMouseCursors.click,
-                     child: GestureDetector(
-                         onTap: (){
-                          setState(() {
-                       context.go('/admindashboard');
-                            selected1 = true;
-                            selected2 = false;
-                            selected3 = false;
-                            selected4 = false;
-                            selected5 = false;
-                               selected6 = false;
-                          });
-                          },
-                          child: Container(
-                            width: 165,
-                            height: 60,
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              color: selected1 ?  const Color.fromARGB(255, 0, 55, 100) : null,
-                            ),
-                          child: Row(
-                            children: [
-                                SizedBox(width: 7),
-                                 Icon(Icons.home, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
-                                 SizedBox(width: 5),
-                              Text('Dashboard',  textAlign: TextAlign.center, style: TextStyle(
-                                color: selected1 ? const Color.fromARGB(255, 255, 255, 255) : const Color.fromARGB(255, 255, 255, 255),
-                                fontSize: 20, fontWeight: FontWeight.w500),),
-                            ],
-                          )),
-                                   ),
-                   ),
-                 ],
-               ),
-             ),
-              SizedBox(height:25,),
-            Align(
-              alignment: Alignment.centerLeft,
-               child: Row(
-                 children: [
-                  SizedBox(width: 10), 
-                   MouseRegion(
-                    cursor: SystemMouseCursors.click,
-                     child: GestureDetector(
-                         onTap: (){
-                          setState(() {
-                           context.go('/materials');
-                            selected1 = false;
-                            selected2 = true;
-                            selected3 = false;
-                            selected4 = false;
-                                  selected5 = false; 
-                                     selected6 = false;
-                          });
-                          },
-                          child: Container(
-                            width: 165,
-                            height: 60,
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              color: selected2 ?  const Color.fromARGB(255, 0, 55, 100) : null,
-                            ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Row(
-                              children: [
-                                  SizedBox(width: 7),
-                                   Icon(Icons.pageview_outlined, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
-                                   SizedBox(width: 5),
-                                Text('Materials',  textAlign: TextAlign.center, style: TextStyle(
-                                  color: const Color.fromARGB(255, 255, 255, 255),
-                                  fontSize: 20, fontWeight: FontWeight.w500),),
-                              ],
-                            ),
-                          )),
-                                   ),
-                   ),
-                 ],
-               ),
-             ),
-    
-                SizedBox(height:25),
-                 Align(
-              alignment: Alignment.centerLeft,
-               child: Row(
-                 children: [
-                  SizedBox(width: 10), 
-                   MouseRegion(
-                    cursor: SystemMouseCursors.click,
-                     child: GestureDetector(
-                         onTap: (){
-                          setState(() {
-    context.go('/process');
-                            selected1 = false;
-                            selected2 = false;
-                            selected3 = false;
-                            selected4 = false;
-                            selected5 = false;
-                            selected6 = true;
-                          });
-                          },
-                          child: Container(
-                            width: 165,
-                            height: 60,
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              color: selected6 ?  const Color.fromARGB(255, 0, 55, 100) : null,
-                            ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Row(
-                              children: [
-                                  SizedBox(width: 7),
-                                   Icon(Icons.forklift, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
-                                   SizedBox(width: 5),
-                                Text('Process',  textAlign: TextAlign.center, style: TextStyle(
-                                  color: const Color.fromARGB(255, 255, 255, 255),
-                                  fontSize: 20, fontWeight: FontWeight.w500),),
-                              ],
-                            ),
-                          )),
-                                   ),
-                   ),
-                 ],
-               ),
-             ),
-              SizedBox(height:25,),
-            Align(
-              alignment: Alignment.centerLeft,
-               child: Row(
-                 children: [
-                  SizedBox(width: 10), 
-                   MouseRegion(
-                    cursor: SystemMouseCursors.click,
-                     child: GestureDetector(
-                         onTap: (){
-                          setState(() {
-                          context.go('/data');
-                            selected1 = false;
-                            selected2 = false;
-                            selected3 = false;
-                            selected4 = true;
-                              selected5 = false; 
-                                 selected6 = false;
-                          });
-                          },
-                          child: Container(
-                            width: 165,
-                            height: 60,
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              color: selected4 ?  const Color.fromARGB(255, 0, 55, 100) : null,
-                            ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Row(
-                              children: [
-                                  SizedBox(width: 7),
-                                   Icon(Icons.table_view, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
-                                   SizedBox(width: 5),
-                                Text('Data',  textAlign: TextAlign.center, style: TextStyle(
-                                  color: const Color.fromARGB(255, 255, 255, 255),
-                                  fontSize: 20, fontWeight: FontWeight.w500),),
-                              ],
-                            ),
-                          )),
-                                   ),
-                   ),
-                 ],
-               ),
-             ),
-              SizedBox(height: 25),
+          
+            child: Column(
+              children: [
+                
+                SizedBox(height:MediaQuery.of(context).size.height * 0.15,),
                Align(
-              alignment: Alignment.centerLeft,
-               child: Row(
-                 children: [
-                  SizedBox(width: 10), 
-                   MouseRegion(
-                    cursor: SystemMouseCursors.click,
-                     child: GestureDetector(
-                         onTap: (){
-                          setState(() {
-                            selected1 = false;
-                            selected2 = false;
-                            selected3 = true;
-                            selected4 = false;
-                              selected5 = false; 
+                alignment: Alignment.centerLeft,
+                 child: Row(
+                   children: [
+                    SizedBox(width: 10), 
+                     MouseRegion(
+                      cursor: SystemMouseCursors.click,
+                       child: GestureDetector(
+                           onTap: (){
+                            setState(() {
+                         context.go('/admindashboard');
+                              selected1 = true;
+                              selected2 = false;
+                              selected3 = false;
+                              selected4 = false;
+                              selected5 = false;
                                  selected6 = false;
-                          });
-                          },
-                          child: Container(
-                            width: 165,
-                            height: 60,
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              color: selected3 ?  const Color.fromARGB(255, 0, 55, 100) : null,
-                            ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
+                            });
+                            },
+                            child: Container(
+                              width: 165,
+                              height: 60,
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10),
+                                color: selected1 ?  const Color.fromARGB(255, 0, 55, 100) : null,
+                              ),
                             child: Row(
                               children: [
                                   SizedBox(width: 7),
-                                   Icon(Icons.group, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
+                                   Icon(Icons.home, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
                                    SizedBox(width: 5),
-                                Text('Users',  textAlign: TextAlign.center, style: TextStyle(
-                                  color: const Color.fromARGB(255, 255, 255, 255),
+                                Text('Dashboard',  textAlign: TextAlign.center, style: TextStyle(
+                                  color: selected1 ? const Color.fromARGB(255, 255, 255, 255) : const Color.fromARGB(255, 255, 255, 255),
                                   fontSize: 20, fontWeight: FontWeight.w500),),
                               ],
-                            ),
-                          )),
-                                   ),
-                   ),
-                 ],
+                            )),
+                                     ),
+                     ),
+                   ],
+                 ),
                ),
-             ),
-                 SizedBox(height:25,),
-            Align(
-              alignment: Alignment.centerLeft,
-               child: Row(
-                 children: [
-                  SizedBox(width: 10), 
-                   MouseRegion(
-                    cursor: SystemMouseCursors.click,
-                     child: GestureDetector(
-                         onTap: (){
-                          setState(() {
-                            
-                                   context.go('/route');
-                            selected1 = false;
-                            selected2 = false;
-                            selected3 = false;
-                            selected4 = false;
-                            selected5 = true;
-       selected6 = false;
-      
-    
-                                           
-                          });
-                        
-                          },
-                          child: Container(
-                            width: 165,
-                            height: 60,
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              color: selected5 ?  const Color.fromARGB(255, 0, 55, 100) : null,
-                            ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Row(
-                              children: [
-                                  SizedBox(width: 7),
-                                   Icon(Icons.turn_slight_right, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
-                                   SizedBox(width: 5),
-                                Text('Route',  textAlign: TextAlign.center, style: TextStyle(
-                                  color: const Color.fromARGB(255, 255, 255, 255),
-                                  fontSize: 20, fontWeight: FontWeight.w500),),
-                              ],
-                            ),
-                          )),
-                                   ),
-                   ),
-                 ],
-               ),
-             ),
-              SizedBox(height: 25,),
+                SizedBox(height:MediaQuery.of(context).size.height * 0.018,),
               Align(
-              alignment: Alignment.centerLeft,
-               child: Row(
-                 children: [
-                  SizedBox(width: 10), 
-                   MouseRegion(
-                    cursor: SystemMouseCursors.click,
-                     child: GestureDetector(
-                         onTap: (){
-                          setState(() {
-                                    context.go('/reports');
-                         
-                          });
-                        
-                          },
-                          child: Container(
-                            width: 165,
-                            height: 60,
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                           
-                            ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Row(
-                              children: [
-                                  SizedBox(width: 7),
-                                   Icon(Icons.bar_chart, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
-                                   SizedBox(width: 5),
-                                Text('Reports',  textAlign: TextAlign.center, style: TextStyle(
-                                  color: const Color.fromARGB(255, 255, 255, 255),
-                                  fontSize: 20, fontWeight: FontWeight.w500),),
-                              ],
-                            ),
-                          )),
-                                   ),
-                   ),
-                 ],
+                alignment: Alignment.centerLeft,
+                 child: Row(
+                   children: [
+                    SizedBox(width: 10), 
+                     MouseRegion(
+                      cursor: SystemMouseCursors.click,
+                       child: GestureDetector(
+                           onTap: (){
+                            setState(() {
+                             context.go('/materials');
+                              selected1 = false;
+                              selected2 = true;
+                              selected3 = false;
+                              selected4 = false;
+                                    selected5 = false; 
+                                       selected6 = false;
+                            });
+                            },
+                            child: Container(
+                              width: 165,
+                              height: 60,
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10),
+                                color: selected2 ?  const Color.fromARGB(255, 0, 55, 100) : null,
+                              ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Row(
+                                children: [
+                                    SizedBox(width: 7),
+                                     Icon(Icons.pageview_outlined, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
+                                     SizedBox(width: 5),
+                                  Text('Materials',  textAlign: TextAlign.center, style: TextStyle(
+                                    color: const Color.fromARGB(255, 255, 255, 255),
+                                    fontSize: 20, fontWeight: FontWeight.w500),),
+                                ],
+                              ),
+                            )),
+                                     ),
+                     ),
+                   ],
+                 ),
                ),
-             ),
-                          Spacer(),
-                             Row(
-                              children: [
-                                SizedBox(width: 40),
-                                TextButton(
-                                  onPressed: () async {
-                                    context.go('/login');
-                                    await Supabase.instance.client.auth.signOut();
-                                   
-                                        setState(() {
-                                          
-                                        });
-                                  },
-                                  child: Text('Logout',  textAlign: TextAlign.center, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, 
-                                color:  const Color.fromARGB(255, 177, 220, 255),),)),
-                                 SizedBox(width: 10),
-                           Icon(Icons.logout, color:  const Color.fromARGB(255, 177, 220, 255),)
+            
+                  SizedBox(height:MediaQuery.of(context).size.height * 0.018,),
+                   Align(
+                alignment: Alignment.centerLeft,
+                 child: Row(
+                   children: [
+                    SizedBox(width: 10), 
+                     MouseRegion(
+                      cursor: SystemMouseCursors.click,
+                       child: GestureDetector(
+                           onTap: (){
+                            setState(() {
+            context.go('/process');
+                              selected1 = false;
+                              selected2 = false;
+                              selected3 = false;
+                              selected4 = false;
+                              selected5 = false;
+                              selected6 = true;
+                            });
+                            },
+                            child: Container(
+                              width: 165,
+                              height: 60,
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10),
+                                color: selected6 ?  const Color.fromARGB(255, 0, 55, 100) : null,
+                              ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Row(
+                                children: [
+                                    SizedBox(width: 7),
+                                     Icon(Icons.forklift, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
+                                     SizedBox(width: 5),
+                                  Text('Process',  textAlign: TextAlign.center, style: TextStyle(
+                                    color: const Color.fromARGB(255, 255, 255, 255),
+                                    fontSize: 20, fontWeight: FontWeight.w500),),
+                                ],
+                              ),
+                            )),
+                                     ),
+                     ),
+                   ],
+                 ),
+               ),
+               SizedBox(height:MediaQuery.of(context).size.height * 0.018,),
+              Align(
+                alignment: Alignment.centerLeft,
+                 child: Row(
+                   children: [
+                    SizedBox(width: 10), 
+                     MouseRegion(
+                      cursor: SystemMouseCursors.click,
+                       child: GestureDetector(
+                           onTap: (){
+                            setState(() {
+                            context.go('/data');
+                              selected1 = false;
+                              selected2 = false;
+                              selected3 = false;
+                              selected4 = true;
+                                selected5 = false; 
+                                   selected6 = false;
+                            });
+                            },
+                            child: Container(
+                              width: 165,
+                              height: 60,
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10),
+                                color: selected4 ?  const Color.fromARGB(255, 0, 55, 100) : null,
+                              ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Row(
+                                children: [
+                                    SizedBox(width: 7),
+                                     Icon(Icons.table_view, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
+                                     SizedBox(width: 5),
+                                  Text('Data',  textAlign: TextAlign.center, style: TextStyle(
+                                    color: const Color.fromARGB(255, 255, 255, 255),
+                                    fontSize: 20, fontWeight: FontWeight.w500),),
+                                ],
+                              ),
+                            )),
+                                     ),
+                     ),
+                   ],
+                 ),
+               ),
+                SizedBox(height:MediaQuery.of(context).size.height * 0.018,),
+                 Align(
+                alignment: Alignment.centerLeft,
+                 child: Row(
+                   children: [
+                    SizedBox(width: 10), 
+                     MouseRegion(
+                      cursor: SystemMouseCursors.click,
+                       child: GestureDetector(
+                           onTap: (){
+                            setState(() {
+                              selected1 = false;
+                              selected2 = false;
+                              selected3 = true;
+                              selected4 = false;
+                                selected5 = false; 
+                                   selected6 = false;
+                            });
+                            },
+                            child: Container(
+                              width: 165,
+                              height: 60,
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10),
+                                color: selected3 ?  const Color.fromARGB(255, 0, 55, 100) : null,
+                              ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Row(
+                                children: [
+                                    SizedBox(width: 7),
+                                     Icon(Icons.group, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
+                                     SizedBox(width: 5),
+                                  Text('Users',  textAlign: TextAlign.center, style: TextStyle(
+                                    color: const Color.fromARGB(255, 255, 255, 255),
+                                    fontSize: 20, fontWeight: FontWeight.w500),),
+                                ],
+                              ),
+                            )),
+                                     ),
+                     ),
+                   ],
+                 ),
+               ),
+                   SizedBox(height:MediaQuery.of(context).size.height * 0.018,),
+              Align(
+                alignment: Alignment.centerLeft,
+                 child: Row(
+                   children: [
+                    SizedBox(width: 10), 
+                     MouseRegion(
+                      cursor: SystemMouseCursors.click,
+                       child: GestureDetector(
+                           onTap: (){
+                            setState(() {
+                              
+                                     context.go('/route');
+                              selected1 = false;
+                              selected2 = false;
+                              selected3 = false;
+                              selected4 = false;
+                              selected5 = true;
+         selected6 = false;
+        
+            
+                                             
+                            });
+                          
+                            },
+                            child: Container(
+                              width: 165,
+                              height: 60,
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10),
+                                color: selected5 ?  const Color.fromARGB(255, 0, 55, 100) : null,
+                              ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Row(
+                                children: [
+                                    SizedBox(width: 7),
+                                     Icon(Icons.turn_slight_right, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
+                                     SizedBox(width: 5),
+                                  Text('Route',  textAlign: TextAlign.center, style: TextStyle(
+                                    color: const Color.fromARGB(255, 255, 255, 255),
+                                    fontSize: 20, fontWeight: FontWeight.w500),),
+                                ],
+                              ),
+                            )),
+                                     ),
+                     ),
+                   ],
+                 ),
+               ),
+                SizedBox(height:MediaQuery.of(context).size.height * 0.018,),
+                Align(
+                alignment: Alignment.centerLeft,
+                 child: Row(
+                   children: [
+                    SizedBox(width: 10), 
+                     MouseRegion(
+                      cursor: SystemMouseCursors.click,
+                       child: GestureDetector(
+                           onTap: (){
+                            setState(() {
+                                      context.go('/reports');
                            
-                              ],
-                            ), SizedBox(height: 20,), 
-            ],
+                            });
+                          
+                            },
+                            child: Container(
+                              width: 165,
+                              height: 60,
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10),
+                             
+                              ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Row(
+                                children: [
+                                    SizedBox(width: 7),
+                                     Icon(Icons.bar_chart, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
+                                     SizedBox(width: 5),
+                                  Text('Reports',  textAlign: TextAlign.center, style: TextStyle(
+                                    color: const Color.fromARGB(255, 255, 255, 255),
+                                    fontSize: 20, fontWeight: FontWeight.w500),),
+                                ],
+                              ),
+                            )),
+                                     ),
+                     ),
+                   ],
+                 ),
+               ),
+                            Spacer(),
+                               Row(
+                                children: [
+                                  SizedBox(width: 40),
+                                  TextButton(
+                                    onPressed: () async {
+                                      context.go('/login');
+                                      await Supabase.instance.client.auth.signOut();
+                                     
+                                          setState(() {
+                                            
+                                          });
+                                    },
+                                    child: Text('Logout',  textAlign: TextAlign.center, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, 
+                                  color:  const Color.fromARGB(255, 177, 220, 255),),)),
+                                   SizedBox(width: 10),
+                             Icon(Icons.logout, color:  const Color.fromARGB(255, 177, 220, 255),)
+                             
+                                ],
+                              ), SizedBox(height: 20,), 
+              ],
+            ),
           ),
-        ),
-        Row(
-          children: [
-            SizedBox(width: 10),
-            SizedBox(
-              width: 1515,
-                  height: 825,
-              child: Expanded(
+          Row(
+            children: [
+              SizedBox(width: 10),
+              SizedBox(
+                width: 1515,
+                    height: 825,
                 child: Column(children: [
                  SizedBox(height: 20),
-              Row(
+                                Row(
                 children: [
                   SizedBox(width: 30),
                   Text('User Data', style: TextStyle( fontFamily: 'Inter',
                     color: const Color.fromARGB(255, 23, 85, 161), fontWeight: FontWeight.bold, fontSize: 30)),
                 ],
-              ),
-              SizedBox(height: 20),
-             Align(
-              alignment: Alignment.topLeft,
-               child: Row(
+                                ),
+                                SizedBox(height: 20),
+                               Align(
+                                alignment: Alignment.topLeft,
+                                 child: Row(
                  children: [
                    SizedBox(width: 15,),
                    Container(
@@ -1008,7 +997,7 @@ Widget build(BuildContext content){
                       floatingLabelStyle: TextStyle(color:  Color(0xFFFAFAFA),),
                       enabledBorder: InputBorder.none,
                         isDense: true,
-      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
                     focusedBorder: InputBorder.none,
                     disabledBorder: InputBorder.none,
                     prefixIcon: Icon(Icons.search, color:const Color.fromARGB(255, 23, 85, 161), size: 26 )
@@ -1016,127 +1005,142 @@ Widget build(BuildContext content){
                     ),
                    ),
                  ],
-               ),
-             ),
-              SizedBox(height: 15),
-                Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                                  colors: [ const Color.fromARGB(255, 186, 224, 254), const Color.fromARGB(255, 234, 245, 255) ],
-                                begin: Alignment.centerLeft, end: Alignment.centerRight),
-                                 borderRadius: BorderRadius.only(topLeft: Radius.circular(16), topRight: Radius.circular(16))
-                          ),
-                    height: 60,
-                    width: double.infinity,
-                    child: Row(children: [
-                      SizedBox(width: 20),
-                        SizedBox(width: 350, child: Text('Email', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold,
-                        fontFamily: 'Inter' ))),
-                           SizedBox(width: 20),
-                           SizedBox(width: 150, child: Text('Username', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold,
-                           fontFamily: 'Inter' ))),
-                            SizedBox(width: 20),
-                             SizedBox(width: 150, child: Text('Role', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold,
-                           fontFamily: 'Inter' ))),
-                            Spacer(),
-                           SizedBox(width: 80, child: Text('')),
-                    ],)
+                                 ),
+                               ),
+                                SizedBox(height: 20),
+                Align(
+                  alignment: Alignment.topLeft,
+                  child: SizedBox(
+                    width:  MediaQuery.of(context).size.width >  1500 ?  MediaQuery.of(context).size.width * 0.866  :  MediaQuery.of(context).size.width >  1450 ? 
+                      MediaQuery.of(context).size.width *  0.85 :
+                    MediaQuery.of(context).size.width *  0.84,
+                        height: 60,
+                    child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                                      colors: [ const Color.fromARGB(255, 186, 224, 254), const Color.fromARGB(255, 234, 245, 255) ],
+                                    begin: Alignment.centerLeft, end: Alignment.centerRight),
+                                     borderRadius: BorderRadius.only(topLeft: Radius.circular(16), topRight: Radius.circular(16))
+                              ),
+                        width: double.infinity,
+                        child: Row(children: [
+                          SizedBox(width: 20),
+                            SizedBox(width: 350, child: Text('Email', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold,
+                            fontFamily: 'Inter' ))),
+                               SizedBox(width: 20),
+                               SizedBox(width: 150, child: Text('Username', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold,
+                               fontFamily: 'Inter' ))),
+                                SizedBox(width: 20),
+                                 SizedBox(width: 150, child: Text('Role', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold,
+                               fontFamily: 'Inter' ))),
+                                Spacer(),
+                               SizedBox(width: 80, child: Text('')),
+                        ],)
+                    ),
+                  ),
                 ),
-              Expanded(
-                child: StreamBuilder<List<Map<String, dynamic>>>(
-              stream: Supabase.instance.client
-                  .from('user')
-                  .stream(primaryKey: ['id'])
-                  .order('id'),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                }
-    
-              
-              
-                final data = snapshot.data ?? [];
+                                Align(
+                alignment: Alignment.topLeft,
+                child: SizedBox(
+                  width:   MediaQuery.of(context).size.width >  1500 ?  MediaQuery.of(context).size.width * 0.866  :  MediaQuery.of(context).size.width >  1450 ? 
+                      MediaQuery.of(context).size.width *  0.85 :
+                    MediaQuery.of(context).size.width *  0.84,
+                      height: MediaQuery.of(context).size.height * 0.68,
+                  child: StreamBuilder(
+                stream: Supabase.instance.client
+                    .from('user')
+                    .stream(primaryKey: ['id'])
+                    .order('id'),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  }
+                    
                 
-                final filteredData = data.where((entry) => entry['username'].toString().contains(searchController2.text),).toList();
-              
-                if (filteredData.isEmpty) {
-                  return Center(child: Column(
-                    children: [
-                      SizedBox(height: 70),
-                      Stack(
-                        children: [
-                         Image( image: AssetImage('images/search.png'
-                        ),
-                         width: 400,
-                          height: 400,
-                          fit: BoxFit.contain,),
-                        Positioned
-                        (
-                          left: 100,
-                          top: 300, child: Text('Nothing here yet...', style: TextStyle(color:  const Color.fromARGB(255, 0, 55, 100), fontSize: 25, 
-                          fontWeight: FontWeight.bold )))
-                        ])
-                    ],
-                  ));
-                }
-              
-                return ListView.builder(
-                  itemCount: filteredData.length,
-                  itemBuilder: (context, index) {
-                    final entry = filteredData[index];
-              
-                    return Container(
-                      decoration: BoxDecoration(
-                        border: Border(bottom: BorderSide(width: 1, color: const Color.fromARGB(255, 118, 118, 118))),
-                      color: (entry['closed'] == 1)
-                          ? Color.fromARGB(255, 172, 250, 175)
-                          : Colors.white),
-                      child: SizedBox(
-                        height: 61,
-                        child: Column(
+                
+                  final data = snapshot.data ?? [];
+                  
+                  final filteredData = data.where((entry) => entry['username'].toString().contains(searchController2.text),).toList();
+                
+                  if (filteredData.isEmpty) {
+                    return Center(child: Column(
+                      children: [
+                        SizedBox(height: 70),
+                        Stack(
                           children: [
-                            SizedBox(height: 5),
-                            Row(
-                              children: [
-                                
-                                SizedBox(width: 20),
-                                SizedBox(width: 350, child: Text(entry['email'] ?? 'N/A', style: TextStyle(fontSize: 16, fontFamily: 'Inter'))),
-                                SizedBox(width: 20),
-                                SizedBox(width: 150, child: Text(entry['username'] ?? 'N/A',  style: TextStyle(fontSize: 16, fontFamily: 'Inter'))),
-                                     SizedBox(width: 20),
-                                SizedBox(width: 150, child: Text(entry['role'] ?? 'N/A',  style: TextStyle(fontSize: 16, fontFamily: 'Inter'))),
-                           Spacer(),
-                           SizedBox(width: 80, child: IconButton(onPressed:() {
-                           final usernamer = entry['username'] ?? 'N/A';
-                          role = entry['role'] ?? 'N/A';
-                           password = entry['password'] ?? 'N/A';
-                         email = entry['email'] ?? 'N/A';
-                            editUserButton(usernamer);
-                             setState(() {
-                               
-                             });
-                           }, icon: Icon(Icons.edit)
-                           )),
-                              ],
-                            ),
-                          ],
+                           Image( image: AssetImage('images/search.png'
+                          ),
+                           width: 400,
+                            height: 400,
+                            fit: BoxFit.contain,),
+                          Positioned
+                          (
+                            left: 100,
+                            top: 300, child: Text('Nothing here yet...', style: TextStyle(color:  const Color.fromARGB(255, 0, 55, 100), fontSize: 25, 
+                            fontWeight: FontWeight.bold )))
+                          ])
+                      ],
+                    ));
+                  }
+                
+                  return ListView.builder(
+                    itemCount: filteredData.length,
+                    itemBuilder: (context, index) {
+                      final entry = filteredData[index];
+                
+                      return Container(
+                        decoration: BoxDecoration(
+                          border: Border(bottom: BorderSide(width: 1, color: const Color.fromARGB(255, 118, 118, 118))),
+                        color: (entry['closed'] == 1)
+                            ? Color.fromARGB(255, 172, 250, 175)
+                            : Colors.white),
+                        child: SizedBox(
+                          height: 61,
+                          child: Column(
+                            children: [
+                              SizedBox(height: 5),
+                              Row(
+                                children: [
+                                  
+                                  SizedBox(width: 20),
+                                  SizedBox(width: 350, child: Text(entry['email'] ?? 'N/A', style: TextStyle(fontSize: 16, fontFamily: 'Inter'))),
+                                  SizedBox(width: 20),
+                                  SizedBox(width: 150, child: Text(entry['username'] ?? 'N/A',  style: TextStyle(fontSize: 16, fontFamily: 'Inter'))),
+                                       SizedBox(width: 20),
+                                  SizedBox(width: 150, child: Text(entry['role'] ?? 'N/A',  style: TextStyle(fontSize: 16, fontFamily: 'Inter'))),
+                             Spacer(),
+                             SizedBox(width: 80, child: IconButton(onPressed:() {
+                             final usernamer = entry['username'] ?? 'N/A';
+                            role = entry['role'] ?? 'N/A';
+                             password = entry['password'] ?? 'N/A';
+                           email = entry['email'] ?? 'N/A';
+                              editUserButton(usernamer);
+                               setState(() {
+                                 
+                               });
+                             }, icon: Icon(Icons.edit)
+                             )),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    );
-                  },
-                );
-              },
+                      );
+                    },
+                  );
+                },
+                  ),
                 ),
-              )
-              
+                                )
+                                
                 ]),
               ),
-            ),
-          ],
-        )
-      ],),
+            ],
+          )
+        ],),
+      ),
     );
   
 }
