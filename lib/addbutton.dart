@@ -26,6 +26,65 @@ class AddButton extends StatefulWidget {
   State<AddButton> createState() => _AddButtonState();
 }
 
+class CustomToast {
+  static void show(
+    BuildContext context,
+     {
+    Duration duration = const Duration(seconds: 3),
+  }) {
+    final overlay = Overlay.of(context);
+    final overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        bottom: 50,
+        left: 0,
+        right: 0,
+        child: Align(
+          alignment: Alignment.bottomCenter,
+          child: _ToastContent(),
+        ),
+      ),
+    );
+
+    overlay.insert(overlayEntry);
+
+    Future.delayed(duration, () {
+      overlayEntry.remove();
+    });
+  }
+}
+
+class _ToastContent extends StatelessWidget {
+  
+
+  const _ToastContent({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: AnimatedContainer(
+        duration: Duration(milliseconds: 300),
+        width: 250, // 👈 This will now work!
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color:Colors.green,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.task_alt, color: Colors.white),
+            SizedBox(width: 10, ),
+            Text(
+              'Added successfully!',
+              style: TextStyle(color: const Color.fromARGB(255, 255, 255, 255), fontSize: 15, fontFamily: 'Inter'),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 class _AddButtonState extends State<AddButton> {
   String? nextProcess;
 Map<String, dynamic> responses = {};
@@ -162,7 +221,9 @@ Future<String> fetchTo2() async {
 
  fromTo() async {
   showDialog(context: context, 
+  barrierDismissible: false,
   builder:(context) {
+    
     return AlertDialog(
     backgroundColor: Colors.transparent,
     contentPadding: EdgeInsets.all(0),
@@ -234,7 +295,9 @@ Future<String> fetchTo2() async {
                                           future: Supabase.instance.client.from('process').select(),
                                           builder: (context, snapshot) {
                                             final data = snapshot.data ?? [];
-                                            final filtereddata = data.where((entry) => entry['description'] != fetchh);
+                                            final filtereddata = data.where((entry) => entry['description'] != fetchh && entry['description'] != 'Material Location'
+                                            && entry['description'] != 'Current Process'
+                                            );
                                             return StatefulBuilder(
                                               builder:(context, setLocallyState) => 
                                                DropdownButtonHideUnderline(
@@ -250,6 +313,7 @@ Future<String> fetchTo2() async {
                                                                    Text(fetchh),
                                                                  ],
                                                                )),
+                                                         
                                                               ...filtereddata.map((entry) {
                                                               return  DropdownMenuItem(
                                                                value: entry['description'] ?? 'N/A',
@@ -301,50 +365,78 @@ Future<String> fetchTo2() async {
                         child: ValueListenableBuilder(
                           valueListenable: toNotifier,
                           builder: (context, tots, child) {
-                            return FutureBuilder(
-                              future: fetchTo(),
-                              builder: (context, snapshot) {
-                                final fetchhedd = snapshot.data ?? 'N/A';
-                           
-                                return FutureBuilder(
-                                  future: Supabase.instance.client.from('process').select(),
-                                  builder: (context, snapshot) {
-                                    final data = snapshot.data ?? [];
-                                    final filtereddata = data.where((entry) => entry['description'] != fetchhedd).toList();
-                                    return StatefulBuilder(
-                                      builder:(context, setLocallyState) => 
-                                       DropdownButtonHideUnderline(
-                                       child: DropdownButton(
-                                           icon: Icon(Icons.keyboard_arrow_down),
-                                                     value:  tot.value ?? fetchhedd ?? 'N/A',
-                                                     items: [
-                                                     DropdownMenuItem(
-                                                       value: fetchhedd ?? 'N/A',
-                                                       child: Row(
-                                                         children: [
-                                                          SizedBox(width: 10,),
-                                                           Text(fetchhedd ?? 'N/A' ),
-                                                         ],
-                                                       )),
-                                                      ...filtereddata.map((entry) {
-                                                      return  DropdownMenuItem(
-                                                       value: entry['description'],
-                                                      child: Text(entry['description']),
-                                                     );}),
-                                                     ],
-                                                     onChanged: (value){
-                                                       setLocalState((){
-                                               tot.value = value!.toString();
-                                                       });
-                                                       setState(() {
-                                                         
-                                                       });
-                                                     print('to ${tot.value}');
-                                                     
-                                                  
-                                                     }
-                                       ),
-                                      ),
+                            return  ValueListenableBuilder(
+                          valueListenable: tappedNotifier,
+                          builder: (context, taapp, child) {
+                            return ValueListenableBuilder(
+                              valueListenable: tapIndexNotifier,
+                              builder: (context, tappIndexx, child) {
+                                    return FutureBuilder(
+                                       future: fetchFrom(tappIndexx, taapp),
+                                              builder: (context, snapshot) {
+                                                final fetchh = snapshot.data ?? 'N/A';
+                                               
+                                        return FutureBuilder(
+                                          future: fetchTo(),
+                                          builder: (context, snapshot) {
+                                            final fetchhedd = snapshot.data ?? 'N /A';
+                                                                   
+                                            return FutureBuilder(
+                                              future: Supabase.instance.client.from('process').select(),
+                                              builder: (context, snapshot) {
+                                                final data = snapshot.data ?? [];
+                                               final filtereddata = data.where((entry) => entry['description'] != fetchhedd && entry['description'] != 'Material Location'
+                                                        && entry['description'] != 'Current Process'
+                                                        );
+                                                return StatefulBuilder(
+                                                  builder:(context, setLocallyState) => 
+                                                   DropdownButtonHideUnderline(
+                                                   child: DropdownButton(
+                                                       icon: Icon(Icons.keyboard_arrow_down),
+                                                                 value:  tot.value ?? fetchhedd ?? 'N/A',
+                                                                 items: [
+                                                                 DropdownMenuItem(
+                                                                   value: fetchhedd ?? 'N/A',
+                                                                   child: Row(
+                                                                     children: [
+                                                                      SizedBox(width: 10,),
+                                                                       Text(fetchhedd ?? 'N / A' ),
+                                                                     ],
+                                                                   )),
+                                                                      DropdownMenuItem(
+                                                               value: fetchh,
+                                                               child: Row(
+                                                                 children: [
+                                                                   SizedBox(width: 10,),
+                                                                   Text(fetchh),
+                                                                 ],
+                                                               )),
+                                        
+                                                                  ...filtereddata.map((entry) {
+                                                                  return  DropdownMenuItem(
+                                                                   value: entry['description'],
+                                                                  child: Text(entry['description']),
+                                                                 );}),
+                                                                 ],
+                                                                 onChanged: (value){
+                                                                   setLocalState((){
+                                                           tot.value = value!.toString();
+                                                                   });
+                                                                   setState(() {
+                                                                     
+                                                                   });
+                                                                 print('to ${tot.value}');
+                                                                 
+                                                              
+                                                                 }
+                                                   ),
+                                                  ),
+                                                );
+                                              }
+                                            );
+                                          }
+                                        );
+                                      }
                                     );
                                   }
                                 );
@@ -371,6 +463,8 @@ Future<String> fetchTo2() async {
                                                
                                                
                           setState(() {
+                            fromt.value = null;
+                            tot.value = null;
                                  from = 'Material Location';
                                                to = 'Current Process';
                       
@@ -454,7 +548,8 @@ Future<String> fetchTo2() async {
 }
 
 fromTot() async {
-  showDialog(context: context, 
+  showDialog(context: context,
+   barrierDismissible: false, 
   builder:(context) {
     return AlertDialog(
     backgroundColor: Colors.transparent,
@@ -645,6 +740,7 @@ fromTot() async {
                       
                                      selectedStep1Notifier.value = 'Next Step';
                                     
+                         
                               },);
                                 Navigator.pop(context);
                              
@@ -783,37 +879,54 @@ String? fetchfromt2;
 String? fetchtot2; 
 
 
-
+bool dwitsfalse = false;
 
 
 Future<void> addMaterial(  tappIndexx, taapp, seelectedStep1, tott, frommt, tot2, frommt2, snackbarr) async{
 
+  CustomToast.show(context,);
+   Future.delayed(Duration(seconds: 3), () {
+ 
+  canGo = true;
+});
 
-  
-  print('nowm: $nowm, taapp: $taapp, tappIndexx: $tappIndexx, nowp: $nowp, selectedTime1: $selectedTime1, selectedTime2: $selectedTime2');
-  if ((nowm ? taapp == null : tappIndexx == null)||  (nowm ? selectedTime2 == 'Needed By' : selectedTime1 == 'Needed By')
+  print('nowm: $nowm, taapp: $taapp, tappIndexx: $tappIndexx, nowp: $nowp, selectedTime1: $selectedTime1, selectedTime2: $selectedTime2, selectedProcess $seelectedStep1');
+  if ((nowm ? taapp == null : tappIndexx == null)||  (nowm ? selectedTime2 == 'Needed By' : (selectedTime1 == 'Needed By') || (
+    nowm == false ?  
+    seelectedStep1 == 'Next Step' : dwitsfalse == true ))
   // !forklift || !hasRoute ? 
   // selectedStep1 == 'Next Step' : selectedStep1  == ''
   ){
     showDialog(
       context: context, 
       builder: (_) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+  borderRadius: BorderRadius.circular(10),
+),
         content: SizedBox(
             width: 300,
             height: 150,
             child: Center(
               child: Column(
                 children: [
-                  SizedBox(height: 20),
-                  Icon(Icons.error, color: Colors.red,),
+                  SizedBox(height: 10),
+                 Container(
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: const Color.fromARGB(255, 255, 193, 188),
+                      ),
+                      child: Icon(Icons.error, color: Colors.red,)),
                   SizedBox(height: 10,),
                   Text('Please do not leave a field blank.', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),),
-                  SizedBox(height: 17),
+                  SizedBox(height: 19),
                   Container(
                                   width: 120,
                                   height: 40,
                                   decoration: BoxDecoration(
-                                    border: Border.all(width: 1, color: Colors.red),
+                                  color: Colors.red,
                                     borderRadius: BorderRadius.circular(16),
                                   ),
                                   
@@ -828,7 +941,7 @@ Future<void> addMaterial(  tappIndexx, taapp, seelectedStep1, tott, frommt, tot2
                                           ( onTap: (){
                                           Navigator.pop(context);
                                           },
-                                            child: Text('Understood', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red))),
+                                            child: Text('Understood', style: TextStyle(fontWeight: FontWeight.bold, color: const Color.fromARGB(255, 255, 255, 255)))),
                                         ),
                                       ],
                                     ),
@@ -847,10 +960,6 @@ Future<void> addMaterial(  tappIndexx, taapp, seelectedStep1, tott, frommt, tot2
  
            snackbarNotifier.value = true;
 
-           Future.delayed(Duration(seconds: 3), () {
-  snackbarNotifier.value = false;
-  canGo = true;
-});
     
      final responses = tappIndexx != null && nowm == false ?
       await Supabase.instance.client.from('materials').select().eq('id', tappIndexx!).maybeSingle()
@@ -865,7 +974,7 @@ Future<void> addMaterial(  tappIndexx, taapp, seelectedStep1, tott, frommt, tot2
 
 print('$response30 response30');
 
-    if (response30.isNotEmpty){
+    if (response30.isNotEmpty && nowm){
 print('$response30 response3012');
  final process = response30[0]['process'];
     final user = Supabase.instance.client.auth.currentUser;
@@ -873,7 +982,7 @@ print('$response30 response3012');
   final response = await Supabase.instance.client.from('user').select().eq('email', email!).maybeSingle();
   final company = response?['company'];
   final username = response?['username'];
-   final response10 = await Supabase.instance.client.from('process_users').select().eq('processpu', process).or('disabled.is.null,disabled.not.eq.true');
+   final response10 = await Supabase.instance.client.from('process_users').select().eq('userpu', username).or('disabled.is.null,disabled.not.eq.true');
 
   final response101 = await Supabase.instance.client.from('process_users').select().eq('userpu', username).or('disabled.is.null,disabled.not.eq.true');
   final response18 = await Supabase.instance.client.from('user_machine').select().eq('user_mac', username).maybeSingle();
@@ -920,7 +1029,7 @@ print('$masterId masterid');
   final response101 = await Supabase.instance.client.from('process_users').select().eq('userpu', username).or('disabled.is.null,disabled.not.eq.true');
   final response18 = await Supabase.instance.client.from('user_machine').select().eq('user_mac', username).maybeSingle();
 if ( response1['to_route']  == 'Material Location'){
-       final responseso = await Supabase.instance.client.from('materials').select().eq('description', mat).maybeSingle();
+       final responseso = await Supabase.instance.client.from('materials').select().eq('name', mat).maybeSingle();
     
   final location = responseso?['location'];
   
@@ -987,7 +1096,10 @@ setState(() {});
   final company = response?['company'];
   final username = response?['username'];
  
+   final response10 = await Supabase.instance.client.from('process_users').select().eq('userpu', username).or('disabled.is.null,disabled.not.eq.true');
 
+final response18 = await Supabase.instance.client.from('user_machine').select().eq('user_mac', username).maybeSingle();
+  final response101 = await Supabase.instance.client.from('process_users').select().eq('userpu', username).or('disabled.is.null,disabled.not.eq.true');
     final insertedMaster = await Supabase.instance.client
     .from('masterdata')
     .insert({
@@ -995,7 +1107,7 @@ setState(() {});
       'needtime': selectedTime1,
       'starttime':  DateTime.now().toUtc().toIso8601String(),
       'currentprocess': forklift ? 'Forklift' : seelectedStep1,
-      'machine': 'test',
+            'machine': response101.length > 1 ? response18!['machine'] ?? 'N/A' :  response10[0]['processpu'] ?? 'N/A',
       'usernamem': username,
       'company': company,
         'created_at':  DateTime.now().toUtc().toIso8601String(),
@@ -1020,29 +1132,10 @@ if (insertedMaster == null || !insertedMaster.containsKey('id')) {
   final location = responses?['location'];
   fromNotifier.value = location ?? 'N/A';
 
- 
- 
-  // final response10 = await Supabase.instance.client
-  //     .from('process_users')
-  //     .select()
-  //     .eq('userpu', username).or('disabled.is.null,disabled.not.eq.true');
-
-  // final response18 = await Supabase.instance.client
-  //     .from('user_machine')
-  //     .select()
-  //     .eq('user_mac', username)
-  //     .maybeSingle();
-
-  // if (response10.length > 1) {
-  //   toNotifier.value = response18?['machine'] ?? 'N/A';
-  // } else {
-  //   toNotifier.value = response10[0]['processpu'];
-  // }
-
 
 final masterId = insertedMaster['id']; 
-print('fe ${fromNotifier.value}');
-print('fet ${toNotifier.value}');
+
+
 await Supabase.instance.client.from('detail').insert({
   'originalneed': materialname,
   'starttime':  DateTime.now().toUtc().toIso8601String(),
@@ -1053,12 +1146,9 @@ await Supabase.instance.client.from('detail').insert({
   'company': company,
   'neededby': selectedTime1,
   'created_at':  DateTime.now().toUtc().toIso8601String(),
-    'detail_from': fromNotifier.value ?? 'N/A',
-    'detail_to':tot ?? 'N/A',
-    // if (forklift)
-    // 'detail_from2': frommt2,
-    //  if (forklift)
-    // 'detail_to2': tot2
+    'detail_from': fromt.value ?? 'N/A',
+    'detail_to': tot.value ?? 'N/A',
+   
 });
   }
   }
@@ -1076,7 +1166,9 @@ void dispose() {
 }
 void popUp(){
  showDialog(
+
     context: context, 
+    
     builder: (_) => StatefulBuilder(
 
       builder: (context, setLocalState) {
@@ -1176,11 +1268,11 @@ _debounce = Timer(const Duration(milliseconds: 400), (){
                     ),
                  
                     Spacer(),
-                   snackbarNotifier.value  ?
-                    Text('Added sucessfully.', style: TextStyle(fontFamily: 'Inter', color: Colors.green, fontWeight: FontWeight.bold, fontSize: 16))
+                  //  snackbarNotifier.value  ?
+                  //   Text('Added sucessfully.', style: TextStyle(fontFamily: 'Inter', color: Colors.green, fontWeight: FontWeight.bold, fontSize: 16))
                 
-                    : SizedBox.shrink(),
-                   snackbarNotifier.value ?     SizedBox(width: 20,) : SizedBox.shrink(),
+                  //   : SizedBox.shrink(),
+                  //  snackbarNotifier.value ?     SizedBox(width: 20,) : SizedBox.shrink(),
                           MouseRegion(
                     cursor: SystemMouseCursors.click,
                     child: ValueListenableBuilder(
@@ -1202,13 +1294,13 @@ _debounce = Timer(const Duration(milliseconds: 400), (){
                           
                         },
                         child: Container(
-                          width: 100,
+                          width: MediaQuery.of(context).size.width > 600 ? 100 : 40,
                           height: 40,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(10),
                         border: Border.all(width: 0.5),
                           ),
-                          child: Center(child: Text('Cancel', style: TextStyle(fontFamily: 'Inter'),)),
+                          child: Center(child: MediaQuery.of(context).size.width > 600 ? Text('Cancel', style: TextStyle(fontFamily: 'Inter'),) : Icon(Icons.close)),
                           ),
                         );
                       }
@@ -1250,6 +1342,7 @@ _debounce = Timer(const Duration(milliseconds: 400), (){
                                             onTap: () async {
                                              final seelectedStep1 = selectedStep1Notifier.value;
                                              if (canGo == true){
+                                                selectedStep1Notifier.value = 'Next Step';
                                               print('current entr $tappIndexx, tapindex, taap $taapp, ');
                                               addMaterial(tappIndexx, taapp, seelectedStep1, tot.value, fromt.value, fromt2.value, tot2.value, snackbarNotifier.value);
                                              canGo = false;
@@ -1261,17 +1354,17 @@ _debounce = Timer(const Duration(milliseconds: 400), (){
           });
                                             },
                                             child: Container(
-                                              width: 100,
+                                              width:  MediaQuery.of(context).size.width > 600 ? 100 : 40,
                                               height: 40,
                                               decoration: BoxDecoration(
                                                 color: const Color.fromARGB(255, 142, 204, 251),
                                                 borderRadius: BorderRadius.circular(10),
                                               ),
                                               child: Center(
-                                                child: Text(
+                                                child:  MediaQuery.of(context).size.width > 600 ? Text(
                                                   'Add',
                                                   style: TextStyle(fontFamily: 'Inter'),
-                                                ),
+                                                ) : Icon(Icons.add),
                                               ),
                                             ),
                                           ),
@@ -1325,12 +1418,14 @@ _debounce = Timer(const Duration(milliseconds: 400), (){
           children: [
             SizedBox(width: 10),
              Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
                children: [
-                SizedBox(width: 60),
+                SizedBox(width:20),
                  Align(
                   alignment: Alignment.topLeft,
                    child: Container(
-                                  width: 400,
+                                  width:  MediaQuery.of(context).size.width > 550 ? 270 : 150,
                                   height: 35,
                                   decoration: BoxDecoration(
                                     border: Border.all(width: 1, color: Colors.grey), borderRadius: BorderRadius.circular(10),
@@ -1340,7 +1435,7 @@ _debounce = Timer(const Duration(milliseconds: 400), (){
                                   
                                   cursorColor: Colors.black,
                                   decoration: InputDecoration(
-                                    label: Text('Search a route...', style: TextStyle(fontFamily: 'Inter'),),
+                                    label:  Text(  MediaQuery.of(context).size.width > 600 ? 'Search a route...' : 'Search', style: TextStyle(fontFamily: 'Inter'),),
                                     floatingLabelStyle: TextStyle(color:  Color(0xFFFAFAFA),),
                                     enabledBorder: InputBorder.none,
                                       isDense: true,
@@ -1351,9 +1446,10 @@ _debounce = Timer(const Duration(milliseconds: 400), (){
                                   ),
                                   ),
                                  ),
-                 ),Spacer(),
+                 ),
+                 Spacer(),
                   Container(
-                           width: 300,
+                            width: 150,
                               height: 35,
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(7),
@@ -1402,13 +1498,13 @@ _debounce = Timer(const Duration(milliseconds: 400), (){
                             }
                           ),
                           ),
-                             SizedBox(width: 60), 
+                             SizedBox(width: MediaQuery.of(context).size.width > 650 ? 20 : 0), 
           
                ]),
                                  
             SizedBox(
-            height: MediaQuery.of(context).size.height * 0.7,
-                  width: MediaQuery.of(context).size.width * 0.8,
+            height: MediaQuery.of(context).size.height < 400 ? MediaQuery.of(context).size.height * 0.4 : MediaQuery.of(context).size.height < 350 ? MediaQuery.of(context).size.height * 0.1 : MediaQuery.of(context).size.height * 0.7,
+                  width: MediaQuery.of(context).size.width * 0.85,
                   
               child: Column(children: [
                SizedBox(height: 10),
@@ -1467,108 +1563,116 @@ _debounce = Timer(const Duration(milliseconds: 400), (){
                                                         // Sort them by step
                                                         routesForMaterial.sort((a, b) =>
                                                           (a['step'] as int).compareTo(b['step'] as int));
-                                                                  
-                                                                  
-                                                          return ValueListenableBuilder(
-                                                            valueListenable: tappedNotifier,
-                                                            builder: (context, value, child) {
-                                                              return MouseRegion(
-                                                                cursor: SystemMouseCursors.click,
-                                                                child: GestureDetector(
-                                                                  onTap: (){
-                                                                tappedNotifier.value = entry;
-                                                                print('here tap $tapIndexNotifier');
-                                                                  },
-                                                                  child: Padding(
-                                                                          padding: EdgeInsets.all(10),
-                                                                          child: Material(
-                                                                            elevation: 3,
-                                                                            borderRadius: BorderRadius.circular(10),
-                                                                            color: Colors.white,
-                                                                            child: Container(
-                                                                              decoration: BoxDecoration(
-                                                                                                    color: tappedNotifier.value == entry 
-                                                                                                  ? const Color.fromARGB(255, 207, 232, 253)
-                                                                                                  :  Colors.white,
-                                                                                                    borderRadius: BorderRadius.circular(10),
-                                                                              ),
-                                                                              padding: EdgeInsets.all(20),
-                                                                              child: Column(
-                                                                                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                                                                                    children: [
-                                                                                                                      // Material header row
-                                                                                                                      Row(
-                                                                  children: [
-                                                                    Text(entry, style: TextStyle(fontFamily: 'Inter', fontSize: 30)),
-                                                                    Spacer(),
-                                                                   
-                                                                    SizedBox(width: 10),
-                                                                  
-                                                                      
-                                                                    
-                                                                                                                      ] 
-                                                                                                                      ),
-                                                                          
-                                                                                                                      SizedBox(height: 20),
-                                                                                                                       
-                                                                                                                      SizedBox(
-                                                                                                                       width: 1300,
-                                                                  child: SingleChildScrollView(
-                                                                    scrollDirection: Axis.horizontal,
-                                                                    child: Row(
-                                                                      children: routesForMaterial.map((routeEntry) {
-                                                                       
-                                                                        return Row(
-                                                                          children: [
-                                                                            SizedBox(width: 10),
-                                                                            routeEntry['step'] == 1 ? SizedBox.shrink() : Icon(Icons.arrow_forward),
-                                                                            routeEntry['material']  != data[routeEntry['step'] - 1]['material'] ?
-                                                                            Container(
-                                                                              height: 40,
-                                                                              width: 200,
-                                                                            decoration: BoxDecoration(
-                                                                              color: const Color.fromARGB(255, 0, 98, 178),
+                                                                 
+                                                                     final isDuplicates = routesForMaterial.where((entrye) => entrye['step'] == 1).toList();
+                                                          return SizedBox(
+                                                            child: ValueListenableBuilder(
+                                                              valueListenable: tappedNotifier,
+                                                              builder: (context, value, child) {
+                                                                return MouseRegion(
+                                                                  cursor: SystemMouseCursors.click,
+                                                                  child: GestureDetector(
+                                                                    onTap: (){
+                                                                  tappedNotifier.value = entry;
+                                                                  print('here tap $tapIndexNotifier');
+                                                                    },
+                                                                    child: Padding(
+                                                                            padding: EdgeInsets.all(10),
+                                                                            child: Material(
+                                                                              elevation: 3,
                                                                               borderRadius: BorderRadius.circular(10),
-                                                                            ),
-                                                                            child:  Center(
-                                                                              child: Text(
-                                                                                                            '${routeEntry['material']}',
-                                                                                                            style: TextStyle(fontFamily: 'Inter', fontSize: fontSizeBasedOnLength(  '${routeEntry['material']}'), color: Colors.white),
-                                                                                                          ),
-                                                                            ),
-                                                                            ) : SizedBox.shrink(),
-                                                                                                        Icon(Icons.arrow_forward),
-                                                                            SizedBox(width: 5),
-                                                                            Container(
-                                                                              width: 150, 
-                                                                              height: 40,
+                                                                              color: Colors.white,
+                                                                              child: Container(
+                                                                                decoration: BoxDecoration(
+                                                                                                      color: tappedNotifier.value == entry 
+                                                                                                    ? const Color.fromARGB(255, 207, 232, 253)
+                                                                                                    :  Colors.white,
+                                                                                                      borderRadius: BorderRadius.circular(10),
+                                                                                ),
+                                                                                padding: EdgeInsets.all(20),
+                                                                                child: Column(
+                                                                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                                                                      children: [
+                                                                                                                        // Material header row
+                                                                                                                        Row(
+                                                                    children: [
+                                                                      SizedBox(
+                                                                        
+                                                                       width: MediaQuery.of(context).size.width * 0.85 - 90,
+                                                                        child: Text( entry,   overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: 'Inter', fontSize: 30))),
+                                                                     
+                                                                        
+                                                                      
+                                                                                                                        ] 
+                                                                                                                        ),
+                                                                            
+                                                                                                                        SizedBox(height: 20),
+                                                                                                                         
+                                                                                                                        SizedBox(
+                                                                                                                         width: 1300,
+                                                                    child: SingleChildScrollView(
+                                                                      scrollDirection: Axis.horizontal,
+                                                                      child: Row(
+                                                                        children: routesForMaterial.map((routeEntry) {
+                                                                         
+                                                                                                      bool isStepOne = routeEntry['step'] == 1;
+                                                                            int occurrenceIndex = isStepOne ? isDuplicates.indexWhere((e) => e == routeEntry) : -1;
+                                                                                                    
+                                                                                                      bool showArrow = !isStepOne || (isStepOne && occurrenceIndex > 0);
+                                                                          return Row(
+                                                                            children: [
+                                                                              SizedBox(width: 10),
+                                                                             showArrow == false ? SizedBox.shrink() : Icon(Icons.arrow_forward),
+                                                                              routeEntry['material']  != data[routeEntry['step'] - 1]['material'] ?
+                                                                              Container(
+                                                                                height: 40,
+                                                                                width: 200,
                                                                               decoration: BoxDecoration(
-                                                                                                    borderRadius: BorderRadius.circular(10),
-                                                                                                    color: Color(0xFFEDEDED),
+                                                                                color: const Color.fromARGB(255, 0, 98, 178),
+                                                                                borderRadius: BorderRadius.circular(10),
                                                                               ),
-                                                                              child: Center(
-                                                                                                    child: Text(
+                                                                              child:  Center(
+                                                                                child:  Text(  overflow: TextOverflow.ellipsis,
+                                                                                                                  routeEntry['material'] ?? 'N/A',
+                                                                                                                      style: TextStyle(fontFamily: 'Inter', fontSize: fontSizeBasedOnLength(  '${routeEntry['material']}'), color: Colors.white),
+                                                                                                                    ),
+                                                                                
+                                                                              ),
+                                                                              ) : SizedBox.shrink(),
+                                                                                                          Icon(Icons.arrow_forward),
+                                                                              SizedBox(width: 5),
+                                                                              Container(
+                                                                                width: 150, 
+                                                                                height: 40,
+                                                                                decoration: BoxDecoration(
+                                                                                                      borderRadius: BorderRadius.circular(10),
+                                                                                                      color: Color(0xFFEDEDED),
+                                                                                ),
+                                                                                child: Center(
+                                                                                                      child:  Text(
+                                                                                                                overflow: TextOverflow.ellipsis,
+                                                                                                                routeEntry['process'],
+                                                                                                                style: TextStyle(fontFamily: 'Inter', fontSize: fontSizeBasedOnLength('${routeEntry['process']}')),
+                                                                                                              ),
                                                                                                       
-                                                                                                      routeEntry['process'] ?? '',
-                                                                                                      style: TextStyle(fontFamily: 'Inter', fontSize: 18),
-                                                                                                    ),
+                                                                                ),
+                                                                              ),
+                                                                             
+                                                                            ],
+                                                                          );
+                                                                        }).toList(),
+                                                                      ),
+                                                                    ),
+                                                                                                                        ),
+                                                                                                      ],
+                                                                                ),
                                                                               ),
                                                                             ),
-                                                                           
-                                                                          ],
-                                                                        );
-                                                                      }).toList(),
                                                                     ),
                                                                   ),
-                                                                                                                      ),
-                                                                                                    ],
-                                                                              ),
-                                                                            ),
-                                                                          ),
-                                                                  ),
-                                                                ),
-                                                              );
-                                                            }
+                                                                );
+                                                              }
+                                                            ),
                                                           );
                                                         },
                                       );
@@ -1582,8 +1686,8 @@ _debounce = Timer(const Duration(milliseconds: 400), (){
                  
                    Column(
                      children: [
-                       SizedBox(height: 25,),
-                       Row(
+                       SizedBox(height: MediaQuery.of(context).size.width > 1000 ? 25 : 5,),
+                 MediaQuery.of(context).size.width > 1000 ?      Row (
                          children: [
                           SizedBox(width: 30,),
                            Text('Material', style: TextStyle(fontFamily: 'WorkSans', 
@@ -1591,7 +1695,7 @@ _debounce = Timer(const Duration(milliseconds: 400), (){
                                         color:  const Color.fromARGB(255, 0, 75, 132), fontSize: 21 ),),
                                         SizedBox(width: 30,),
                                                      Container(
-                            width: 400,
+                            width:                                                   300,
                             height: 35,
                             decoration: BoxDecoration(
                               border: Border.all(width: 1, color: Colors.grey), borderRadius: BorderRadius.circular(10),
@@ -1649,7 +1753,7 @@ _debounce = Timer(const Duration(milliseconds: 400), (){
             
                           SizedBox(width: 10,),
                           Container(
-                           width: 300,
+                          width: 200,
                               height: 35,
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(7),
@@ -1702,7 +1806,7 @@ _debounce = Timer(const Duration(milliseconds: 400), (){
                           ),
                              SizedBox(width: 20), 
                           Container(
-                           width: 300,
+                            width: MediaQuery.of(context).size.width < 1500 ? 200 : 250,
                            height: 35,
                                                   decoration: BoxDecoration(
                            borderRadius: BorderRadius.circular(10),
@@ -1714,7 +1818,7 @@ _debounce = Timer(const Duration(milliseconds: 400), (){
                                                     valueListenable: tapIndexNotifier,
                                                     builder: (context, tapIndex, _) {
                                                       return FutureBuilder(
-                                                       future: getData(tapIndex),
+                                                       future: Supabase.instance.client.from('process').select(),
                                                             
                                                         builder: (context, snapshot)  {
                                                      
@@ -1722,27 +1826,21 @@ _debounce = Timer(const Duration(milliseconds: 400), (){
                                                       return Text('Error: ${snapshot.error}');
                                                     }
                                                     
-                                                                final processList = snapshot.data?[1] as List<dynamic>? ?? [];
-                                                             final routeData = snapshot.data?[0] as Map<String, dynamic>? ?? {};
-                                                      final listOfMaps = processList
-                                                      .whereType<Map<String, dynamic>>()
-                                                      .cast<Map<String, dynamic>>()
-                                                      .toList();
-                                                               final process = routeData['process'];
+                                                                final processList = snapshot.data ?? [];
+
+                                                      // final listOfMaps = processList
+                                                      // .whereType<Map<String, dynamic>>()
+                                                      // .cast<Map<String, dynamic>>()
+                                                      // .toList();
+                                                              
                                                                  
                                                   
                                                                
-                                                   if (routeData.isNotEmpty){
-                                                    hasRoute = true;
-                                                   } 
+                                                  
                                                                                    
                                                           
                                                           
-                                                                                               return routeData.isNotEmpty ? DropdownButtonHideUnderline(
-                                                                child: Text('Next Step: $process', style: TextStyle(color: const Color.fromARGB(255, 0, 0, 0),fontFamily: 'Inter', fontWeight: FontWeight.bold,
-                                                                                                                             fontSize: 16.5,
-                                                                )
-                                                                                                                )) : 
+                                                                                               return 
                                                                                                                 
                                                                     ValueListenableBuilder(
                                                                       valueListenable: selectedStep1Notifier,
@@ -1761,15 +1859,20 @@ _debounce = Timer(const Duration(milliseconds: 400), (){
                                                                                   ],
                                                                                 ),
                                                                                ),
-                                                                                 ... listOfMaps.map((entry){
+                                                                                 ... processList.map((entry){
                                                                                return DropdownMenuItem(
                                                                                  value: entry['description'] ?? 'N/A',
                                                                                 child: Row(
                                                                                   children: [
                                                                                     SizedBox(width: 10,),
-                                                                                    Text(entry['description'] ?? 'N/A',  style: TextStyle(color: const Color.fromARGB(255, 0, 0, 0),fontFamily: 'Inter', fontWeight: FontWeight.bold,
-                                                                                                                                               fontSize: 16.5,
-                                                                                                                                                )),
+                                                                                    SizedBox(
+                                                                                      width: MediaQuery.of(context).size.width < 1500 ? 10 : 200,
+                                                                                      child: Text(entry['description'] ?? 'N/A', 
+                                                                                      overflow: TextOverflow.ellipsis,
+                                                                                       style: TextStyle(color: const Color.fromARGB(255, 0, 0, 0),fontFamily: 'Inter', fontWeight: FontWeight.bold,
+                                                                                                                                                 fontSize: 16.5,
+                                                                                                                                                  )),
+                                                                                    ),
                                                                                   ],
                                                                                 ));
                                                                                                                                       } )
@@ -1796,6 +1899,232 @@ _debounce = Timer(const Duration(milliseconds: 400), (){
                           ),                           
                      
                                
+                         ],) :  Row (
+                         children: [
+                          SizedBox(width: 30,),
+                           Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                             children:
+                              [
+                               Align(
+                                alignment: Alignment.topLeft,
+                                 child: Text('Material', style: TextStyle(fontFamily: 'WorkSans', 
+                                              fontWeight: FontWeight.bold,
+                                              color:  const Color.fromARGB(255, 0, 75, 132), fontSize: 21 ),),
+                               ),
+                           
+                                        SizedBox(height: 16),
+                                       
+                                                     Container(
+                                                                                 width: MediaQuery.of(context).size.width * 0.25,
+                                                                                 height: 35,
+                                                                                 decoration: BoxDecoration(
+                                                                                   border: Border.all(width: 1, color: Colors.grey), borderRadius: BorderRadius.circular(10),
+                                                                                 ),
+                                                                                 child: TextField(
+                                                                                 controller: searchMController,
+                                                                                 
+                                                                                 cursorColor: Colors.black,
+                                                                                 decoration: InputDecoration(
+                                                                                   label: Text('Search'),
+                                                                                   floatingLabelStyle: TextStyle(color:  Color(0xFFFAFAFA),),
+                                                                                   enabledBorder: InputBorder.none,
+                                                                                     isDense: true,
+                                                                               contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                                                                                 focusedBorder: InputBorder.none,
+                                                                                 disabledBorder: InputBorder.none,
+                                                                                 prefixIcon: Icon(Icons.search, color:const Color.fromARGB(255, 23, 85, 161), size: 26 )
+                                                                                 ),
+                                                                                 ),
+                                                                                ),
+                                                                                                           
+                                                                                           
+                                                                                             
+                                                                                        //      Tooltip(
+                                                                 //                    
+                                                                 // StatefulBuilder(
+                                                               // builder: (context, setLocallyState) {
+                                                               //  return Tooltip(
+                                                               //     message: 'Needs forklift?',
+                                                               //     textStyle: TextStyle(fontFamily: 'Inter'),
+                                                               //     decoration: BoxDecoration(
+                                                               //       color: Colors.transparent,
+                                                               //     ),
+                                                               //     child: IconButton(
+                                                               //       onPressed: (){
+                                                               //         if (selected != true){
+                                                               //       forklift = true;
+                                                               //       fromTot();
+                                                               //    selected = true;
+                                                               //    setLocallyState(() {
+                                                                    
+                                                               //    },);
+                                                               //       } else {
+                                                               //       forklift = false;
+                                                               //       selected = false;
+                                                               //       setLocallyState
+                                                               //       (() {
+                                                                       
+                                                               //       },);
+                                                               //       }
+                                                               //       },
+                                                               //        icon: Icon(Icons.forklift, color: selected ? Colors.blue : Colors.black)),
+                                                               //   );
+                                                               // }
+                                                               //     ),
+                                                                   ],
+                           ),
+                                                                               Spacer(),
+                                                                               Column(
+                                                                                 children: [
+                                                                                   Container(
+                                                                                   width: MediaQuery.of(context).size.width * 0.35,
+                                                                                       height: 35,
+                                                                                     decoration: BoxDecoration(
+                                                                                       borderRadius: BorderRadius.circular(7),
+                                                                                       border: Border.all(width: 1, color: Colors.grey),),
+                                                                                   child: FutureBuilder(
+                                                                                     future: Supabase.instance.client.from('needtime').select(),
+                                                                                     builder: (context, snapshot) {
+                                                                                       final data = snapshot.data ?? [];
+                                                                                       return StatefulBuilder(
+                                                                                         builder:(context, setLocallyState) => 
+                                                                                          DropdownButtonHideUnderline(
+                                                                                          child: DropdownButton(
+                                                                                              icon: Icon(Icons.keyboard_arrow_down),
+                                                                                                        value:  selectedTime1,
+                                                                                                        items: [
+                                                                                                        DropdownMenuItem(
+                                                                                                          value: 'Needed By',
+                                                                                                          child: Row(
+                                                                                                            children: [
+                                                                                                               SizedBox(width: 10,),
+                                                                                                              Text('Needed By', style: TextStyle(color: Colors.grey) ),
+                                                                                                            ],
+                                                                                                          )),
+                                                                                                         ...data.map((entry) {
+                                                                                                         return  DropdownMenuItem(
+                                                                                                          value: entry['time'],
+                                                                                                         child: Row(
+                                                                                                           children: [
+                                                                                                             SizedBox(width: 10,),
+                                                                                                             Text(entry['time']),
+                                                                                                           ],
+                                                                                                         ),
+                                                                                                        );}),
+                                                                                                        ],
+                                                                                                        onChanged: (value){
+                                                                                                          setLocallyState((){
+                                                                                                 
+                                                                                                          });
+                                                                                                          
+                                                                                                         selectedTime1 = value!.toString();
+                                                                                                         
+                                                                                                       
+                                                                                                          
+                                                                                                        }
+                                                                                          ),
+                                                                                         ),
+                                                                                       );
+                                                                                     }
+                                                                                   ),
+                                                                                   ),
+                                                                              
+                                                                                  SizedBox(height: 10), 
+                                                                               Container(
+                                                                                 width: MediaQuery.of(context).size.width * 0.35,
+                                                                                height: 35,
+                                                                                                       decoration: BoxDecoration(
+                                                                                borderRadius: BorderRadius.circular(10),
+                                                                                border: Border.all(width: 1, color: Colors.grey),
+                                                                                                       ),
+                                                                                                     child: StatefulBuilder(
+                                                                                                       builder: (context, setLocallyState) => 
+                                                                                                        ValueListenableBuilder<int?>(
+                                                                                                         valueListenable: tapIndexNotifier,
+                                                                                                         builder: (context, tapIndex, _) {
+                                                                                                           return FutureBuilder(
+                                                                                                            future: Supabase.instance.client.from('process').select(),
+                                                        
+                                                                                                             builder: (context, snapshot)  {
+                                                                                                          
+                                                                                                           if (snapshot.hasError) {
+                                                                                                           return Text('Error: ${snapshot.error}');
+                                                                                                         }
+                                                                                                         
+                                                            final processList = snapshot.data ?? [];
+                                                     
+                                                                                                           // final listOfMaps = processList
+                                                                                                           // .whereType<Map<String, dynamic>>()
+                                                                                                           // .cast<Map<String, dynamic>>()
+                                                                                                           // .toList();
+                                                          
+                                                             
+                                                                                                       
+                                                           
+                                                                                                       
+                                                                               
+                                                      
+                                                      
+                                                                                           return 
+                                                                                                            
+                                                                ValueListenableBuilder(
+                                                                  valueListenable: selectedStep1Notifier,
+                                                                  builder: (context, value, child) {
+                                                                    return DropdownButtonHideUnderline(
+                                                                                        child: DropdownButton(
+                                                                           icon: Icon(Icons.keyboard_arrow_down),
+                                                                           value: value,
+                                                                           items: [
+                                                                           DropdownMenuItem(
+                                                                             value: 'Next Step',
+                                                                            child: Row(
+                                                                              children: [
+                                                                                SizedBox(width: 10,),
+                                                                                Text('Next Step', style: TextStyle(color: Colors.grey, fontFamily: 'Inter')),
+                                                                              ],
+                                                                            ),
+                                                                           ),
+                                                                             ... processList.map((entry){
+                                                                           return DropdownMenuItem(
+                                                                             value: entry['description'] ?? 'N/A',
+                                                                            child: Row(
+                                                                              children: [
+                                                                                SizedBox(width: 10,),
+                                                                                Flexible(
+                                                                                  child: Text(entry['description'] ?? 'N/A', overflow: TextOverflow.ellipsis, style: TextStyle(color: const Color.fromARGB(255, 0, 0, 0),fontFamily: 'Inter', fontWeight: FontWeight.bold,
+                                                                                                                                             fontSize: 16.5,
+                                                                                                                                              )),
+                                                                                ),
+                                                                              ],
+                                                                            ));
+                                                                                                                                  } )
+                                                                           ],
+                                                                           onChanged: (value){
+                                                                             setLocallyState((){
+                                                                                  selectedStep1Notifier.value = value.toString();
+                                                                                  if (selectedStep1Notifier.value == 'Forklift'){
+                                                                                    fromTo();
+                                                                                  }
+                                                                             });
+                                                                            
+                                                                           }
+                                                                         ),
+                                                                                       );
+                                                                  }
+                                                                ); 
+                                                                                 
+                                                                   }
+                                                                 );
+                                                                                                         }
+                                                                                                       ),
+                                                                                                     ),
+                                                                               ),
+                                                                                  ],
+                                                                               ),
+                                                                               SizedBox(width: 10,)
+                               
                          ],),
                      
                                   
@@ -1805,7 +2134,7 @@ _debounce = Timer(const Duration(milliseconds: 400), (){
              SizedBox(height: 20,),
                     Row(
                       children: [
-            Expanded(
+            Expanded (
              child: SingleChildScrollView(
                    scrollDirection: Axis.horizontal,
                child: SingleChildScrollView(
@@ -1819,12 +2148,14 @@ _debounce = Timer(const Duration(milliseconds: 400), (){
                   
                     
                           SizedBox(
-                        
+                         width: MediaQuery.of(context).size.width * 0.9, 
+                                                     height: MediaQuery.of(context).size.height < 550 ?   MediaQuery.of(context).size.height * 0.5:  MediaQuery.of(context).size.height * 0.6,
+
                          child: SingleChildScrollView(
                        scrollDirection: Axis.horizontal,
                        child: SizedBox(
                         width: MediaQuery.of(context).size.width * 2, 
-                           height: MediaQuery.of(context).size.height * 0.6,
+                           height: MediaQuery.of(context).size.height < 600 ?   MediaQuery.of(context).size.height * 0.4 :  MediaQuery.of(context).size.height * 0.6,
                          child: Column(
                   children: [
                     Container(
@@ -1981,6 +2312,7 @@ _debounce = Timer(const Duration(milliseconds: 400), (){
                  
                        
                           final filteredData = data.where((entries) {
+                            
                             final searchMControllerr = searchMController.text.toLowerCase();
                             final names = entries['name'].toString().toLowerCase();
                            final sku = entries['sku'].toString().toLowerCase();

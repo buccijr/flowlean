@@ -75,6 +75,28 @@ class _ReportsState extends State<Reports> {
  String leaderboard = 'Material Leaderboard';
  bool loadingUser = true;
   bool selected1 = false;
+       double fontSizeBasedOnLength(String text) {
+                    print('tell me the ${text.length}');
+      if (text.length > 1 && text.length <= 8){
+        return MediaQuery.of(context).size.width * 0.031;
+      }
+       else if (text.length > 8 && text.length <= 10){
+        return MediaQuery.of(context).size.width * 0.024;
+      } 
+       else if (text.length > 10 && text.length <= 13){
+        return MediaQuery.of(context).size.width * 0.021;
+      } else if (text.length >= 13 && text.length <= 18) {
+
+        return MediaQuery.of(context).size.width * 0.013;
+       } 
+        else if (text.length >= 20) {
+
+        return MediaQuery.of(context).size.width * 0.001;
+       }  else  {
+       return MediaQuery.of(context).size.width * 0.02;
+        
+      }
+    }
 bool  selected2 = false;
 bool selected3 = false; 
 bool selected4 = false;
@@ -125,25 +147,89 @@ void initState() {
     });
   }
   
-
+String which1 = 'Inbound';
+String which2 = 'Inbound';
   @override
-  Widget build(BuildContext context) {
+   bool didntpayed = false;
+
+Future<void> didntPay () async{
+final user = Supabase.instance.client.auth.currentUser;
+    final email = user?.email;
+
+    final response = await Supabase.instance.client.from('user').select().eq('email', email ?? 'Hi').single();
+    final company = response['company'];
+    final response1 = await Supabase.instance.client.from('company').select().eq('companyname', company).single();
+    final enddate = response1['enddate'];
+    if (enddate != null){
+      if ((DateTime.parse(enddate)).difference(DateTime.now()).inDays <= 1){
+        didntpayed = true;
+      }
+    }
+}
+@override
+Widget build(BuildContext content){
     
-    
-    if (_role == 'user') {
+
+    if (_role == 'user' || Supabase.instance.client.auth.currentSession == null) {
       return Scaffold(
         backgroundColor: Colors.white,
-        body: Center(
-          child: Image.asset(
-            'images/restrict.png',
-            width: 400,
-            height: 400,
-            fit: BoxFit.contain,
+        body: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Center(
+            child: Image.asset(
+              'images/restrict.png',
+              width: 400,
+              height: 400,
+              fit: BoxFit.contain,
+            ),
           ),
         ),
       );
     }
-    
+
+if (didntpayed == true){
+  return Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+            
+                children: [
+                  Container(
+                    width: MediaQuery.of(context).size.width *0.13188,
+                    height: MediaQuery.of(context).size.height * 0.27251,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                    color: const Color.fromARGB(255, 255, 193, 188),
+                    ),
+                    child: Icon(
+                    Icons.warning, color: Colors.red, size: MediaQuery.of(context).size.width * 0.06,
+                    ),
+                  ),
+                  SizedBox(height: 30,),
+                  Text('Membership Expired', style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.bold, fontSize: MediaQuery.of(context).size.height * 0.059242),),
+          SizedBox(height: 40,),
+          Container(
+            width:  MediaQuery.of(context).size.width * 0.229358,
+            height:MediaQuery.of(context).size.height * 0.059242,
+            decoration: BoxDecoration(
+              color: Colors.red,
+              borderRadius: BorderRadius.circular(10)
+            ), child: Center(child: Text('Renew', style: TextStyle(fontFamily: 'Inter', color: Colors.white, fontSize: MediaQuery.of(context).size.height * 0.026066),),),
+          )
+                ],
+              )
+            ),
+          ),
+        ),
+      );
+}
+
+
     return Scaffold(
 backgroundColor: Color.fromARGB(255, 236, 244, 254),
   body: SingleChildScrollView(
@@ -175,7 +261,7 @@ backgroundColor: Color.fromARGB(255, 236, 244, 254),
                   cursor: SystemMouseCursors.click,
                    child: GestureDetector(
                        onTap: (){
-                       context.go('/admindashboard');
+                       context.go('/admindashboard', extra: {'showwarning': false});
                         },
                         child: Container(
                           width: 165,
@@ -824,18 +910,18 @@ backgroundColor: Color.fromARGB(255, 236, 244, 254),
                .where((entry) => entry['endtime'] != null)
              
                .toList();
-                                                                    bool isThisWeek(DateTime day) { final now = DateTime.now();
+                                                                    bool isThisWeek(DateTime day) { final now = DateTime.now().toUtc();
     final sevenDaysAgo = now.subtract(Duration(days: 7));
     return day.isAfter(sevenDaysAgo) && day.isBefore(now.add(Duration(days: 1)));
     }
     bool isThisMonth(DateTime day) {
-    final now = DateTime.now();
+    final now = DateTime.now().toUtc();
     final thrityDaysAgo = now.subtract(Duration(days: 30));
     
      return day.isAfter(thrityDaysAgo) && day.isBefore(now.add(Duration(days: 1)));
     }
     bool isThisYear(DateTime day) {
-    final now = DateTime.now();
+    final now = DateTime.now().toUtc();
     
     final oneYearAgo = now.subtract(Duration(days: 365));
     
@@ -884,15 +970,17 @@ backgroundColor: Color.fromARGB(255, 236, 244, 254),
                                                  colors: [const Color.fromARGB(255, 125, 182, 252),const Color.fromARGB(255, 246, 142, 6)],
                                                ).createShader(Rect.fromLTWH(0, 0, bounds.width, bounds.height)),
                                                blendMode: BlendMode.srcIn,
-                                               child: Text(
-                                                 avg == -1 ? 'N/A' : '$avg', 
-                                                 style: TextStyle(
-                                                   fontSize: MediaQuery.of(context).size.height *0.05924,
-                                                   fontWeight: FontWeight.bold,
-                                                   fontFamily: 'WorkSans',
-                                                   color: Colors.white, // Needed for ShaderMask to work
+                                              
+                                                 child: Text(
+                                                   avg == -1 ? 'N/A' : '$avg', 
+                                                   style: TextStyle(
+                                                     fontSize: fontSizeBasedOnLength(avg == -1 ? 'N/A' : '$avg'),
+                                                     fontWeight: FontWeight.bold,
+                                                     fontFamily: 'WorkSans',
+                                                     color: Colors.white, // Needed for ShaderMask to work
+                                                   ),
                                                  ),
-                                               ),
+                                               
                                              )
                               ],
                             ),
@@ -915,18 +1003,18 @@ backgroundColor: Color.fromARGB(255, 236, 244, 254),
              
                .toList();
 
-                                                                    bool isThisWeek(DateTime day) { final now = DateTime.now();
+                                                                    bool isThisWeek(DateTime day) { final now = DateTime.now().toUtc();
     final sevenDaysAgo = now.subtract(Duration(days: 7));
     return day.isAfter(sevenDaysAgo) && day.isBefore(now.add(Duration(days: 1)));
     }
     bool isThisMonth(DateTime day) {
-    final now = DateTime.now();
+    final now = DateTime.now().toUtc();
     final thrityDaysAgo = now.subtract(Duration(days: 30));
     
      return day.isAfter(thrityDaysAgo) && day.isBefore(now.add(Duration(days: 1)));
     }
     bool isThisYear(DateTime day) {
-    final now = DateTime.now();
+    final now = DateTime.now().toUtc();
     
     final oneYearAgo = now.subtract(Duration(days: 365));
     
@@ -976,15 +1064,17 @@ backgroundColor: Color.fromARGB(255, 236, 244, 254),
                                                  colors: [const Color.fromARGB(255, 125, 182, 252), const Color.fromARGB(255, 246, 142, 6)],
                                                ).createShader(Rect.fromLTWH(0, 0, bounds.width, bounds.height)),
                                                blendMode: BlendMode.srcIn,
-                                               child: Text(
-                                                 smallest == -1 ? 'N/A' : '$smallest', 
-                                                 style: TextStyle(
-                                                   fontSize: MediaQuery.of(context).size.height *0.05924,
-                                                   fontWeight: FontWeight.bold,
-                                                   fontFamily: 'WorkSans',
-                                                   color: Colors.white, // Needed for ShaderMask to work
+                                            
+                                                 child: Text(
+                                                   smallest == -1 ? 'N/A' : '$smallest', 
+                                                   style: TextStyle(
+                                                     fontSize: fontSizeBasedOnLength( smallest == -1 ? 'N/A' : '$smallest', ),
+                                                     fontWeight: FontWeight.bold,
+                                                     fontFamily: 'WorkSans',
+                                                     color: Colors.white, // Needed for ShaderMask to work
+                                                   ),
                                                  ),
-                                               ),
+                                               
                                              )
                               ],
                             ),
@@ -1007,18 +1097,18 @@ backgroundColor: Color.fromARGB(255, 236, 244, 254),
              
                .toList();
 
-                                                                    bool isThisWeek(DateTime day) { final now = DateTime.now();
+                                                                    bool isThisWeek(DateTime day) { final now = DateTime.now().toUtc();
     final sevenDaysAgo = now.subtract(Duration(days: 7));
     return day.isAfter(sevenDaysAgo) && day.isBefore(now.add(Duration(days: 1)));
     }
     bool isThisMonth(DateTime day) {
-    final now = DateTime.now();
+    final now = DateTime.now().toUtc();
     final thrityDaysAgo = now.subtract(Duration(days: 30));
     
      return day.isAfter(thrityDaysAgo) && day.isBefore(now.add(Duration(days: 1)));
     }
     bool isThisYear(DateTime day) {
-    final now = DateTime.now();
+    final now = DateTime.now().toUtc();
     
     final oneYearAgo = now.subtract(Duration(days: 365));
     
@@ -1068,15 +1158,16 @@ backgroundColor: Color.fromARGB(255, 236, 244, 254),
                                                  colors: [const Color.fromARGB(255, 125, 182, 252),const Color.fromARGB(255, 246, 142, 6)],
                                                ).createShader(Rect.fromLTWH(0, 0, bounds.width, bounds.height)),
                                                blendMode: BlendMode.srcIn,
-                                               child: Text(
-                                                 smallest == -1 ? 'N/A' : '$smallest', 
-                                                 style: TextStyle(
-                                                   fontSize: MediaQuery.of(context).size.height *0.05924,
-                                                   fontWeight: FontWeight.bold,
-                                                   fontFamily: 'WorkSans',
-                                                   color: Colors.white, // Needed for ShaderMask to work
+                                               child:  Text(
+                                                   smallest == -1 ? 'N/A' : '$smallest', 
+                                                   style: TextStyle(
+                                                     fontSize: fontSizeBasedOnLength( smallest == -1 ? 'N/A' : '$smallest', ),
+                                                     fontWeight: FontWeight.bold,
+                                                     fontFamily: 'WorkSans',
+                                                     color: Colors.white, // Needed for ShaderMask to work
+                                                   ),
                                                  ),
-                                               ),
+                                               
                                              )
                               ],
                             ),
@@ -1175,19 +1266,19 @@ backgroundColor: Color.fromARGB(255, 236, 244, 254),
                                                     return entry['endtime'] != null && DateTime.parse(entry['endtime']).month == DateTime.now().month;
                                                   });
                                                                          Map<int, List<Map>> groupedmonthdays = {};
-                                                                                     bool isThisWeek(DateTime day) { final now = DateTime.now();
+                                                                                     bool isThisWeek(DateTime day) { final now = DateTime.now().toUtc();
                              final sevenDaysAgo = now.subtract(Duration(days: 7));
                              return day.isAfter(sevenDaysAgo) && day.isBefore(now.add(Duration(days: 1)));
                              }
                                       
                              bool isThisMonth(DateTime day) {
-                             final now = DateTime.now();
+                             final now = DateTime.now().toUtc();
                              final thrityDaysAgo = now.subtract(Duration(days: 30));
                              
                               return day.isAfter(thrityDaysAgo) && day.isBefore(now.add(Duration(days: 1)));
                              }
                              bool isThisYear(DateTime day) {
-                             final now = DateTime.now();
+                             final now = DateTime.now().toUtc();
                              
                              final oneYearAgo = now.subtract(Duration(days: 365));
                              
@@ -1547,18 +1638,18 @@ child:  Padding(padding: EdgeInsets.all(8),
                                                   child: CircularProgressIndicator(color: Colors.blue,));
                                               }
                                               final data = snapshot.data ?? [];
-                                                     bool isThisWeek(DateTime day) { final now = DateTime.now();
+                                                     bool isThisWeek(DateTime day) { final now = DateTime.now().toUtc();
     final sevenDaysAgo = now.subtract(Duration(days: 7));
     return day.isAfter(sevenDaysAgo) && day.isBefore(now.add(Duration(days: 1)));
     }
     bool isThisMonth(DateTime day) {
-    final now = DateTime.now();
+    final now = DateTime.now().toUtc();
     final thrityDaysAgo = now.subtract(Duration(days: 30));
     
      return day.isAfter(thrityDaysAgo) && day.isBefore(now.add(Duration(days: 1)));
     }
     bool isThisYear(DateTime day) {
-    final now = DateTime.now();
+    final now = DateTime.now().toUtc();
     
     final oneYearAgo = now.subtract(Duration(days: 365));
     
@@ -1688,54 +1779,79 @@ child:  Padding(padding: EdgeInsets.all(8),
                     //    ),
                     //   ),
                     // )
-              Column(
-                children: [
-                  Padding(
-                    padding: EdgeInsets.all(20),
-                    child: Container(
-                       width: MediaQuery.of(context).size.width * 0.8600,
-                      height: MediaQuery.of(context).size.height * 0.1,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        color:const Color.fromARGB(255, 208, 104, 0),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.start,
+              
+                  StatefulBuilder(
+                    builder: (context, setLocalState) {
+                      return Column(
                         children: [
-                  SizedBox(width: 40),
-                  Column(
-                    children: [
-                      SizedBox(height: 10,),
-                      Container(
-                        width: 60,
-                       height: MediaQuery.of(context).size.height * 0.07,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(colors: [const Color.fromARGB(255, 246, 142, 6), Colors.yellow], begin: Alignment.topLeft, end: Alignment.bottomRight),
-                          borderRadius: BorderRadius.circular(10)
-                        ),child: Center(child: Icon(Icons.forklift, color: const Color.fromARGB(255, 255, 255, 255), size: 35),),
-                      ),
-                    ],
-                  ),
-                
-                  SizedBox(width: 20,),
-                  Column(
-                    children: [
-                     SizedBox(height: MediaQuery.of(context).size.height * 0.02,),
-                      Text('Process', style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.bold, fontSize: MediaQuery.of(context).size.width * 0.02, color: Colors.white),),
-                    ],
-                  )
-                      ],),
-                    ),
-                  ),
-
-                ],
-
-              ),
-               Row(
-                 children: [
-                  SizedBox(width: 20,),
-                   StatefulBuilder(
+                          Padding(
+                            padding: EdgeInsets.all(20),
+                            child: Container(
+                               width: MediaQuery.of(context).size.width * 0.8600,
+                              height: MediaQuery.of(context).size.height * 0.1,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10),
+                                color:const Color.fromARGB(255, 208, 104, 0),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                          SizedBox(width: 40),
+                          Column(
+                            children: [
+                              SizedBox(height: 10,),
+                              Container(
+                                width: 60,
+                               height: MediaQuery.of(context).size.height * 0.07,
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(colors: [const Color.fromARGB(255, 246, 142, 6), Colors.yellow], begin: Alignment.topLeft, end: Alignment.bottomRight),
+                                  borderRadius: BorderRadius.circular(10)
+                                ),child: Center(child: Icon(Icons.forklift, color: const Color.fromARGB(255, 255, 255, 255), size: 35),),
+                              ),
+                            ],
+                          ),
+                        
+                          SizedBox(width: 20,),
+                          Column(
+                            children: [
+                             SizedBox(height: MediaQuery.of(context).size.height * 0.02,),
+                              Text('Process', style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.bold, fontSize: MediaQuery.of(context).size.width * 0.02, color: Colors.white),),
+                            ],
+                          ),
+                          Spacer(),
+                          Column(
+                            children: [
+                              SizedBox(height: 20,),
+                              DropdownButtonHideUnderline(child: DropdownButton
+                              
+                              ( value: which1, items: [
+                                
+                                DropdownMenuItem(
+                                  value: 'Inbound',
+                                  child:Text('Inbound', style: TextStyle(fontFamily: 'Inter',  fontSize: MediaQuery.of(context).size.width * 0.015,
+                                   color: const Color.fromARGB(255, 0, 0, 0)),),),
+                                     DropdownMenuItem(
+                                      value: 'Outbound',
+                                  child:Text('Outbound', style: TextStyle(fontFamily: 'Inter',  fontSize: MediaQuery.of(context).size.width * 0.015, 
+                                  color: const Color.fromARGB(255, 0, 0, 0)),),)
+                              ], onChanged: (value){
+                                setLocalState(() {
+                                  which1 = value!;
+                                });
+                              })),
+                            ],
+                          ),
+                          SizedBox(width: 20,),
+                              ],),
+                            ),
+                          ),
+                      Row(
+                        children: [
+                          Row(
+                                   children: [
+                                        SizedBox(width: 20,),
+                                         StatefulBuilder(
                                     builder: (context, setLocalState) {
                                       return FutureBuilder(
                                         future: frequency == 'Process' ? Supabase.instance.client.from('process').select('description') : frequency == 'Material' ? Supabase.instance.client.from('materials').select('name') : Supabase.instance.client.from('route').select('material_route').or('disabled.is.null,disabled.not.eq.true'),
@@ -1771,32 +1887,7 @@ child:  Padding(padding: EdgeInsets.all(8),
                                                             children: [
                                                               Text('Frequency', style: TextStyle(fontFamily: 'WorkSans', fontWeight: FontWeight.bold, fontSize: 17, color: Colors.white),),
                                                               SizedBox(width: 10,),
-                                      //                         DropdownButtonHideUnderline(child: DropdownButton(
-                                      //                           value: frequency,
-                                      //                           items: [
-                                      //                             DropdownMenuItem(
-                                      //                               value: 'Process',
-                                      //                               child: Text('Process',style: TextStyle(fontFamily: 'WorkSans', fontWeight: FontWeight.bold, fontSize: 17) ),
-                                                                    
-                                      //                               ),
-                                      //                                 DropdownMenuItem(
-                                      //                               value: 'Material',
-                                      //                               child: Text('Material',style: TextStyle(fontFamily: 'WorkSans', fontWeight: FontWeight.bold, fontSize: 17) ),
-                                                                    
-                                      //                               ),
-                                      //                                DropdownMenuItem(
-                                      //                               value: 'Route',
-                                      //                               child: Text('Route',style: TextStyle(fontFamily: 'WorkSans', fontWeight: FontWeight.bold, fontSize: 17) ),
-                                                                    
-                                      //                               )
-                                      //                           ],
-                                                                
-                                      //                           onChanged: (value){
-                                      // frequency = value!;
-                                      // setLocalState(() {
-                                        
-                                      // },);
-                                      //                           }))
+                                    
                                                             ],
                                                           )]),
                                                         
@@ -1809,48 +1900,65 @@ child:  Padding(padding: EdgeInsets.all(8),
                                                         padding: const EdgeInsets.all(20),
                                                         child: FutureBuilder(
                                                           future: Future.wait([
-                         () {
+                                               () {
+
                            if (cat == 'Overview' || subcatTrue == false) {
-                             return Supabase.instance.client.from('detail').select();
+                             return 
+                             which1 == 'Inbound' ? Supabase.instance.client.from('master_detail_view').select() :Supabase.instance.client.from('master_detail_view').select() ;
                            } else if (subcat != null && subcat != 'Select..') {
-                             return Supabase.instance.client
-                                 .from('detail')
+                             return which1 == "Inbound" ? Supabase.instance.client
+                                 .from('master_detail_view')
                                  .select()
                                  .eq(
-                    cat == 'Route'
-                        ? 'route_name'
-                        : cat == 'User'
+                                          cat == 'Route'
+                                              ? 'route_name'
+                                              : cat == 'User'
                             ? 'usernamed'
                             : cat == 'Process'
                                 ? 'process'
                                 : 'originalneed',
-                    subcat,
-                                 ).not('endtime', 'is', null);
+                                          subcat,
+                                 ).not('endtime', 'is', null) : Supabase.instance.client
+                                 .from('master_detail_view')
+                                 .select()
+                                 .eq(
+                                          cat == 'Route'
+                                              ? 'route_name'
+                                              : cat == 'User'
+                            ? 'usernamed'
+                            : cat == 'Process'
+                                ? 'process'
+                                : 'originalneed',
+                                          subcat,
+                                 ).not('endtime', 'is', null) ;
                            } else {
-                             return Supabase.instance.client.from('detail').select().limit(0); // no results
+                             return which1 == 'Inbound' ? Supabase.instance.client.from('detail').select().limit(0) :Supabase.instance.client.from('master_detail_view').select().limit(0); // no results
                            }
-                         }(),
-                         Supabase.instance.client.from('process').select(),
-                       ]),
+                                               }(),
+                                               Supabase.instance.client.from('process').select(),
+                                               Supabase.instance.client.from('user').select(),
+                                             ]),
                                                           
                                                           builder: (context, snapshot) {
-                       
+                                             
                                                             if (snapshot.connectionState == ConnectionState.waiting){
                                                               return Text('');
                                                             }
                                                             final data1 = snapshot.data?[0] ?? [];
                                                             final data2 = snapshot.data?[1] ?? [];
-                                                                                                                                                       if (data1.isEmpty || data2.isEmpty ){
+                                                            final data3 = snapshot.data?[2] ?? [];
+                                                            
+                                                                                                                                                       if (data1.isEmpty || data2.isEmpty || data3.isEmpty ){
                                                               return Text('');
                                                             }    
-                       
-                       if (data1.isEmpty){
-                       return SizedBox.shrink();
-                       }
-                       
-                       String truncateWithEllipsis(int cutoff, String myString) {
-                       return (myString.length <= cutoff) ? myString : '${myString.substring(0, cutoff)}...';
-                       }
+                                             
+                                             if (data1.isEmpty){
+                                             return SizedBox.shrink();
+                                             }
+                                             
+                                             String truncateWithEllipsis(int cutoff, String myString) {
+                                             return (myString.length <= cutoff) ? myString : '${myString.substring(0, cutoff)}...';
+                                             }
                                                                double roundMaxY(double maxY) {
                                                           if (maxY <= 5) return 5;
                                                         
@@ -1859,69 +1967,99 @@ child:  Padding(padding: EdgeInsets.all(8),
                                                           if (maxY < 20) base = 5;
                                                           return (maxY / base).ceil() * base.toDouble();
                                                         }
+                                        //                                       for (var entry in data1) {
+                                        //   final username = entry['usernamed'];
+                                        //   if (username != null) {
+                                        //     processFrequency[username] = (processFrequency[username] ?? 0) + 1;
+                                        //   }
+                                        // }
+                                        
+                                        // // Step 2: Sort data2 based on frequency
+                                        // data2.sort((a, b) {
+                                        //   final freqA = processFrequency[a['username']] ?? 0;
+                                        //   final freqB = processFrequency[b['username']] ?? 0;
+                                        
+                                        //   if (freqA != freqB) {
+                                        //     return freqB.compareTo(freqA); // highest count first
+                                        //   } else {
+                                        //     return (b['id'] ?? 0).compareTo(a['id'] ?? 0); // fallback by ID
+                                        //   }
+                                        // });
+                                             
+                                                Map<String, int> processFrequency = {};
                                       
-                                                                          
-                                               Map<String, int> processFrequency = {};
                                       
-                                      
-                                      data2.sort((a, b) {
-                                        final freqA = processFrequency[a['process']] ?? 0;
-                                        final freqB = processFrequency[b[ 'process']] ?? 0;
-                                      
-                                        if (freqA != freqB) {
-                                          return freqB.compareTo(freqA); // highest count first
-                                        } else {
-                                          return (b['id'] ?? 0).compareTo(a['id'] ?? 0); // fallback by ID
+                                        for (var entry in data1) {
+                                          final process = entry[which1 == 'Inbound' ? 'process' : 'machine'];
+                                          if (process != null) {
+                                            processFrequency[process] = (processFrequency[process] ?? 0) + 1;
+                                          }
                                         }
-                       
-                                      });
-                       
-                                   bool isThisWeek(DateTime day) { final now = DateTime.now();
-                       final sevenDaysAgo = now.subtract(Duration(days: 7));
-                       return day.isAfter(sevenDaysAgo) && day.isBefore(now.add(Duration(days: 1)));
-                       }
-                       bool isThisMonth(DateTime day) {
-                       final now = DateTime.now();
-                       final thrityDaysAgo = now.subtract(Duration(days: 30));
-                       
-                        return day.isAfter(thrityDaysAgo) && day.isBefore(now.add(Duration(days: 1)));
-                       }
-                       bool isThisYear(DateTime day) {
-                       final now = DateTime.now();
-                       
-                       final oneYearAgo = now.subtract(Duration(days: 365));
-                       
-                        return day.isAfter(oneYearAgo) && day.isBefore(now.add(Duration(days: 1)));
-                       }
-                       
-                       
+                                        
+                                        // Step 2: Sort data2 based on frequency
+                                        data2.sort((a, b) {
+                                          final freqA = processFrequency[a['description']] ?? 0;
+                                          final freqB = processFrequency[b['description']] ?? 0;
+                                        
+                                          if (freqA != freqB) {
+                                            return freqB.compareTo(freqA); // highest count first
+                                          } else {
+                                            return (b['id'] ?? 0).compareTo(a['id'] ?? 0); // fallback by ID
+                                          }
+                                        });                               
+                                        
+                                        final test = data2.map((entry ) => entry['description']);
+                              print('after $test'); 
+                                        print('processf $processFrequency');
+                                               final after = data2.map((entry) => entry['process']);
+                                               print('after $after')            ;     
+                                             
+                                   bool isThisWeek(DateTime day) { final now = DateTime.now().toUtc();
+                                             final sevenDaysAgo = now.subtract(Duration(days: 7));
+                                             return day.isAfter(sevenDaysAgo) && day.isBefore(now.add(Duration(days: 1)));
+                                             }
+                                             bool isThisMonth(DateTime day) {
+                                             final now = DateTime.now().toLocal();
+                                             final thrityDaysAgo = now.subtract(Duration(days: 30));
+                                             
+                                              return day.isAfter(thrityDaysAgo) && day.isBefore(now.add(Duration(days: 1)));
+                                             }
+                                             bool isThisYear(DateTime day) {
+                                             final now = DateTime.now().toLocal();
+                                             
+                                             final oneYearAgo = now.subtract(Duration(days: 365));
+                                             
+                                              return day.isAfter(oneYearAgo) && day.isBefore(now.add(Duration(days: 1)));
+                                             }
+                                             
+                                             
                              
-                                  
+                                  final user = Supabase.instance.client.auth.currentUser;
+                                  final email = user?.email;
+                                  final users = data3.where((entry) => entry['email'] == email).single;
+                                  final company = users['company'];
                                    final datar = data1.where((entry){
-                                       return weekly ? 
+                                       return (weekly ? 
                                         isThisWeek(DateTime.parse(entry['starttime'])) == true
                                         :  monthly ? isThisMonth(DateTime.parse(entry['starttime'])) == true : 
-                                        isThisYear(DateTime.parse(entry['starttime'])) == true;
+                                        isThisYear(DateTime.parse(entry['starttime'])) == true) && entry['company'] == company;
                                         
-                       
+                                             
                                       }).toList();
-                       
-                                      if (datar.isEmpty){
-                                        return Text('No data', style: TextStyle(fontFamily: 'WorkSans', fontWeight: FontWeight.bold));
-                                      }
+                                        print('data1 ${data1.length}, datar ${datar.length}');
                                                             return BarChart(
                                                                           
                                                                          
                                                                           BarChartData(
                                                                              alignment: BarChartAlignment.spaceAround,
-                       
+                                             
                                                                              
                                                                         barTouchData: BarTouchData(
                                                                     
                                                                           // enabled: true,
-                       
+                                             
                                                                           
-                        touchTooltipData: BarTouchTooltipData(
+                                              touchTooltipData: BarTouchTooltipData(
                                                                             tooltipBorderRadius: BorderRadius.circular(13),
                                                                             maxContentWidth: 40,
                                                                           
@@ -1940,7 +2078,7 @@ child:  Padding(padding: EdgeInsets.all(8),
                                                                             },
                                                                           ),
                                                                         ),
-                       
+                                             
                                                                       
                                                                         
                                                                                    maxY: roundMaxY(datar.length.toDouble()),
@@ -1951,13 +2089,13 @@ child:  Padding(padding: EdgeInsets.all(8),
                                                         
                                                         
                                                                          barGroups: [
-                                                                          ...data2.reversed.toList().asMap().entries.map((entry) {
+                                                                          ...data2.toList().asMap().entries.map((entry) {
                                                                           
                                                                             final index = entry.key;
                                                                             final item = entry.value;
                                                         
                                                        final processName = item['description'] ?? '';
-                                                                                  final data4 = datar.where((entry) => entry['process'] == processName);
+                                                                                  final data4 = datar.where((entry) => entry[which1 == 'Inbound' ? 'process' : 'machine'] == processName);
                                               
                                                                             
                                       //                                                                     finalFilter.sort((a, b) {
@@ -1978,7 +2116,7 @@ child:  Padding(padding: EdgeInsets.all(8),
                                                                          },)
                                                                          ],
                                                                          
-                                                                           
+                                                                   
                                                                                    titlesData: FlTitlesData(
                                                                                  leftTitles: AxisTitles(
                                                                                   sideTitles: SideTitles(
@@ -2005,32 +2143,32 @@ child:  Padding(padding: EdgeInsets.all(8),
                                                      int index = value.toInt();
                                                      if (index < 0 || index >= data2.length) return Container();
                                                    
-                                                     String label = data2.reversed.toList()[index]['description'];
+                                                     String label = data2.toList()[index]['description'];
                                 label = truncateWithEllipsis(20, label); 
                                     String formatLabel(String label) {
-                       if (label.length <= 10) return label;
-                       
-                       // Check if it's a single long word
-                       bool isSingleWord = !label.contains(' ');
-                       if (isSingleWord && label.length > 12) {
-                         int midpoint = (label.length / 2).round();
-                         return '${label.substring(0, midpoint)}-\n${label.substring(midpoint)}';
-                       }
-                       
-                       // Normal behavior for multi-word or moderately long words
-                       int midpoint = (label.length / 2).round();
-                       bool shouldHyphenate = label[midpoint - 1] != ' ' && label[midpoint] != ' ';
-                       
-                       String firstHalf = label.substring(0, midpoint).trim();
-                       String secondHalf = label.substring(midpoint).trim();
-                       
-                       return shouldHyphenate
+                                             if (label.length <= 10) return label;
+                                             
+                                             // Check if it's a single long word
+                                             bool isSingleWord = !label.contains(' ');
+                                             if (isSingleWord && label.length > 12) {
+                                               int midpoint = (label.length / 2).round();
+                                               return '${label.substring(0, midpoint)}-\n${label.substring(midpoint)}';
+                                             }
+                                             
+                                             // Normal behavior for multi-word or moderately long words
+                                             int midpoint = (label.length / 2).round();
+                                             bool shouldHyphenate = label[midpoint - 1] != ' ' && label[midpoint] != ' ';
+                                             
+                                             String firstHalf = label.substring(0, midpoint).trim();
+                                             String secondHalf = label.substring(midpoint).trim();
+                                             
+                                             return shouldHyphenate
                            ? '$firstHalf-\n$secondHalf'
                            : '$firstHalf\n$secondHalf';
-                       }
-                       label = formatLabel(label);
+                                             }
+                                             label = formatLabel(label);
                                       
-                       double fontSizeOnLength(int length){
+                                             double fontSizeOnLength(int length){
                                                                    if (length > 10 && length < 15){
                                                                      return 13;
                                                                    } else if (length > 15 && length < 17){
@@ -2092,414 +2230,431 @@ child:  Padding(padding: EdgeInsets.all(8),
                                             ));
                                         });
                                     }),
-                                    Row(
-                         children: [
-                          SizedBox(width: 10,),
-                           StatefulBuilder(
-                             builder: (context, setLocalState) {
-                               return FutureBuilder(
-                                        future: frequency2 == 'Process' ? Supabase.instance.client.from('process').select('description') : frequency2 == 'Material' ? Supabase.instance.client.from('materials').select('name') : 
-                                        frequency2 == 'Route' ? Supabase.instance.client.from('route').select('material_route').or('disabled.is.null,disabled.not.eq.true') : Supabase.instance.client.from('user').select('username'),
-                                        builder: (context,snapshot) {
-                                       final data = snapshot.data ?? [];
-                                          return Align(
-                                            alignment: Alignment.centerLeft,
-                                            child: Container(
-                                               width: MediaQuery.of(context).size.width *0.44725,
-                                              height: 290,
-                                               decoration: BoxDecoration(
-                                                        color: const Color.fromARGB(255, 241, 169, 68),
-                                                        borderRadius: BorderRadius.circular(20),
-                                                       ),
-                                              child: SingleChildScrollView(
-                                                scrollDirection: Axis.horizontal,
-                                                child:Builder(builder: (context) {
-                                                  final barCount = data.length; 
-                                                  final barWidth = 120;         
-                                                  final chartWidth = barCount * (barWidth);
-                                          
-                                                  return Column(
-                                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                                    mainAxisAlignment: MainAxisAlignment.start,
+                                   ]),
+                                   Row(
+                     children: [
+                      SizedBox(width: 10,),
+                       StatefulBuilder(
+                         builder: (context, setLocalState) {
+                           return FutureBuilder(
+                                    future: frequency2 == 'Process' ? Supabase.instance.client.from('process').select('description') : frequency2 == 'Material' ? Supabase.instance.client.from('materials').select('name') : 
+                                    frequency2 == 'Route' ? Supabase.instance.client.from('route').select('material_route').or('disabled.is.null,disabled.not.eq.true') : Supabase.instance.client.from('user').select('username'),
+                                    builder: (context,snapshot) {
+                                   final data = snapshot.data ?? [];
+                                      return Align(
+                                        alignment: Alignment.centerLeft,
+                                        child: Container(
+                                           width: MediaQuery.of(context).size.width *0.44725,
+                                          height: 290,
+                                           decoration: BoxDecoration(
+                                                    color: const Color.fromARGB(255, 241, 169, 68),
+                                                    borderRadius: BorderRadius.circular(20),
+                                                   ),
+                                          child: SingleChildScrollView(
+                                            scrollDirection: Axis.horizontal,
+                                            child:Builder(builder: (context) {
+                                              final barCount = data.length; 
+                                              final barWidth = 120;         
+                                              final chartWidth = barCount * (barWidth);
+                                      
+                                              return Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                mainAxisAlignment: MainAxisAlignment.start,
+                                                children: [
+                                                  SizedBox(height: 16,),
+                                                  Row(
+                                                   
                                                     children: [
-                                                      SizedBox(height: 16,),
+                                                      SizedBox(width: 30,),
                                                       Row(
-                                                       
                                                         children: [
-                                                          SizedBox(width: 30,),
-                                                          Row(
-                                                            children: [
-                                                              Text('Average time (min)', style: TextStyle(fontFamily: 'WorkSans', fontWeight: FontWeight.bold, fontSize: 17, color: Colors.white),),
-                                                              SizedBox(width: 10,),
-                                                              // DropdownButtonHideUnderline(child: DropdownButton(
-                                                              //   value: frequency2,
-                                                              //   items: [
-                                                              //     DropdownMenuItem(
-                                                              //       value: 'Process',
-                                                              //       child: Text('Process',style: TextStyle(fontFamily: 'WorkSans', fontWeight: FontWeight.bold, fontSize: 17) ),
-                                                                    
-                                                              //       ),
-                                                              //         DropdownMenuItem(
-                                                              //       value: 'Material',
-                                                              //       child: Text('Material',style: TextStyle(fontFamily: 'WorkSans', fontWeight: FontWeight.bold, fontSize: 17) ),
-                                                                    
-                                                              //       ),
-                                                              //        DropdownMenuItem(
-                                                              //       value: 'Route',
-                                                              //       child: Text('Route',style: TextStyle(fontFamily: 'WorkSans', fontWeight: FontWeight.bold, fontSize: 17) ),
-                                                                    
-                                                              //       ),
-                                                              //       DropdownMenuItem(
-                                                              //       value: 'User',
-                                                              //       child: Text('User',style: TextStyle(fontFamily: 'WorkSans', fontWeight: FontWeight.bold, fontSize: 17) ),
-                                                                    
-                                                              //       )
-                                                              //   ],
+                                                          Text('Average time (min)', style: TextStyle(fontFamily: 'WorkSans', fontWeight: FontWeight.bold, fontSize: 17, color: Colors.white),),
+                                                          SizedBox(width: 10,),
+                                                          // DropdownButtonHideUnderline(child: DropdownButton(
+                                                          //   value: frequency2,
+                                                          //   items: [
+                                                          //     DropdownMenuItem(
+                                                          //       value: 'Process',
+                                                          //       child: Text('Process',style: TextStyle(fontFamily: 'WorkSans', fontWeight: FontWeight.bold, fontSize: 17) ),
                                                                 
-                                                              //   onChanged: (value){
-                                                                 
-                                                              //                     frequency2 = value!;
-                                                              //                     setLocalState(() {
-                                                                                    
-                                                              //                     },);
-                                                              //   }))
-                                                            ],
-                                                          )]),
-                                                      SizedBox(
-                                                        width: chartWidth < 900 ? 900 : chartWidth.toDouble(), 
-                                                        height: 250,
-                                                                                    
-                                                          child: Padding(
-                                                        padding: const EdgeInsets.all(20),
-                                                        child: FutureBuilder(
-                                                          future: Future.wait([
-                                                             cat =='Overview' || subcatTrue == false?
-                                                             Supabase.instance.client.from('detail').select().not('endtime', 'is', null)
-                                                         : Supabase.instance.client.from('detail').select().eq(cat == 'Route' ? 'route_name'  : cat== 'User' ?
-                                                         'usernamed' : cat == 'Process' ? 'process' : 'originalneed', subcat).not('endtime', 'is', null),
-                                                         Supabase.instance.client.from(frequency2 == 'Process' ? 'process' : frequency2 == 'Material' ?  'materials' : frequency2 == 'Route' ? 'route' : 'user').select(),
-                                                          ]),
-                                                          
-                                                          builder: (context, snapshot) {
-                                                  
-                                                            if (snapshot.connectionState == ConnectionState.waiting || snapshot.data == null) {
-                                                             return Column(
-                                                               children: [
-                                                                 Align(
-                                                                  alignment: Alignment.centerLeft,
-                                                                   child: SizedBox(
-                                                                                                               width: 50,
-                                                                                                               height: 50,
-                                                                                                               child: CircularProgressIndicator(
-                                                                                                                color: Colors.blue,
-                                                                   )),
-                                                                 ),
-                                                               ],
-                                                             );
-                                                            }
-                                                          
-                                                            final data1 = snapshot.data?[0] ?? [];
-                                                         
-                                                            final data2 = snapshot.data?[1] ?? [];
-                                                  
-                                                                       final barCount = data.length;
-                                                      final chartWidth = barCount * barWidth;
+                                                          //       ),
+                                                          //         DropdownMenuItem(
+                                                          //       value: 'Material',
+                                                          //       child: Text('Material',style: TextStyle(fontFamily: 'WorkSans', fontWeight: FontWeight.bold, fontSize: 17) ),
+                                                                
+                                                          //       ),
+                                                          //        DropdownMenuItem(
+                                                          //       value: 'Route',
+                                                          //       child: Text('Route',style: TextStyle(fontFamily: 'WorkSans', fontWeight: FontWeight.bold, fontSize: 17) ),
+                                                                
+                                                          //       ),
+                                                          //       DropdownMenuItem(
+                                                          //       value: 'User',
+                                                          //       child: Text('User',style: TextStyle(fontFamily: 'WorkSans', fontWeight: FontWeight.bold, fontSize: 17) ),
+                                                                
+                                                          //       )
+                                                          //   ],
+                                                            
+                                                          //   onChanged: (value){
                                                              
-                                                                  if (data1.isEmpty || data2.isEmpty){
-                                                                    return Text('No Data', style: TextStyle(fontFamily: 'Inter'),);
-                                                                  }                
-                                                               double roundMaxY(double maxY) {
-                                                          if (maxY <= 5) return 5;
-                                                        
-                                                        
-                                                          int base = 10;
-                                                          if (maxY < 20) base = 5;
-                                                          return (maxY / base).ceil() * base.toDouble();
+                                                          //                     frequency2 = value!;
+                                                          //                     setLocalState(() {
+                                                                                
+                                                          //                     },);
+                                                          //   }))
+                                                        ],
+                                                      )]),
+                                                  SizedBox(
+                                                    width: chartWidth < 900 ? 900 : chartWidth.toDouble(), 
+                                                    height: 250,
+                                                                                
+                                                      child: Padding(
+                                                    padding: const EdgeInsets.all(20),
+                                                    child: FutureBuilder(
+                                                      future: Future.wait([
+                                                         cat =='Overview' || subcatTrue == false?
+                                                         which1 == 'Inbound' ? Supabase.instance.client.from('detail').select().not('endtime', 'is', null) : 
+                                                         Supabase.instance.client.from('master_detail_view').select().not('endtime', 'is', null)
+                                                     : which1 == 'Inbound' ? Supabase.instance.client.from('detail').select().eq(cat == 'Route' ? 'route_name'  : cat== 'User' ?
+                                                     'usernamed' : cat == 'Process' ? 'process' : 'originalneed', subcat).not('endtime', 'is', null) : Supabase.instance.client.from('master_detail_view').select().eq(cat == 'Route' ? 'route_name'  : cat== 'User' ?
+                                                     'usernamed' : cat == 'Process' ? 'process' : 'originalneed', subcat).not('endtime', 'is', null) ,
+                                                     Supabase.instance.client.from(frequency2 == 'Process' ? 'process' : frequency2 == 'Material' ?  'materials' : frequency2 == 'Route' ? 'route' : 'user').select(),
+                                                     Supabase.instance.client.from('user').select()
+                                                      ]),
+                                                      
+                                                      builder: (context, snapshot) {
+                                              
+                                                        if (snapshot.connectionState == ConnectionState.waiting || snapshot.data == null) {
+                                                         return Column(
+                                                           children: [
+                                                             Align(
+                                                              alignment: Alignment.centerLeft,
+                                                               child: SizedBox(
+                                                                                                           width: 50,
+                                                                                                           height: 50,
+                                                                                                           child: CircularProgressIndicator(
+                                                                                                            color: Colors.blue,
+                                                               )),
+                                                             ),
+                                                           ],
+                                                         );
                                                         }
                                                       
-                                                              bool isThisWeek(DateTime day) { final now = DateTime.now();
-    final sevenDaysAgo = now.subtract(Duration(days: 7));
-    return day.isAfter(sevenDaysAgo) && day.isBefore(now.add(Duration(days: 1)));
-    }
-    bool isThisMonth(DateTime day) {
-    final now = DateTime.now();
-    final thrityDaysAgo = now.subtract(Duration(days: 30));
-    
-     return day.isAfter(thrityDaysAgo) && day.isBefore(now.add(Duration(days: 1)));
-    }
-    bool isThisYear(DateTime day) {
-    final now = DateTime.now();
-    
-    final oneYearAgo = now.subtract(Duration(days: 365));
-    
-     return day.isAfter(oneYearAgo) && day.isBefore(now.add(Duration(days: 1)));
-    }
-    
-    
-                         
-                              
-                               final datar = data1.where((entry){
-                                   return weekly ? 
-                                    isThisWeek(DateTime.parse(entry['starttime'])) == true
-                                    :  monthly ? isThisMonth(DateTime.parse(entry['starttime'])) == true : 
-                                    isThisYear(DateTime.parse(entry['starttime'])) == true;
-                                    
-    
-                                  }).toList();
-    
-                                  if (datar.isEmpty){
-                                    return Text('No data', style: TextStyle(fontFamily: 'WorkSans', fontWeight: FontWeight.bold));
-                                  }
-                                                  
-                                                      List totalTime = [];
-                                                         final List<Map<String, dynamic>> processAverages = [];
-                                                  
-                                                  for (final processRow in data2) {
-                                                    final processName = processRow[frequency2 ==  'Process'  ? 'description' : frequency2 == 'Material' ? 'name' : frequency2 == 'Route'
-                                                    ? 'material_route' : 'username'];
-                                                  
-                                                  
-                                                  
-                                                    final matchingEntries = datar.where((entry) {
+                                                        final data1 = snapshot.data?[0] ?? [];
                                                      
-                                                     return entry[frequency2  == 'Process' ? 'process' : frequency2 == 'Material' ? 'originalneed' : 
-                                                     frequency2 == 'Route' ? 'route_name' : 'usernamed'] == processName &&
-                                                      entry['starttime'] != null &&
-                                                      entry['endtime'] != null;
-                                                  }).toList();
-                                                    double avg = 0;
-                                                    if (matchingEntries.isNotEmpty) {
-                                                      int total = 0;
-                                                      for (final entry in matchingEntries) {
-                                                        final start = DateTime.parse(entry['starttime']);
+                                                        final data2 = snapshot.data?[1] ?? [];
+ final data3 = snapshot.data?[2] ?? [];
                                                         
-                                                        final end = DateTime.parse(entry['endtime']);
-                                                       
-                                                        total += end.difference(start).inSeconds;
-                                                        
-                                                      }
-                                                      avg = total / matchingEntries.length / 60;
-                                                      totalTime.add(avg);
+                                  final user = Supabase.instance.client.auth.currentUser;
+                                  final email = user?.email;
+                                  final users = data3.where((entry) => entry['email'] == email).single;
+                                  final company = users['company'];
+                                 
+                                                                   final barCount = data.length;
+                                                  final chartWidth = barCount * barWidth;
+                                                         
+                                                              if (data1.isEmpty || data2.isEmpty || data3.isEmpty){
+                                                                return Text('No Data', style: TextStyle(fontFamily: 'Inter'),);
+                                                              }                
+                                                           double roundMaxY(double maxY) {
+                                                      if (maxY <= 5) return 5;
+                                                    
+                                                    
+                                                      int base = 10;
+                                                      if (maxY < 20) base = 5;
+                                                      return (maxY / base).ceil() * base.toDouble();
                                                     }
                                                   
-                                                    processAverages.add({
-                                                      'process': processName,
-                                                      'avg': avg.toDouble(),
-                                                    });
-                                                  }                                 
-                                                                                      double getNiceInterval(double maxY) {
-                                                    if (maxY <= 10) return 2;
-                                                    if (maxY <= 30) return 5;
-                                                    if (maxY <= 60) return 10;
-                                                    if (maxY <= 200) return 20;
-                                                      if (maxY <= 300) return 40;
-                                                       if (maxY <= 400) return 60;
-                                                        if (maxY <= 500) return 80;
-                                                      if (maxY <=1000) return 200;
-                                                    return (maxY / 5).ceilToDouble();
+                                                          bool isThisWeek(DateTime day) { final now = DateTime.now().toUtc();
+                  final sevenDaysAgo = now.subtract(Duration(days: 7));
+                  return day.isAfter(sevenDaysAgo) && day.isBefore(now.add(Duration(days: 1)));
+                  }
+                  bool isThisMonth(DateTime day) {
+                  final now = DateTime.now().toUtc();
+                  final thrityDaysAgo = now.subtract(Duration(days: 30));
+                  
+                   return day.isAfter(thrityDaysAgo) && day.isBefore(now.add(Duration(days: 1)));
+                  }
+                  bool isThisYear(DateTime day) {
+                  final now = DateTime.now().toUtc();
+                  
+                  final oneYearAgo = now.subtract(Duration(days: 365));
+                  
+                   return day.isAfter(oneYearAgo) && day.isBefore(now.add(Duration(days: 1)));
+                  }
+                  
+                  
+                     
+                          
+                            final datar = data1.where((entry){
+                                       return (weekly ? 
+                                        isThisWeek(DateTime.parse(entry['starttime'])) == true
+                                        :  monthly ? isThisMonth(DateTime.parse(entry['starttime'])) == true : 
+                                        isThisYear(DateTime.parse(entry['starttime'])) == true) && entry['company'] == company;
+                                        
+                                             
+                                      }).toList();
+                                              
+                  
+                              if (datar.isEmpty){
+                                return Text('No data', style: TextStyle(fontFamily: 'WorkSans', fontWeight: FontWeight.bold));
+                              }
+                                              
+                                                  List totalTime = [];
+                                                     final List<Map<String, dynamic>> processAverages = [];
+                                              
+                                              for (final processRow in data2) {
+                                                final processName = processRow['description'];
+                                              
+                                              
+                                              
+                                                final matchingEntries = datar.where((entry) {
+                                                 
+                                                 return entry[which1 == 'Inbound' ? 'process' : 'machine'] == processName &&
+                                                  entry['starttime'] != null &&
+                                                  entry['endtime'] != null;
+                                              }).toList();
+                                                double avg = 0;
+                                                if (matchingEntries.isNotEmpty) {
+                                                  int total = 0;
+                                                  for (final entry in matchingEntries) {
+                                                    final start = DateTime.parse(entry['starttime']);
+                                                    
+                                                    final end = DateTime.parse(entry['endtime']);
+                                                   
+                                                    total += end.difference(start).inSeconds;
+                                                    
                                                   }
-                                                  
+                                                  avg = total / matchingEntries.length / 60;
+                                                  totalTime.add(avg);
+                                                }
+                                              
+                                                processAverages.add({
+                                                  'process': processName,
+                                                  'avg': avg.toDouble(),
+                                                });
+                                              }                                 
+                                                                                  double getNiceInterval(double maxY) {
+                                                if (maxY <= 10) return 2;
+                                                if (maxY <= 30) return 5;
+                                                if (maxY <= 60) return 10;
+                                                if (maxY <= 200) return 20;
+                                                  if (maxY <= 300) return 40;
+                                                   if (maxY <= 400) return 60;
+                                                    if (maxY <= 500) return 80;
+                                                  if (maxY <=1000) return 200;
+                                                return (maxY / 5).ceilToDouble();
+                                              }
+                                              
+                                                        
+                                                   processAverages.sort((a, b) {
+                                                final avgA = a['avg'] ?? 0;
+                                                final avgB = b['avg'] ?? 0;
+                                              
+                                                if (avgA != avgB) {
+                                                  return avgB.compareTo(avgA); // descending order by avg
+                                                } else {
+                                                  // No 'id' field present in your maps?
+                                                  // If you have an 'id' field, do this fallback:
+                                                  // return (b['id'] ?? 0).compareTo(a['id'] ?? 0);
+                                                  // Otherwise just return 0 (equal)
+                                                  return 0;
+                                                }
+                                              });
+                                              
+                                                           
+                                                        return BarChart(
                                                             
-                                                       processAverages.sort((a, b) {
-                                                    final avgA = a['avg'] ?? 0;
-                                                    final avgB = b['avg'] ?? 0;
-                                                  
-                                                    if (avgA != avgB) {
-                                                      return avgB.compareTo(avgA); // descending order by avg
-                                                    } else {
-                                                      // No 'id' field present in your maps?
-                                                      // If you have an 'id' field, do this fallback:
-                                                      // return (b['id'] ?? 0).compareTo(a['id'] ?? 0);
-                                                      // Otherwise just return 0 (equal)
-                                                      return 0;
-                                                    }
-                                                  });
-                                                  
-                                                               
-                                                            return BarChart(
-                                                                
-                                                                         
-                                                                          BarChartData(
-                                                                            
-                                                                             alignment: BarChartAlignment.spaceAround,
-                                                                        barTouchData: BarTouchData(
-                                                                      
-                                                                          enabled: true,
-                                                                   touchTooltipData: BarTouchTooltipData(
-                                                                        tooltipBorderRadius: BorderRadius.circular(13),
-                                                                        maxContentWidth: 70,
-                                                                      
-                                                                        getTooltipColor: (groups){
-                                                                          return Colors.transparent;
-                                                                        } ,
-                                                                        tooltipMargin: -14,
-                                                                        tooltipHorizontalOffset: 20,
-                                                                        getTooltipItem:(group, groupIndex, rod, rodIndex) {
-                                                                  return BarTooltipItem(
-                                                                  '${rod.toY.toStringAsFixed(2)}',
-                                                                  TextStyle(color: const Color.fromARGB(255, 0, 0, 0), fontFamily: 'Inter', fontSize: 20,)
-                                                                 
-                                                                  );
-                                                                  
-                                                                        },
-                                                                      ),
-                                                                        ),
-                                                                        
-                                                                                   maxY:
-                                                                                    roundMaxY(
-                                                                                    totalTime.isNotEmpty ?
-                                                                                    totalTime.reduce((a, b) => a > b ? a : b).toDouble(): 1,
-                                                                                    ),
-                                                                                 borderData: FlBorderData(show: false),
-                                                                                 gridData: FlGridData(show: false),
-                                                                // 
-                                                        
-                                                        
-                                                        
-                                                                         barGroups: [
-                                                                          
-                                                                          ...processAverages
-                                                                          .asMap().entries.map((entry) {
-                                                                          
-                                                                             final index = entry.key;
-                                                      final avg = entry.value['avg'];
                                                                      
-                                                                       return  
-                                                                       BarChartGroupData(x:index ,barRods: 
+                                                                      BarChartData(
+                                                                        
+                                                                         alignment: BarChartAlignment.spaceAround,
+                                                                    barTouchData: BarTouchData(
+                                                                  
+                                                                      enabled: true,
+                                                               touchTooltipData: BarTouchTooltipData(
+                                                                    tooltipBorderRadius: BorderRadius.circular(13),
+                                                                    maxContentWidth: 70,
+                                                                  
+                                                                    getTooltipColor: (groups){
+                                                                      return Colors.transparent;
+                                                                    } ,
+                                                                    tooltipMargin: -14,
+                                                                    tooltipHorizontalOffset: 20,
+                                                                    getTooltipItem:(group, groupIndex, rod, rodIndex) {
+                                                              return BarTooltipItem(
+                                                              '${rod.toY.toStringAsFixed(2)}',
+                                                              TextStyle(color: const Color.fromARGB(255, 0, 0, 0), fontFamily: 'Inter', fontSize: 20,)
+                                                             
+                                                              );
+                                                              
+                                                                    },
+                                                                  ),
+                                                                    ),
+                                                                    
+                                                                               maxY:
+                                                                                roundMaxY(
+                                                                                totalTime.isNotEmpty ?
+                                                                                totalTime.reduce((a, b) => a > b ? a : b).toDouble(): 1,
+                                                                                ),
+                                                                             borderData: FlBorderData(show: false),
+                                                                             gridData: FlGridData(show: false),
+                                                            // 
+                                                    
+                                                    
+                                                    
+                                                                     barGroups: [
+                                                                      
+                                                                      ...processAverages
+                                                                      .asMap().entries.map((entry) {
+                                                                      
+                                                                         final index = entry.key;
+                                                  final avg = entry.value['avg'];
+                                                                 
+                                                                   return  
+                                                                   BarChartGroupData(x:index ,barRods: 
+                                                                   
+                                                                   [BarChartRodData(toY: avg,  width: 30, color: const Color.fromARGB(255, 255, 255, 255),
+                                                                       borderRadius: BorderRadius.circular(10)),
+                                              
                                                                        
-                                                                       [BarChartRodData(toY: avg,  width: 30, color: const Color.fromARGB(255, 255, 255, 255),
-                                                                           borderRadius: BorderRadius.circular(10)),
-                                                  
-                                                                           
-                                                                           
-                                                                           ]
-                                                                           );
-                                                                           
-                                                                         },)
-                                                                         ],
-                                                                         
-                                                                           
-                                                                                   titlesData: FlTitlesData(
-                                                                                 leftTitles: AxisTitles(
-                                                                                  sideTitles: SideTitles(
-                                                                                    reservedSize: 40,
-                                                                                   showTitles: true,
-                                                                                   interval:
-                                                                                   
-                                                                                  getNiceInterval(totalTime.reduce((a, b) => a > b ? a : b).toDouble()),
-                                                                                    getTitlesWidget: (value, meta) {
-                                                                                   
-                                                                                      return Text('${value.toInt()}', style: TextStyle(fontFamily: 'Inter', color:const Color.fromARGB(255, 255, 255, 255), fontSize: 16),);
-                                                                                 
+                                                                       
+                                                                       ]
+                                                                       );
+                                                                       
+                                                                     },)
+                                                                     ],
+                                                                     
+                                                                       
+                                                                               titlesData: FlTitlesData(
+                                                                             leftTitles: AxisTitles(
+                                                                              sideTitles: SideTitles(
+                                                                                reservedSize: 40,
+                                                                               showTitles: true,
+                                                                               interval:
+                                                                               
+                                                                              getNiceInterval(totalTime.reduce((a, b) => a > b ? a : b).toDouble()),
+                                                                                getTitlesWidget: (value, meta) {
+                                                                               
+                                                                                  return Text('${value.toInt()}', style: TextStyle(fontFamily: 'Inter', color:const Color.fromARGB(255, 255, 255, 255), fontSize: 16),);
+                                                                             
+                                                                                },
+                                                                              )
+                                                                             ),
+                                                                          topTitles: AxisTitles(
+                                                                            sideTitles: SideTitles(showTitles: false),
+                                                                          ),
+                                                                     bottomTitles: AxisTitles(
+                                                                       sideTitles: SideTitles(
+                                                                         showTitles: true,
+                                                                         reservedSize: 40,
+                                                                         getTitlesWidget: (value, meta) {
+                                                                                      int index = value.toInt();
+                                                                                      if (index < 0 || index >= processAverages.length) return Container();
+                                                                                    
+                                                                                    String label = processAverages[index]['process'] ?? '';
+                                                                                    
+                                                   String truncateWithEllipsis(int cutoff, String myString) {
+                                                                                              return (myString.length <= cutoff) ? myString : '${myString.substring(0, cutoff)}...';
+                                                                                            }
+                                            label = truncateWithEllipsis(20, label); 
+                            String formatLabel(String label) {
+                  if (label.length <= 8) return label;
+                  
+                  // Check if it's a single long word
+                  bool isSingleWord = !label.contains(' ');
+                  if (isSingleWord && label.length > 12) {
+                    int midpoint = (label.length / 2).round();
+                    return '${label.substring(0, midpoint)}-\n${label.substring(midpoint)}';
+                  }
+                  
+                  // Normal behavior for multi-word or moderately long words
+                  int midpoint = (label.length / 2).round();
+                  bool shouldHyphenate = label[midpoint - 1] != ' ' && label[midpoint] != ' ';
+                  
+                  String firstHalf = label.substring(0, midpoint).trim();
+                  String secondHalf = label.substring(midpoint).trim();
+                  
+                  return shouldHyphenate
+                      ? '$firstHalf-\n$secondHalf'
+                      : '$firstHalf\n$secondHalf';
+                  }
+                  label = formatLabel(label);
+                              
+                  double fontSizeOnLength(int length){
+                                                           if (length > 10 && length < 15){
+                                                             return 12.5;
+                                                           } else if (length > 15 && length < 17){
+                                                             return 12.5;
+                                                           } else if (length >= 17){
+                                                             return 12;
+                                                           } else if (length > 25){
+                                                             return 11;
+                                                           } else {
+                                                             return 15;
+                                                           }
+                                                          }               
+                                           
+                                                                                    
+                                                                                      return Padding(
+                                                                                        padding: const EdgeInsets.only(top:3),
+                                                                                        child: Text(
+                                                                                     label,
+                                                                                     maxLines: 2,
+                                                                                     textAlign: TextAlign.center,
+                                                                                     overflow: TextOverflow.ellipsis,
+                                                                                     style: TextStyle(
+                                                                                       fontFamily: 'WorkSans',
+                                                                                       fontSize: fontSizeOnLength(label.length),
+                                                                                       color: const Color.fromARGB(255, 255, 255, 255),
+                                                                                     ),
+                                                                                        ),
+                                                                                      );
                                                                                     },
-                                                                                  )
-                                                                                 ),
-                                                                              topTitles: AxisTitles(
-                                                                                sideTitles: SideTitles(showTitles: false),
-                                                                              ),
-                                                                         bottomTitles: AxisTitles(
-                                                                           sideTitles: SideTitles(
-                                                                             showTitles: true,
-                                                                             reservedSize: 40,
-                                                                             getTitlesWidget: (value, meta) {
-                                                                                          int index = value.toInt();
-                                                                                          if (index < 0 || index >= processAverages.length) return Container();
-                                                                                        
-                                                                                        String label = processAverages[index]['process'] ?? '';
-                                                                                        
-                                                       String truncateWithEllipsis(int cutoff, String myString) {
-                                                                                                  return (myString.length <= cutoff) ? myString : '${myString.substring(0, cutoff)}...';
-                                                                                                }
-                                                label = truncateWithEllipsis(20, label); 
-                                String formatLabel(String label) {
-    if (label.length <= 8) return label;
-    
-    // Check if it's a single long word
-    bool isSingleWord = !label.contains(' ');
-    if (isSingleWord && label.length > 12) {
-      int midpoint = (label.length / 2).round();
-      return '${label.substring(0, midpoint)}-\n${label.substring(midpoint)}';
-    }
-    
-    // Normal behavior for multi-word or moderately long words
-    int midpoint = (label.length / 2).round();
-    bool shouldHyphenate = label[midpoint - 1] != ' ' && label[midpoint] != ' ';
-    
-    String firstHalf = label.substring(0, midpoint).trim();
-    String secondHalf = label.substring(midpoint).trim();
-    
-    return shouldHyphenate
-        ? '$firstHalf-\n$secondHalf'
-        : '$firstHalf\n$secondHalf';
-    }
-    label = formatLabel(label);
-                                  
-    double fontSizeOnLength(int length){
-                                                               if (length > 10 && length < 15){
-                                                                 return 12.5;
-                                                               } else if (length > 15 && length < 17){
-                                                                 return 12.5;
-                                                               } else if (length >= 17){
-                                                                 return 12;
-                                                               } else if (length > 25){
-                                                                 return 11;
-                                                               } else {
-                                                                 return 15;
-                                                               }
-                                                              }               
-                                               
-                                                                                        
-                                                                                          return Padding(
-                                                                                            padding: const EdgeInsets.only(top:3),
-                                                                                            child: Text(
-                                                                                         label,
-                                                                                         maxLines: 2,
-                                                                                         textAlign: TextAlign.center,
-                                                                                         overflow: TextOverflow.ellipsis,
-                                                                                         style: TextStyle(
-                                                                                           fontFamily: 'WorkSans',
-                                                                                           fontSize: fontSizeOnLength(label.length),
-                                                                                           color: const Color.fromARGB(255, 255, 255, 255),
-                                                                                         ),
-                                                                                            ),
-                                                                                          );
-                                                                                        },
-                                                                           )
-                                                                         ),
-                                                                               rightTitles: AxisTitles(
-                                                                                
-                                                                                 sideTitles: SideTitles(showTitles: false,
-                                                                               
-                                                                         
-                                                                                 ),
-                                                                                 
-                                                                               
-                                                                               ),),  
-                                                                         
-                                                                         ),
-                                                                         
-                                                                                
-                                                                          );
-                                                          }
-                                                        ),
-                                                      )
-                                                      ),
-                                                    ],
-                                                  );
-                                                   }),
-                                              ),
-                                            ),
-                                            
-                                          );
-                                        }
+                                                                       )
+                                                                     ),
+                                                                           rightTitles: AxisTitles(
+                                                                            
+                                                                             sideTitles: SideTitles(showTitles: false,
+                                                                           
+                                                                     
+                                                                             ),
+                                                                             
+                                                                           
+                                                                           ),),  
+                                                                     
+                                                                     ),
+                                                                     
+                                                                            
+                                                                      );
+                                                      }
+                                                    ),
+                                                  )
+                                                  ),
+                                                ],
+                                              );
+                                               }),
+                                          ),
+                                        ),
+                                        
                                       );
-                             }
-                           ),
-                 ],
-               ),
+                                    }
+                                  );
+                         }
+                       ),
+                               ],
+                             ),
+                        ],
+                      ),
+                        ],
+                      
+                      );
+                    }
+                  ),
                
-          ]
-         ),
+              
+                             
+                                
 
         
     
@@ -2537,7 +2692,31 @@ child:  Padding(padding: EdgeInsets.all(8),
                      SizedBox(height: MediaQuery.of(context).size.height * 0.02,),
                       Text('User', style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.bold,  fontSize: MediaQuery.of(context).size.width * 0.02, color: Colors.white),),
                     ],
-                  )
+                  ),
+                   Spacer(),
+                  Column(
+                    children: [
+                      SizedBox(height: 20,),
+                      DropdownButtonHideUnderline(child: DropdownButton
+                      
+                      ( value: which2, items: [
+                        
+                        DropdownMenuItem(
+                          value: 'Inbound',
+                          child:Text('Inbound', style: TextStyle(fontFamily: 'Inter',  fontSize: MediaQuery.of(context).size.width * 0.015,
+                           color: const Color.fromARGB(255, 0, 0, 0)),),),
+                             DropdownMenuItem(
+                              value: 'Outbound',
+                          child:Text('Outbound', style: TextStyle(fontFamily: 'Inter',  fontSize: MediaQuery.of(context).size.width * 0.015, 
+                          color: const Color.fromARGB(255, 0, 0, 0)),),)
+                      ], onChanged: (value){
+                        setState(() {
+                          which2 = value!;
+                        });
+                      })),
+                    ],
+                  ),
+                  SizedBox(width: 20,),
                       ],),
                     ),
                   ),
@@ -2548,7 +2727,8 @@ child:  Padding(padding: EdgeInsets.all(8),
                    StatefulBuilder(
                                     builder: (context, setLocalState) {
                                       return FutureBuilder(
-                                        future: frequency == 'Process' ? Supabase.instance.client.from('process').select('description') : frequency == 'Material' ? Supabase.instance.client.from('materials').select('name') : Supabase.instance.client.from('route').select('material_route').or('disabled.is.null,disabled.not.eq.true'),
+                                        future: which1 == 'Inbound' ? Supabase.instance.client.from('process').select('description') 
+                                        : frequency == 'Material' ? Supabase.instance.client.from('materials').select('name') : Supabase.instance.client.from('route').select('material_route').or('disabled.is.null,disabled.not.eq.true'),
                                         builder: (context,snapshot) {
                                           final data = snapshot.data ?? [];
                                           return Align(
@@ -2621,10 +2801,16 @@ child:  Padding(padding: EdgeInsets.all(8),
                                                           future: Future.wait([
                          () {
                            if (cat == 'Overview' || subcatTrue == false) {
-                             return Supabase.instance.client.from('detail').select();
+                             return which2 == 'Inbound' ? Supabase.instance.client.from('detail').select() : Supabase.instance.client.from('master_detail_view').select() ;
                            } else if (subcat != null && subcat != 'Select..') {
-                             return Supabase.instance.client
+                             return which2 == 'Inbound' ? Supabase.instance.client
                                  .from('detail')
+                                 .select()
+                                 .eq(
+                   'User'
+                            , subcat
+                                 ).not('endtime', 'is', null) : Supabase.instance.client
+                                 .from('master_detail_view')
                                  .select()
                                  .eq(
                    'User'
@@ -2636,6 +2822,7 @@ child:  Padding(padding: EdgeInsets.all(8),
                          }(),
                          Supabase.instance.client.from('user').select(),
                        ]),
+                                            
                                                           
                                                           builder: (context, snapshot) {
                        
@@ -2644,10 +2831,18 @@ child:  Padding(padding: EdgeInsets.all(8),
                                                             }
                                                             final data1 = snapshot.data?[0] ?? [];
                                                             final data2 = snapshot.data?[1] ?? [];
+                                                            
+                                                        
+                                  final user = Supabase.instance.client.auth.currentUser;
+                                  final email = user?.email;
+                                  final users = data2.where((entry) => entry['email'] == email).single;
+                                  final company = users['company'];
+                                 
                                                                                                                                                        if (data1.isEmpty || data2.isEmpty ){
                                                               return Text('');
-                                                            }    
-                       
+                                                            }   
+                                                             
+                       print('d1 $data1');
                        if (data1.isEmpty){
                        return SizedBox.shrink();
                        }
@@ -2666,10 +2861,12 @@ child:  Padding(padding: EdgeInsets.all(8),
                                       
                                                                           
                                                Map<String, int> processFrequency = {};
-                                      
+                                    
                                       
 for (var entry in data1) {
-  final username = entry['usernamed'];
+final username = which2 == 'Inbound'
+    ? entry['current_user'] ?? entry['user_unique']
+    : entry['usernamem'];
   if (username != null) {
     processFrequency[username] = (processFrequency[username] ?? 0) + 1;
   }
@@ -2686,19 +2883,21 @@ data2.sort((a, b) {
     return (b['id'] ?? 0).compareTo(a['id'] ?? 0); // fallback by ID
   }
 });
-                       
-                                   bool isThisWeek(DateTime day) { final now = DateTime.now();
+
+               print('processf2 $processFrequency'); 
+            
+                                   bool isThisWeek(DateTime day) { final now = DateTime.now().toUtc();
                        final sevenDaysAgo = now.subtract(Duration(days: 7));
                        return day.isAfter(sevenDaysAgo) && day.isBefore(now.add(Duration(days: 1)));
                        }
                        bool isThisMonth(DateTime day) {
-                       final now = DateTime.now();
+                       final now = DateTime.now().toUtc();
                        final thrityDaysAgo = now.subtract(Duration(days: 30));
                        
                         return day.isAfter(thrityDaysAgo) && day.isBefore(now.add(Duration(days: 1)));
                        }
                        bool isThisYear(DateTime day) {
-                       final now = DateTime.now();
+                       final now = DateTime.now().toUtc();
                        
                        final oneYearAgo = now.subtract(Duration(days: 365));
                        
@@ -2709,10 +2908,10 @@ data2.sort((a, b) {
                              
                                   
                                    final datar = data1.where((entry){
-                                       return weekly ? 
+                                       return (weekly ? 
                                         isThisWeek(DateTime.parse(entry['starttime'])) == true
                                         :  monthly ? isThisMonth(DateTime.parse(entry['starttime'])) == true : 
-                                        isThisYear(DateTime.parse(entry['starttime'])) == true;
+                                        isThisYear(DateTime.parse(entry['starttime'])) == true) && entry['company'] == company;
                                         
                        
                                       }).toList();
@@ -2768,7 +2967,8 @@ data2.sort((a, b) {
                                                                             final item = entry.value;
                                                         
                                                        final processName = item['username'] ?? '';
-                                                                                  final data4 = datar.where((entry) => entry['usernamed'] == processName);
+                                                                                                                                     
+                                                                                  final data4 = datar.where((entry) => (which2 == 'Inbound' ? entry['current_user'] ?? entry['user_unique'] : entry['usernamem']) == processName);
                                               print('d4 $data4');
                                                                             
                                       //                                                                     finalFilter.sort((a, b) {
@@ -2984,8 +3184,10 @@ data2.sort((a, b) {
                                                         child: FutureBuilder(
                                                           future: Future.wait([
                                                              cat =='Overview' || subcatTrue == false?
-                                                             Supabase.instance.client.from('detail').select().not('endtime', 'is', null)
-                                                         : Supabase.instance.client.from('detail').select().eq(cat == 'Route' ? 'route_name'  : cat== 'User' ?
+                                                           which2 == 'Inbound' ?  Supabase.instance.client.from('detail').select().not('endtime', 'is', null) : 
+                                                            Supabase.instance.client.from('master_detail_view').select().not('endtime', 'is', null)
+                                                         : which2 == 'Inbound' ? Supabase.instance.client.from('detail').select().eq(cat == 'Route' ? 'route_name'  : cat== 'User' ?
+                                                         'usernamed' : cat == 'Process' ? 'process' : 'originalneed', subcat).not('endtime', 'is', null) :  Supabase.instance.client.from('master_detail_view').select().eq(cat == 'Route' ? 'route_name'  : cat== 'User' ?
                                                          'usernamed' : cat == 'Process' ? 'process' : 'originalneed', subcat).not('endtime', 'is', null),
                                                          Supabase.instance.client.from('user').select(),
                                                           ]),
@@ -3011,7 +3213,11 @@ data2.sort((a, b) {
                                                             final data1 = snapshot.data?[0] ?? [];
                                                          
                                                             final data2 = snapshot.data?[1] ?? [];
-                                                  
+                                                    final user = Supabase.instance.client.auth.currentUser;
+                                  final email = user?.email;
+                                  final users = data2.where((entry) => entry['email'] == email).single;
+                                  final company = users['company'];
+                                 
                                                                        final barCount = data.length;
                                                       final chartWidth = barCount * barWidth;
                                                              
@@ -3027,18 +3233,18 @@ data2.sort((a, b) {
                                                           return (maxY / base).ceil() * base.toDouble();
                                                         }
                                                       
-                                                              bool isThisWeek(DateTime day) { final now = DateTime.now();
+                                                              bool isThisWeek(DateTime day) { final now = DateTime.now().toUtc();
     final sevenDaysAgo = now.subtract(Duration(days: 7));
     return day.isAfter(sevenDaysAgo) && day.isBefore(now.add(Duration(days: 1)));
     }
     bool isThisMonth(DateTime day) {
-    final now = DateTime.now();
+    final now = DateTime.now().toUtc();
     final thrityDaysAgo = now.subtract(Duration(days: 30));
     
      return day.isAfter(thrityDaysAgo) && day.isBefore(now.add(Duration(days: 1)));
     }
     bool isThisYear(DateTime day) {
-    final now = DateTime.now();
+    final now = DateTime.now().toUtc();
     
     final oneYearAgo = now.subtract(Duration(days: 365));
     
@@ -3049,10 +3255,10 @@ data2.sort((a, b) {
                          
                               
                                final datar = data1.where((entry){
-                                   return weekly ? 
+                                   return (weekly ? 
                                     isThisWeek(DateTime.parse(entry['starttime'])) == true
                                     :  monthly ? isThisMonth(DateTime.parse(entry['starttime'])) == true : 
-                                    isThisYear(DateTime.parse(entry['starttime'])) == true;
+                                    isThisYear(DateTime.parse(entry['starttime'])) == true) && entry['company'] == company;
                                     
     
                                   }).toList();
@@ -3066,12 +3272,14 @@ data2.sort((a, b) {
                                                   
                                                   for (final processRow in data2) {
                                                     final processName = processRow[ 'username'];
-                                                  
-                                                  
+                                        
                                                   
                                                     final matchingEntries = datar.where((entry) {
-                                                     
-                                                     return entry[ 'usernamed'] == processName &&
+                                                               
+                                                  final username = which2 == 'Inbound'
+    ? entry['current_user'] ?? entry['user_unique']
+    : entry['usernamem'];
+                                                     return username == processName &&
                                                       entry['starttime'] != null &&
                                                       entry['endtime'] != null;
                                                   }).toList();
@@ -3456,18 +3664,18 @@ data2.sort((a, b) {
                                         print('dataaa $data');
                                                            final List<Map<String, dynamic>> routeAverages = [];
                               
-                                                                    bool isThisWeek(DateTime day) { final now = DateTime.now();
+                                                                    bool isThisWeek(DateTime day) { final now = DateTime.now().toUtc();
                               final sevenDaysAgo = now.subtract(Duration(days: 7));
                               return day.isAfter(sevenDaysAgo) && day.isBefore(now.add(Duration(days: 1)));
                               }
                               bool isThisMonth(DateTime day) {
-                              final now = DateTime.now();
+                              final now = DateTime.now().toUtc();
                               final thrityDaysAgo = now.subtract(Duration(days: 30));
                               
                                return day.isAfter(thrityDaysAgo) && day.isBefore(now.add(Duration(days: 1)));
                               }
                               bool isThisYear(DateTime day) {
-                              final now = DateTime.now();
+                              final now = DateTime.now().toUtc();
                               
                               final oneYearAgo = now.subtract(Duration(days: 365));
                               

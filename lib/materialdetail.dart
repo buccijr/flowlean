@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:mbi2/routes.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:intl/intl.dart';
-import 'dart:async';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -11,15 +12,23 @@ void main() async {
     anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJtb3RhZXpxbGJpaWl3d2lhb21oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk2NDcxMDUsImV4cCI6MjA2NTIyMzEwNX0.wW_Ynh1N8C5HFFV_xl-K1i1DOLYULcStX1Y2QAX6d8s',
   );
 
-  runApp(MaterialApp(
-  debugShowCheckedModeBanner: false,
-  home: DetailsM(materialname: 'N/A')));
+  runApp(DetailsM());
 
 }
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp.router(
+      debugShowCheckedModeBanner: false,
+      routerConfig: appRouter,
+    );
+  }
+}
 class DetailsM extends StatefulWidget {
-  final String materialname;
-  const DetailsM({super.key, required this.materialname});
+  const DetailsM({super.key});
+
 
   @override
   State<DetailsM> createState() => _DetailsMState();
@@ -27,213 +36,217 @@ class DetailsM extends StatefulWidget {
 
 class _DetailsMState extends State<DetailsM> {
 
-@override
-void initState(){
-  
-  super.initState();
-Timer.periodic(Duration(minutes: 1), (timer){
-  setState(() {
-    
-  });
-});
 
-}
-
-
+bool hover = false;
+TextEditingController emailControl = TextEditingController();
+String errorText = '';
   @override
   Widget build (BuildContext context){
   return Scaffold(
   backgroundColor: Color(0xFFFAFAFA),
-  body: Column(
-children: [
-  SizedBox(height: 50),
-    MouseRegion(
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector (
-        onTap: (){
-          Navigator.pop(context);
-        },
-  child: Align(
-    alignment: Alignment.topLeft,
-    child: Row(children: [
-      SizedBox(width: 50),
-     Icon(Icons.keyboard_backspace),
-     SizedBox(width: 10),
-  Text('Back', style: TextStyle(fontSize: 20),)]),
-    ),
-      )),
-    Row(
+  body: Center(
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        SizedBox(width: 10),
-        SizedBox(
-            width: 1710,
-                  height: 750,
-          child: Column(children: [
-           SizedBox(height: 20),
-                    Row(
-          children: [
-            SizedBox(width: 40),
-            Text('Details', style: TextStyle(color: const Color.fromARGB(255, 23, 85, 161), fontWeight: FontWeight.bold, fontSize: 30)),
-          ],
-                    ),
-                    SizedBox(height: 80),
-          Container(
-            
-             decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                                  colors: [ const Color.fromARGB(255, 186, 224, 254), const Color.fromARGB(255, 234, 245, 255) ],
-                                begin: Alignment.centerLeft, end: Alignment.centerRight),
-                                 borderRadius: BorderRadius.only(topLeft: Radius.circular(16), topRight: Radius.circular(16))
-                          ),
-              height: 50,
-              width: double.infinity,
-              child: Row(children: [
-                SizedBox(width: 20),
-                  SizedBox(width: 100, child: Text('Id', style: TextStyle(fontSize: 15,  fontFamily: 'Inter', fontWeight: FontWeight.bold))),
-                  SizedBox(width: 20),
-                  SizedBox(width: 350, child: Text('Request Item', style: TextStyle(fontSize: 15,  fontFamily: 'Inter', fontWeight: FontWeight.bold))),
-                     SizedBox(width: 20),
-                  SizedBox(width: 250, child: Text('Process', style: TextStyle(fontSize: 15,  fontFamily: 'Inter', fontWeight: FontWeight.bold))),
-                     SizedBox(width: 20),
-                  SizedBox(width: 150, child: Text('Start time', style: TextStyle(fontSize: 15,  fontFamily: 'Inter', fontWeight: FontWeight.bold))),
-                     SizedBox(width: 20),
-                  SizedBox(width: 150, child: Text('End time', style: TextStyle(fontSize: 15,  fontFamily: 'Inter', fontWeight: FontWeight.bold))),
-                     SizedBox(width: 20),
-                  SizedBox(width: 79, child: Text('Status', style: TextStyle(fontSize: 15,  fontFamily: 'Inter', fontWeight: FontWeight.bold))),
-                     SizedBox(width: 100),
-                  SizedBox(width: 150, child: Text('Needed', style: TextStyle(fontSize: 15,  fontFamily: 'Inter', fontWeight: FontWeight.bold))),
-                    SizedBox(width: 20),
-                  SizedBox(width: 150, child: Text('Total Time (min)', style: TextStyle(fontSize: 15,  fontFamily: 'Inter', fontWeight: FontWeight.bold))),
-              ],)
-          ),
-          Expanded(
-          child: StreamBuilder<List<Map<String, dynamic>>>(
-                    stream: Supabase.instance.client
-            .from('masterdata')
-            .stream(primaryKey: ['id'])
-            .order('id'),
-                    builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-                    
-          final data = snapshot.data ?? [];
-          final filteredData = data
-              .where((entry) => entry['requestitem'] == widget.materialname)
-              .toList();
-                    
-          if (filteredData.isEmpty) {
-            return Center(child: Column(
-              children: [
-                SizedBox(height: 70),
-                Stack(
-                  children: [
-                   Image( image: AssetImage('images/search.png'
-                  ),
-                   width: 400,
-                    height: 400,
-                    fit: BoxFit.contain,),
-                  Positioned
-                  (
-                    left: 100,
-                    top: 300, child: Text('Nothing here yet...', style: TextStyle(color:  const Color.fromARGB(255, 0, 55, 100), fontSize: 25, 
-                    fontWeight: FontWeight.bold )))
-                  ])
-              ],
-            ));
-          }
-                    
-          return ListView.builder(
-            itemCount: filteredData.length,
-            itemBuilder: (context, index) {
-              final entry = filteredData[index];
-                    
-               final startTimeStr = DateTime.parse(entry['starttime']);
-            final startTime = DateFormat("MM-dd h:mm a").format(startTimeStr);
-            
-            
-            final endTime = (entry['finishedtime'] != null) ? DateFormat("MM-dd h:mm a").format(DateTime.parse(entry['finishedtime'])) : 'N/A';
-           
-                    
-                    
-                     
-                    
-              return Container(
-                decoration: BoxDecoration(
-                    color: (entry['closed'] == 1)
-                    ? Color.fromARGB(255, 172, 250, 175)
-                    : Colors.white,
-                    border: Border(bottom: BorderSide(width: 1, color: const Color.fromARGB(255, 118, 118, 118) ))
-                ),
-                
-                child: SizedBox(
-                  height: 55,
-                  child: Column(
-                    children: [
-                      SizedBox(height: 10),
-                      Row(
-                        children: [
-                         SizedBox(width: 20),
-                                        SizedBox(width: 100, child: Text(entry['id'].toString(), style: TextStyle(fontSize: 15,  fontFamily: 'Inter', ))),
-                                        SizedBox(width: 20),
-                                        SizedBox(width: 340, child: Text(entry['requestitem'], style: TextStyle(fontSize: 15,  fontFamily: 'Inter', ))),
-                                           SizedBox(width: 20),
-                                        SizedBox(width: 250, child: Text(entry['currentprocess'], style: TextStyle(fontSize: 15,  fontFamily: 'Inter', ))),
-                                           SizedBox(width: 20),
-                                        SizedBox(width: 150, child: Text(startTime, style: TextStyle(fontSize: 15,  fontFamily: 'Inter', ))),
-                                           SizedBox(width: 20),
-                                        SizedBox(width: 150, child: Text(endTime, style: TextStyle(fontSize: 15,  fontFamily: 'Inter', ))),
-                                           SizedBox(width: 20),
-                                        SizedBox(width: 79, child: Container(
-                                          width: 79,
-                                          height: 35,
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(12),
-                                          color: (entry['closed'] == 1) ? const Color.fromARGB(255, 184, 251, 186) : const Color.fromARGB(255, 255, 245, 207),
-                                          border: Border.all(width: 0.5, color: (entry['status'] == 1) 
-                                          ? const Color.fromARGB(255, 235, 255, 235)
-                                          : const Color.fromARGB(255, 255, 255, 227),
-                                          )
-                                          ),
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(7.0),
-                                            child: Row(
-                                              children: [
-                                                SizedBox(width: entry['closed'] == 1 ? 12 : 2),
-                                                Text((entry['closed'] == 1) 
-                                                ? 'Done'
-                                                : 'Pending'
-                                                , style: TextStyle(fontSize: 15,
-                                                fontFamily: 'Inter',
-                                                color: (entry['closed'] == 1)
-                                                ? const Color.fromARGB(255, 0, 130, 4)
-                                                :  const Color.fromARGB(255, 205, 170, 0),
-                                                )),
-                                              ],
-                                            ),
-                                          ))),
-                                           SizedBox(width: 100),
-                                        SizedBox(width: 150, child: Text(entry['needtime'], style: TextStyle(fontSize: 15))),
-                                           SizedBox(width: 20),
-                                           SizedBox(width: 150, child: Text(entry['totaltime'].toString(), style: TextStyle(fontSize: 15))),
-                                         
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              );
+        MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+            onTap: (){
+              context.go('/login');
             },
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                   SizedBox(width: 5,),
+                Icon(Icons.keyboard_backspace, size: 24, color: Colors.blue),
+                SizedBox(width: 15,),
+                Text('Back', style: TextStyle(fontFamily: 'WorkSans', fontSize: 24),),
+                SizedBox(width: 300,)
+              ],
+            ),
+          ),
+        ),
+        SizedBox(height: 20,),
+        Container(
+          width: 400,
+          height: 500,
+          decoration: BoxDecoration(
+            border: Border.all(width: 1.5, color: const Color.fromARGB(255, 114, 183, 239)),
+            borderRadius: BorderRadius.circular(10),
+            color: Colors.white,
+          ),
+          child: Column(
+         
+            children: [
+              SizedBox(height: 80,),
+              Container(
+                width: 70,
+                height: 70,
+        decoration: BoxDecoration(
+          color: const Color.fromARGB(255, 194, 227, 255),
+          shape: BoxShape.circle
+        ),
+        child: Center(child: Icon(Icons.lock, size: 40, color: const Color.fromARGB(255, 76, 171, 249)),),
+              ),
+              SizedBox(height: 20,),
+              Text(
+                'Forgot Password?', style: TextStyle(fontWeight: FontWeight.bold, fontFamily: 'WorkSans', fontSize: 24),
+              ),
+              SizedBox(height: 10,),
+                Text(
+                    "Enter the email and we'll \nsend instructions shortly", style: 
+                    TextStyle(color: Colors.grey, fontFamily: 'WorkSans', fontSize: 15),
+                             ),
+                              SizedBox(height: 40,),
+              //  Row(
+              //    children: [
+              //       SizedBox(width: 50),
+              //      Text(
+              //       'Email', style: TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Inter', fontSize: 17),
+              //                ),
+                           
+              //    ],
+              //  ),
+                SizedBox(height: 8,),
+              Container(width: 300, height: 40,
+              decoration: BoxDecoration(borderRadius: BorderRadius.circular(5), border: Border.all(width: 1, color: Colors.grey)),
+              child: TextField(
+                controller: emailControl,
+                onSubmitted: (value) async {
+                     try {
+          await Supabase.instance.client.auth
+              .resetPasswordForEmail(emailControl.text, redirectTo: 'https://app.flowleansolutions.com/reset-password');
+        
+          // Show success message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: const Color.fromARGB(255, 173, 218, 255),
+              content: Row(children: [
+                const SizedBox(width: 10),
+                const Icon(Icons.task_alt, color: Colors.white),
+                const SizedBox(width: 30),
+                const Text(
+                  'Check your inbox',
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+              ]),
+            ),
           );
-                    },
-          ),)
-          ]),
+        } catch (e) {
+          errorText = 'Error: $e';
+          setState(() {
+            
+          });
+          print(e);
+        }
+        //   } else {
+        //     errorText = 'Error: Email not registered';
+        //   }
+        // setState(() {
+          
+        // });
+                },
+                cursorColor: Colors.black,
+                decoration: InputDecoration(
+                  hintText: 'Email',
+                  hintStyle: TextStyle(fontFamily: 'Inter', fontSize: 16),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 15, vertical: 13),
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  disabledBorder: InputBorder.none,
+                ),
+              ),
+              ),
+              SizedBox(height: 20,),
+        MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+        onTap: () async {
+          //     final response = await Supabase.instance.client.from('user').select().eq('email', emailControl.text).maybeSingle();
+          //   print('email ${emailControl.text} and $response');
+          // if (response != null) {
+        try {
+          await Supabase.instance.client.auth
+              .resetPasswordForEmail(emailControl.text);
+        
+          // Show success message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: const Color.fromARGB(255, 173, 218, 255),
+              content: Row(children: [
+                const SizedBox(width: 10),
+                const Icon(Icons.task_alt, color: Colors.white),
+                const SizedBox(width: 30),
+                const Text(
+                  'Check your inbox',
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+              ]),
+            ),
+          );
+        } catch (e) {
+          errorText = 'Error: $e';
+          setState(() {
+            
+          });
+          print(e);
+        }
+        //   } else {
+        //     errorText = 'Error: Email not registered';
+        //   }
+        // setState(() {
+          
+        // });
+        },
+        child: StatefulBuilder(
+          builder: (context, setLocalState) {
+            return MouseRegion(
+              onEnter: (event) {
+                setLocalState(() {
+                  hover = true;
+                },);
+              },
+               onExit: (event) {
+                setLocalState(() {
+                  hover = false;
+                },);
+              },
+              child: Align(
+                alignment: Alignment.center,
+                child: AnimatedPadding(
+                  duration: Duration(milliseconds: 200),
+                  padding: const EdgeInsets.all(8.0),
+                  child: AnimatedContainer(
+                    duration: Duration(milliseconds: 200),
+                    width: hover ? 310 :300,
+                    height: hover ? 45 : 40,
+                    decoration: BoxDecoration(color: hover ? const Color.fromARGB(255, 75, 164, 237) : const Color.fromARGB(255, 156, 210, 255), borderRadius: BorderRadius.circular(5)),
+                    child: Center(child: Text('Reset password', style: TextStyle(fontFamily: 'Inter', color: Colors.white, fontSize: 17),),),
+                  ),
+                ),
+              ),
+            );
+          }
+        ),
+          ),
+        ) ,
+        SizedBox(height: 20,),
+        Text(errorText, style: TextStyle(fontFamily: 'Inter', color: Colors.red, fontSize: 15),)
+                 ],
+          ),
         ),
       ],
-    )
-],
+    ),
   )
   );
   }

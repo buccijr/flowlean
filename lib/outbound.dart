@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:mbi2/login.dart';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:async';
 import 'package:intl/intl.dart';
-import 'main.dart';
-import 'inbound.dart';
+
 import 'addbutton.dart';
 import 'package:go_router/go_router.dart';
-import 'details.dart';
+
 import 'routes.dart';
 
 import 'package:flutter_web_plugins/url_strategy.dart';
@@ -27,6 +26,8 @@ void main() async {
 }
 
 
+
+
 class Outbound extends StatefulWidget {
   const Outbound({super.key});
 
@@ -38,6 +39,8 @@ class _OutboundState extends State<Outbound> {
 
 List<Map<String, dynamic>> entries = [];
 List<StreamSubscription> pageStreams = [];
+
+
 
 int pageSize = 30;
 int currentPage = 0;
@@ -65,8 +68,13 @@ void initState() {
     setState(() {
       // updateTotalTimeOnce();
     });
-  });}
-  
+  });
+}
+
+String? allowedProcess;
+
+
+
 Future<void> fetchNextPage() async {
   if (isLoading || !hasMore) return;
 
@@ -79,7 +87,7 @@ Future<void> fetchNextPage() async {
       .from('masterdata')
       .select()
       .order('id', ascending: false)
-      .range(from, to);
+      .limit(200);
 
   if (response.isEmpty) {
     setState(() {
@@ -129,7 +137,7 @@ void subscribeToPageStream(List<int> ids) {
 }
 
 @override
-void dispose() {
+void disposee() {
   _scrollController.dispose();
 
   for (final sub in pageStreams) {
@@ -154,14 +162,58 @@ int? hoverIndex;
 bool  selected2 = false;
 bool selected3 = true;
 
-
+String? fetchedUsername;
 String? username;
 Future fetchUsername() async {
-          final user = Supabase.instance.client.auth.currentUser;
-          final email = user?.email;
-          final response = await Supabase.instance.client.from('user').select().eq('email', email!).maybeSingle();
-          username = response?['username'];
-          return response?['username'] as String?;
+
+
+  final user = Supabase.instance.client.auth.currentUser;
+
+  print('user $user');
+  
+
+
+  final email = user?.email;
+print('emil $email');
+  final response = await Supabase.instance.client
+      .from('user')
+      .select()
+      .eq('email', email ?? 'hi')
+      .maybeSingle();
+
+  fetchedUsername = response?['username'] ?? 'hi';
+print(' fetched $fetchedUsername');
+
+  if (fetchedUsername != null) {
+    final response3 = await Supabase.instance.client.from('user_machine').select().eq('user_mac', fetchedUsername ?? 'hi').maybeSingle();
+    print('response3 $response3');
+    if (response3 != null){
+      allowedProcess = response3['machine'];
+
+    } 
+  } else {
+    final response2 = await Supabase.instance.client
+        .from('process_users')
+        .select()
+        .eq('userpu', fetchedUsername ?? 'hi')
+        .or('disabled.is.null,disabled.not.eq.true');
+ print('response2 $response2');
+    if (response2 != null && response2.isNotEmpty) {
+      
+      allowedProcess = response2[0]['processpu'];
+    } else {
+      allowedProcess = ''; // or handle the missing data case
+    
+  
+
+    
+    }}
+ 
+    return {
+    'username': fetchedUsername,
+    'allowedProcess': allowedProcess,
+    
+  };
 }
 
 void updateTotalTimeOnce() async {
@@ -179,19 +231,94 @@ void updateTotalTimeOnce() async {
       if (entry['finishedtime'] != null && entry['closed'] == 1) {
         minutesElapsed = DateTime.parse(entry['finishedtime']).difference(createdAt).inMinutes;
       } else {
-        minutesElapsed = DateTime.now().difference(createdAt).inMinutes;
+        minutesElapsed = DateTime.now().toUtc().difference(createdAt).inMinutes;
       }
 setState(() {
   
 });
+
     }
   
 }
 
-  
+bool didntpayed = false;
+
+Future<void> didntPay () async{
+final user = Supabase.instance.client.auth.currentUser;
+    final email = user?.email;
+
+    final response = await Supabase.instance.client.from('user').select().eq('email', email ?? 'Hi').single();
+    final company = response['company'];
+    final response1 = await Supabase.instance.client.from('company').select().eq('companyname', company).single();
+    final enddate = response1['enddate'];
+    if (enddate != null){
+      if ((DateTime.parse(enddate)).difference(DateTime.now()).inDays <= 1){
+        didntpayed = true;
+      }
+    }
+}
 @override
 Widget build(BuildContext content){
-   
+    
+
+    if (Supabase.instance.client.auth.currentSession == null) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        body: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Center(
+            child: Image.asset(
+              'images/restrict.png',
+              width: 400,
+              height: 400,
+              fit: BoxFit.contain,
+            ),
+          ),
+        ),
+      );
+    }
+
+if (didntpayed == true){
+  return Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+            
+                children: [
+                  Container(
+                    width: MediaQuery.of(context).size.width *0.13188,
+                    height: MediaQuery.of(context).size.height * 0.27251,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                    color: const Color.fromARGB(255, 255, 193, 188),
+                    ),
+                    child: Icon(
+                    Icons.warning, color: Colors.red, size: MediaQuery.of(context).size.width * 0.06,
+                    ),
+                  ),
+                  SizedBox(height: 30,),
+                  Text('Membership Expired', style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.bold, fontSize: MediaQuery.of(context).size.height * 0.059242),),
+          SizedBox(height: 40,),
+          // Container(
+          //   width:  MediaQuery.of(context).size.width * 0.229358,
+          //   height:MediaQuery.of(context).size.height * 0.059242,
+          //   decoration: BoxDecoration(
+          //     color: Colors.red,
+          //     borderRadius: BorderRadius.circular(10)
+          //   ), child: Center(child: Text('Renew', style: TextStyle(fontFamily: 'Inter', color: Colors.white, fontSize: MediaQuery.of(context).size.height * 0.026066),),),
+          // )
+                ],
+              )
+            ),
+          ),
+        ),
+      );
+}
        final    finalFiltern =   entries.where((entry){
                 
            
@@ -338,7 +465,7 @@ backgroundColor: Color.fromARGB(255, 236, 244, 254),
                         });
                         },
                         child: Container(
-                          width: 165,
+                          width: 175,
                           height: 60,
                         decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(10),
@@ -354,6 +481,19 @@ backgroundColor: Color.fromARGB(255, 236, 244, 254),
                               Text('Inbound',  textAlign: TextAlign.center, style: TextStyle(
                                 color: const Color.fromARGB(255, 255, 255, 255),
                                 fontSize: 20, fontWeight: FontWeight.w500),),
+                                 SizedBox(width: 5),
+                                    StreamBuilder(stream: Supabase.instance.client.from('detail').stream(primaryKey: ['id']), builder:(context, snapshot) {
+                                    
+                                     final data = snapshot.data ?? [];
+
+                                     final filteredData = data.where((entry) => entry['endtime'] == null && entry['process'] == allowedProcess && ((entry['current_user'] == null && entry['user_unique'] == null) || 
+                                     ((entry['current_user'] == fetchedUsername|| entry['user_unique'] ==fetchedUsername) )));
+                                     return                               Flexible(
+                                       child: Text('(${filteredData.length})',  textAlign: TextAlign.center, style: TextStyle(
+                                                                       color:filteredData.isEmpty ?  const Color.fromARGB(255, 255, 255, 255) : const Color.fromARGB(255, 253, 242, 143),
+                                                                         fontSize: filteredData.length > 9 ? 13.5 : 16, fontWeight: FontWeight.w500),),
+                                     );
+                                   },),
                             ],
                           ),
                         )),
@@ -379,7 +519,7 @@ backgroundColor: Color.fromARGB(255, 236, 244, 254),
                         });
                         },
                         child: Container(
-                          width: 165,
+                          width: 175,
                           height: 60,
                         decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(10),
@@ -391,10 +531,20 @@ backgroundColor: Color.fromARGB(255, 236, 244, 254),
                             children: [
                                 SizedBox(width: 7),
                                  Icon(Icons.pageview_outlined, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
-                                 SizedBox(width: 5),
+                                 SizedBox(width: 3),
                               Text('Outbound',  textAlign: TextAlign.center, style: TextStyle(
                                 color: const Color.fromARGB(255, 255, 255, 255),
                                 fontSize: 20, fontWeight: FontWeight.w500),),
+                                 SizedBox(width:5),
+                                     StreamBuilder(stream: Supabase.instance.client.from('masterdata').stream(primaryKey: ['id']), builder:(context, snapshot) {
+                                     final data = snapshot.data ?? [];
+                                     final filteredData = data.where((entry) => entry['usernamem'] == fetchedUsername && entry['finishedtime'] == null);
+                                     return                               Flexible(
+                                       child: Text('(${filteredData.length})',  textAlign: TextAlign.center, style: TextStyle(
+                                                                       color: filteredData.isEmpty ?  const Color.fromARGB(255, 255, 255, 255) : const Color.fromARGB(255, 253, 242, 143),
+                                                                         fontSize: filteredData.length > 9 ? 13.5 : 16, fontWeight: FontWeight.w500),),
+                                     );
+                                   },)
                             ],
                           ),
                         )),
@@ -609,6 +759,7 @@ backgroundColor: Color.fromARGB(255, 236, 244, 254),
                     )
                     ]),
                 ),
+              
                  ],),
                       SizedBox(height: 25),
             Container(
@@ -621,7 +772,9 @@ backgroundColor: Color.fromARGB(255, 236, 244, 254),
                 height: 60,
                 width: double.infinity,
                 child: Row(children: [
-                
+                SizedBox(width: MediaQuery.of(context).size.width * 0.009),
+                    SizedBox(width:  MediaQuery.of(context).size.width * 0.08, child: Text('ID', style: TextStyle(fontSize: 15, fontFamily: 'Inter',
+                    fontWeight: FontWeight.bold)),),
                     SizedBox(width: MediaQuery.of(context).size.width * 0.009),
                     SizedBox(width:  MediaQuery.of(context).size.width * 0.207, child: Text('Requested', style: TextStyle(fontSize: 15, fontFamily: 'Inter',
                     fontWeight: FontWeight.bold))),
@@ -647,10 +800,22 @@ backgroundColor: Color.fromARGB(255, 236, 244, 254),
             child: FutureBuilder(
               future: fetchUsername(),
               builder: (context, snapshot) {
-                 
+                 if (!snapshot.hasData){
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                          width: 30,height: 30,
+                          child: CircularProgressIndicator(color: Colors.blue,)),
+                      ],
+                    ),
+                  );
+                 }
                 final usernamer = snapshot.data;
-                
-              final finalFilter = finalFiltern.where((entry) => entry['usernamem'] == usernamer).toList();
+                print('$usernamer usr');
+              final finalFilter = finalFiltern.where((entry) => entry['usernamem'] == (usernamer['username'] ?? '')).toList();
         return    isLoading && finalFilter.isEmpty ? Center(
               child: SizedBox(
                 width: 40, height: 50,
@@ -678,8 +843,7 @@ backgroundColor: Color.fromARGB(255, 236, 244, 254),
             :
             
          ListView.builder(
-          controller: _scrollController,
-              itemCount: finalFilter.length   + (hasMore ? 1 : 0),
+              itemCount: finalFilter.length ,
               itemBuilder: (context, index) {
                     if (index == finalFilter.length) {
         return SizedBox.shrink();
@@ -740,7 +904,8 @@ backgroundColor: Color.fromARGB(255, 236, 244, 254),
                                   SizedBox(height: 5),
                                   Row(
                                     children: [
-                                    
+                                    SizedBox(width: MediaQuery.of(context).size.width * 0.009),
+                                      SizedBox(width:  MediaQuery.of(context).size.width * 0.08, child: Text('${entry['id']}', style: TextStyle(fontSize: 16, fontFamily: 'Inter'))),
                                       SizedBox(width: MediaQuery.of(context).size.width * 0.009),
                                       SizedBox(width:  MediaQuery.of(context).size.width * 0.207, child: Text(entry['requestitem'] ?? '', style: TextStyle(fontSize: 16, fontFamily: 'Inter'))),
                                       SizedBox(width: MediaQuery.of(context).size.width * 0.009),

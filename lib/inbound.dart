@@ -48,6 +48,7 @@ List<StreamSubscription> pageStreams = [];
 
 int pageSize = 30;
 int currentPage = 0;
+Set hasID = {};
 bool isLoading = false;
 bool hasMore = true;
 
@@ -71,6 +72,7 @@ void initState() {
     setState(() {
   
     });
+    
   });}
   
 Future<void> fetchNextPage() async {
@@ -85,7 +87,7 @@ Future<void> fetchNextPage() async {
       .from('detail')
       .select()
       .order('id', ascending: false)
-      .range(from, to);
+      .limit(200);
 
   if (response.isEmpty) {
     setState(() {
@@ -873,54 +875,6 @@ fetchfromt2 = responsey!['machine'];
   fetchfromt2 = response3['from_route'];
 }
 
-print('entry $entry');
-print('🧾 Inserting detail with:');
-
-try {
-  final originalNeed = response3['material'];
-  print('originalneed: $originalNeed');
-} catch (e) {
-  print('❌ Error accessing response3["material"]: $e');
-}
-
-try {
-  final idreq = entry['idreq'];
-  print('idreq: $idreq');
-} catch (e) {
-  print('❌ Error accessing entry["idreq"]: $e');
-}
-
-try {
-  final nextprocess = response4.length == 1 ? response4[0]['process'] : 'Finished';
-  print('nextprocess: $nextprocess');
-} catch (e) {
-  print('❌ Error calculating nextprocess: $e');
-}
-
-try {
-  print('usernamed: $usernamem');
-} catch (e) {
-  print('❌ Error printing usernamem: $e');
-}
-
-try {
-  final process = response3['process'];
-  print('process: $process');
-} catch (e) {
-  print('❌ Error accessing response3["process"]: $e');
-}
-
-try {
-  print('company: $company');
-} catch (e) {
-  print('❌ Error printing company: $e');
-}
-
-try {
-  print('steps: ${entry['steps'] + 1}');
-} catch (e) {
-  print('❌ Error with entry["step"]: $e');
-}
 
   final response99 = await Supabase.instance.client.from('detail').select().eq('idreq', entry['idreq']).eq('route_name', entry['route_name'])
   .eq('steps', entry['steps']).eq('status', 0);
@@ -1213,6 +1167,8 @@ Future<Map<String, String?>> fetchUsername() async {
        }
 
          final response57 = await Supabase.instance.client.from('process').select().eq('description', response3[0]['processpu']).maybeSingle();
+         
+            response57 != null ?  response57['matmov'] == true ? forklifter = true : forklifter = false : forklifter = false;
               print('r57 $response57');
           final response10 = await Supabase.instance.client.from('process_users').select().eq('processpu', allowedProcess ?? '').or('disabled.is.null,disabled.not.eq.true');
 print('allow $allowedProcess');
@@ -1227,16 +1183,17 @@ print('allow $allowedProcess');
           if (response2 != null){
             final response56 = await Supabase.instance.client.from('process').select().eq('description', response2['machine']).maybeSingle();
             print('r56 $response56');
-            
-          if (response56 != null && response56['matmov'] == true) {
-  forklifter = true;
-  print('forklifter from response56');
-} else if (response57 != null && response57['matmov'] == true) {
-  forklifter = true;
-  print('forklifter from response57');
-}
+            response56 != null ?  response56['matmov'] == true ? forklifter = true : forklifter = false : forklifter = false;
+            print('r57 $response57');
+           
+//           if (response56 != null && response56['matmov'] == true) {
+//   forklifter = true;
+//   print('forklifter from response56');
+// } else if (response57 != null && response57['matmov'] == true) {
+//   forklifter = true;
+//   print('r5732 $response57');
+// }
           }
-     
             
        
          print('allo $allowedProcess');
@@ -1277,10 +1234,88 @@ print('allow $allowedProcess');
 // }
 
 
+bool didntpayed = false;
 
-  
+Future<void> didntPay () async{
+final user = Supabase.instance.client.auth.currentUser;
+    final email = user?.email;
+
+    final response = await Supabase.instance.client.from('user').select().eq('email', email ?? 'Hi').single();
+    final company = response['company'];
+    final response1 = await Supabase.instance.client.from('company').select().eq('companyname', company).single();
+    final enddate = response1['enddate'];
+    if (enddate != null){
+      if ((DateTime.parse(enddate)).difference(DateTime.now()).inDays <= 1){
+        didntpayed = true;
+      }
+    }
+}
+
+
+
 @override
 Widget build(BuildContext content){
+    
+
+    if (Supabase.instance.client.auth.currentSession == null) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        body: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Center(
+            child: Image.asset(
+              'images/restrict.png',
+              width: 400,
+              height: 400,
+              fit: BoxFit.contain,
+            ),
+          ),
+        ),
+      );
+    }
+
+if (didntpayed == true){
+  return Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+            
+                children: [
+                  Container(
+                    width: MediaQuery.of(context).size.width *0.13188,
+                    height: MediaQuery.of(context).size.height * 0.27251,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                    color: const Color.fromARGB(255, 255, 193, 188),
+                    ),
+                    child: Icon(
+                    Icons.warning, color: Colors.red, size: MediaQuery.of(context).size.width * 0.06,
+                    ),
+                  ),
+                  SizedBox(height: 30,),
+                  Text('Membership Expired', style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.bold, fontSize: MediaQuery.of(context).size.height * 0.059242),),
+          SizedBox(height: 40,),
+          // Container(
+          //   width:  MediaQuery.of(context).size.width * 0.229358,
+          //   height:MediaQuery.of(context).size.height * 0.059242,
+          //   decoration: BoxDecoration(
+          //     color: Colors.red,
+          //     borderRadius: BorderRadius.circular(10)
+          //   ), child: Center(child: Text('Renew', style: TextStyle(fontFamily: 'Inter', color: Colors.white, fontSize: MediaQuery.of(context).size.height * 0.026066),),),
+          // )
+                ],
+              )
+            ),
+          ),
+        ),
+      );
+}
+
                 final finalFiltern = 
               entries.where((entry){
                 // if (entry['usernamed'] == username){
@@ -1359,688 +1394,729 @@ return Scaffold(
   
   floatingActionButton:  focusmode ? SizedBox.shrink() : AddButton(),
 backgroundColor: Color.fromARGB(255, 236, 244, 254),
-  body: Expanded(
-    child: SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(children: [
-       
-       focusmode ? SizedBox.shrink() :
-       Container(
-          height: double.infinity,
-          width: 200,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.only(
-           bottomLeft: Radius.circular(0,),
-           bottomRight: Radius.circular(6),
-          topRight: Radius.circular(6),
-          topLeft: Radius.circular(0)
-            ),
-           color: const Color.fromARGB(255, 0, 74, 123),
+  body: SingleChildScrollView(
+    scrollDirection: Axis.horizontal,
+    child: Row(children: [
+     
+     focusmode ? SizedBox.shrink() :
+     Container(
+        height: double.infinity,
+        width: 200,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.only(
+         bottomLeft: Radius.circular(0,),
+         bottomRight: Radius.circular(6),
+        topRight: Radius.circular(6),
+        topLeft: Radius.circular(0)
           ),
-        
-          child: Column(
-            children: [
-               SizedBox(height:MediaQuery.of(context).size.height * 0.15,),
-             Align(
-              alignment: Alignment.centerLeft,
-               child: Row(
-                 children: [
-                  SizedBox(width: 10), 
-                   MouseRegion(
-                    cursor: SystemMouseCursors.click,
-                     child: GestureDetector(
-                         onTap: (){
-                          setState(() {
-      context.go('/dashboard');
-                              
-                            selected1 = true;
-                            selected2 = false;
-                            selected3 = false;
-                          });
-                          },
-                          child: Container(
-                            width: 165,
-                            height: 60,
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              color: selected1 ?  const Color.fromARGB(255, 0, 55, 100) : null,
-                            ),
+         color: const Color.fromARGB(255, 0, 74, 123),
+        ),
+      
+        child: Column(
+          children: [
+             SizedBox(height:MediaQuery.of(context).size.height * 0.15,),
+           Align(
+            alignment: Alignment.centerLeft,
+             child: Row(
+               children: [
+                SizedBox(width: 10), 
+                 MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                   child: GestureDetector(
+                       onTap: (){
+                        setState(() {
+    context.go('/dashboard');
+                            
+                          selected1 = true;
+                          selected2 = false;
+                          selected3 = false;
+                        });
+                        },
+                        child: Container(
+                          width: 165,
+                          height: 60,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            color: selected1 ?  const Color.fromARGB(255, 0, 55, 100) : null,
+                          ),
+                        child: Row(
+                          children: [
+                              SizedBox(width: 7),
+                               Icon(Icons.home, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
+                               SizedBox(width: 5),
+                            Text('Dashboard',  textAlign: TextAlign.center, style: TextStyle(
+                              color: selected1 ? const Color.fromARGB(255, 255, 255, 255) : const Color.fromARGB(255, 255, 255, 255),
+                              fontSize: 20, fontWeight: FontWeight.w500),),
+                          ],
+                        )),
+                                 ),
+                 ),
+               ],
+             ),
+           ),
+           SizedBox(height:MediaQuery.of(context).size.height * 0.018,),
+          Align(
+            alignment: Alignment.centerLeft,
+             child: Row(
+               children: [
+                SizedBox(width: 10), 
+                 MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                   child: GestureDetector(
+                       onTap: (){
+                        setState(() {
+                          selected1 = false;
+                          selected2 = true;
+                          selected3 = false;
+                        });
+                        },
+                        child: Container(
+                          width: 175,
+                          height: 60,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            color: selected2 ?  const Color.fromARGB(255, 0, 55, 100) : null,
+                          ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
                           child: Row(
                             children: [
                                 SizedBox(width: 7),
-                                 Icon(Icons.home, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
+                                 Icon(Icons.pageview_outlined, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
                                  SizedBox(width: 5),
-                              Text('Dashboard',  textAlign: TextAlign.center, style: TextStyle(
-                                color: selected1 ? const Color.fromARGB(255, 255, 255, 255) : const Color.fromARGB(255, 255, 255, 255),
+                              Text('Inbound',  textAlign: TextAlign.center, style: TextStyle(
+                                color: const Color.fromARGB(255, 255, 255, 255),
                                 fontSize: 20, fontWeight: FontWeight.w500),),
+                                 SizedBox(width: 5),
+                               StreamBuilder(stream: Supabase.instance.client.from('detail').stream(primaryKey: ['id']), builder:(context, snapshot) {
+                                     final data = snapshot.data ?? [];
+                                    
+                                     final filteredData = data.where((entry) => entry['endtime'] == null && entry['process'] == allowedProcess && ((entry['current_user'] == null && entry['user_unique'] == null) || ((entry['current_user'] == username|| entry['user_unique'] == username) )));
+                                     return                               Flexible(
+                                       child: Text('(${filteredData.length})',  textAlign: TextAlign.center, style: TextStyle(
+                                                                       color:filteredData.isEmpty ?  const Color.fromARGB(255, 255, 255, 255) : const Color.fromARGB(255, 253, 242, 143),
+                                                                         fontSize: filteredData.length > 9 ? 13.5 : 16, fontWeight: FontWeight.w500),),
+                                     );
+                                   },)
                             ],
-                          )),
-                                   ),
-                   ),
-                 ],
-               ),
+                          ),
+                        )),
+                                 ),
+                 ),
+               ],
              ),
-             SizedBox(height:MediaQuery.of(context).size.height * 0.018,),
-            Align(
-              alignment: Alignment.centerLeft,
-               child: Row(
-                 children: [
-                  SizedBox(width: 10), 
-                   MouseRegion(
-                    cursor: SystemMouseCursors.click,
-                     child: GestureDetector(
-                         onTap: (){
-                          setState(() {
-                            selected1 = false;
-                            selected2 = true;
-                            selected3 = false;
-                          });
-                          },
-                          child: Container(
-                            width: 165,
-                            height: 60,
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              color: selected2 ?  const Color.fromARGB(255, 0, 55, 100) : null,
-                            ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Row(
-                              children: [
-                                  SizedBox(width: 7),
-                                   Icon(Icons.pageview_outlined, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
-                                   SizedBox(width: 5),
-                                Text('Inbound',  textAlign: TextAlign.center, style: TextStyle(
-                                  color: const Color.fromARGB(255, 255, 255, 255),
-                                  fontSize: 20, fontWeight: FontWeight.w500),),
-                              ],
-                            ),
-                          )),
-                                   ),
-                   ),
-                 ],
-               ),
+           ),
+            SizedBox(height:MediaQuery.of(context).size.height * 0.018,),
+             Align(
+            alignment: Alignment.centerLeft,
+             child: Row(
+               children: [
+                SizedBox(width: 10), 
+                 MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                   child: GestureDetector(
+                       onTap: (){
+                          
+                        setState(() {
+                         context.go('/outbound');
+                          selected1 = false;
+                          selected2 = false;
+                          selected3 = true;
+                        });
+                        },
+                        child:  Container(
+                          width: 175,
+                          height: 60,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            color: selected3 ?  const Color.fromARGB(255, 0, 55, 100) : null,
+                          ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Row(
+                            children: [
+                                SizedBox(width: 7),
+                                 Icon(Icons.pageview_outlined, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
+                                 SizedBox(width: 3),
+                              Text('Outbound',  textAlign: TextAlign.center, style: TextStyle(
+                                color: const Color.fromARGB(255, 255, 255, 255),
+                                fontSize: 20, fontWeight: FontWeight.w500),),
+                                 SizedBox(width: 5),
+                                       StreamBuilder(stream: Supabase.instance.client.from('masterdata').stream(primaryKey: ['id']), builder:(context, snapshot) {
+                                     final data = snapshot.data ?? [];
+                                     final filteredData = data.where((entry) => entry['usernamem'] == username && entry['finishedtime'] == null);
+                                     return                               Flexible(
+                                       child: Text('(${filteredData.length})',  textAlign: TextAlign.center, style: TextStyle(
+                                                                       color: filteredData.isEmpty ?  const Color.fromARGB(255, 255, 255, 255) : const Color.fromARGB(255, 253, 242, 143),
+                                                                         fontSize: filteredData.length > 9 ? 13.5 : 16, fontWeight: FontWeight.w500),),
+                                     );
+                                   },)
+                                 
+                            ],
+                          ),
+                        )),
+                                 ),
+                 ),
+               ],
              ),
-              SizedBox(height:MediaQuery.of(context).size.height * 0.018,),
-               Align(
-              alignment: Alignment.centerLeft,
-               child: Row(
-                 children: [
-                  SizedBox(width: 10), 
-                   MouseRegion(
-                    cursor: SystemMouseCursors.click,
-                     child: GestureDetector(
-                         onTap: (){
-                            
-                          setState(() {
-                           context.go('/outbound');
-                            selected1 = false;
-                            selected2 = false;
-                            selected3 = true;
-                          });
-                          },
-                          child: Container(
-                            width: 165,
-                            height: 60,
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              color: selected3 ?  const Color.fromARGB(255, 0, 55, 100) : null,
-                            ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Row(
-                              children: [
-                                  SizedBox(width: 7),
-                                   Icon(Icons.pageview_outlined, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
-                                   SizedBox(width: 5),
-                                Text('Outbound',  textAlign: TextAlign.center, style: TextStyle(
-                                  color: const Color.fromARGB(255, 255, 255, 255),
-                                  fontSize: 20, fontWeight: FontWeight.w500),),
-                              ],
-                            ),
-                          )),
-                                   ),
-                   ),
-                 ],
-               ),
-             ),
-                           Spacer(),
-                         MouseRegion(
-                                    cursor: SystemMouseCursors.click,
-                                    child: GestureDetector(
-                                      onTap: (){
-                                       Supabase.instance.client.auth.signOut();
-                                      context.go('/login');
-                                      },
-                                      child: Column(
-                                        children: [
-                                          Row(
-                                            children: [
-                                              SizedBox(width: 40),
-                                              Column(
-                                                children: [
-                                                  Text('Logout',  textAlign: TextAlign.center, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, 
-                                                  color:  const Color.fromARGB(255, 177, 220, 255),),),
-                                                ],
-                                              ),
-                                               SizedBox(width: 10),
-                                                                       Icon(Icons.logout, color:  const Color.fromARGB(255, 177, 220, 255),)
-                                            ],
-                                          ),
-                                           SizedBox(height: 20,),
-                                        ],
-                                      ),
+           ),
+                         Spacer(),
+                       MouseRegion(
+                                  cursor: SystemMouseCursors.click,
+                                  child: GestureDetector(
+                                    onTap: (){
+                                     Supabase.instance.client.auth.signOut();
+                                    context.go('/login');
+                                    },
+                                    child: Column(
+                                      children: [
+                                        Row(
+                                          children: [
+                                            SizedBox(width: 40),
+                                            Column(
+                                              children: [
+                                                Text('Logout',  textAlign: TextAlign.center, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, 
+                                                color:  const Color.fromARGB(255, 177, 220, 255),),),
+                                              ],
+                                            ),
+                                             SizedBox(width: 10),
+                                                                     Icon(Icons.logout, color:  const Color.fromARGB(255, 177, 220, 255),)
+                                          ],
+                                        ),
+                                         SizedBox(height: 20,),
+                                      ],
                                     ),
                                   ),
-                                 
-            ],
-          ),
-        ),
-        Row(
-          children: [
-            SizedBox(width: 10),
-            SizedBox(
-              width: focusmode ?  MediaQuery.of(context).size.width : MediaQuery.of(context).size.width * 0.87 ,
-                  height: MediaQuery.of(context).size.height * 0.93,
-              child: Column(children: [
-               SizedBox(height: 20),
-                        
-                        Row(
-              children: [
-                SizedBox(width: 30),
-                focusmode == false ?
-                Text('Inbound Data', style: TextStyle(color: const Color.fromARGB(255, 23, 85, 161), fontWeight: FontWeight.bold, fontSize: 30
-                , fontFamily: 'Inter')) : 
-                TextButton(onPressed: (){
-                  setState(() {
-                    focusmode = false;
-                  });
-                }, child: Text('Exit', style: TextStyle(fontFamily: 'Inter', color: Colors.black, fontSize: 18),)),
-              ],
-                        ),
-                        focusmode ? SizedBox(height: 10,) :
-                         SizedBox(height: 30),
-                      
-                      focusmode ? SizedBox.shrink() :
-                      Row(children: [
-                  SizedBox(width: 17),
-                  Material(
-                    elevation: 5,
-                    borderRadius: BorderRadius.circular(5),
-                    child: MenuAnchor(
-                      controller: menuController,
-                      style: MenuStyle(
-                        backgroundColor: WidgetStateProperty.all( const Color.fromARGB(255, 255, 255, 255),),
-                      ),
-                      builder: (BuildContext context, MenuController controller, Widget? child) {
-                      return MouseRegion(
-                        cursor: SystemMouseCursors.click,
-                        child: GestureDetector(
-                        onTap: (){
-                          if (menuController.isOpen){
-                            menuController.close();
-                          } else {
-                            menuController.open();
-                          }
-                        },
-                        child: Container(
-                          width: 120,
-                          height: 45,
-                          decoration: BoxDecoration(
-                               borderRadius: BorderRadius.circular(5),
-                            color: const Color.fromARGB(255, 255, 255, 255),
-                            border: Border.all(width: 1, color:  const Color.fromARGB(255, 23, 85, 161))
-                          ),
-                          child: Row(children: [
-                            SizedBox(width: 6),
-                            Text(menuselected == 'All' ? 'All' : menuselected == 'Finished' ? 'Finished' : menuselected == 'Unfinished' ? 'Unfinished' : 'Status', style:
-                             TextStyle(fontFamily: 'WorkSans', fontSize: 15)),
-                            Spacer(),
-                            Icon(Icons.tune),
-                            SizedBox(width: 5,)
-                          ],),
-                        ),
-                        ),
-                      );
-                      },
-                      menuChildren: [
-                      MenuItemButton(
-                        onPressed: () {
-                          filteredData = 1;
-                          menuselected = 'All';
-                          setState(() {
-                            
-                          });
-                        },
-                        child: Text('All')
-                      ),
-                       MenuItemButton(
-                        onPressed: () {
-                          filteredData =2;
-                           menuselected = 'Finished';
-                          setState(() {
-                            
-                          });
-                        },
-                        child: Text('Finished')
-                      ),
-                       MenuItemButton(
-                        onPressed: () {
-                          filteredData = 3;
-                           menuselected = 'Unfinished';
-                          setState(() {
-                            
-                          });
-                        },
-                        child: Text('Unfinished')
-                      )
-                      ]),
-                  ),
-                  SizedBox(width: 20),
-                   Material(
-                    elevation: 5,
-                    borderRadius: BorderRadius.circular(5),
-                    child: MenuAnchor(
-                      controller: menuController2,
-                      style: MenuStyle(
-                        backgroundColor: WidgetStateProperty.all( const Color.fromARGB(255, 255, 255, 255),),
-                      ),
-                      builder: (BuildContext context, MenuController controller, Widget? child) {
-                      return MouseRegion(
-                        cursor: SystemMouseCursors.click,
-                        child: GestureDetector(
-                        onTap: (){
-                          if (menuController.isOpen){
-                            menuController2.close();
-                          } else {
-                            menuController2.open();
-                          }
-                        },
-                        child: Container(
-                          width: 120,
-                          height: 45,
-                          decoration: BoxDecoration(
-                               borderRadius: BorderRadius.circular(5),
-                            color: const Color.fromARGB(255, 255, 255, 255),
-                            border: Border.all(width: 1, color:  const Color.fromARGB(255, 23, 85, 161))
-                          ),
-                          child: Row(children: [
-                            SizedBox(width: 6),
-                            Text(menudate == 'All' ? 'All' : menudate == 'Day' ? 'Day' : menudate == '7 days' 
-                            ? '7 days' : menudate == '30 days' ? '30 days' :
-                             'Date', style: TextStyle(fontFamily: 'WorkSans', fontSize: 15)),
-                            Spacer(),
-                            Icon(Icons.calendar_month),
-                            SizedBox(width: 5,),
-                          ],),
-                        ),
-                        ),
-                      );
-                      },
-                      menuChildren: [
-                      MenuItemButton(
-                        onPressed: () {
-                          filteredTime = 1;
-                          menudate = 'All';
-                          setState(() {
-                            
-                          });
-                        },
-                        child: Text('All')
-                      ),
-                       MenuItemButton(
-                        onPressed: () {
-                          filteredTime  =2;
-                          menudate = 'Day';
-                          setState(() {
-                            
-                          });
-                        },
-                        child: Text('Past day')
-                      ),
-                       MenuItemButton(
-                        onPressed: () {
-                          filteredTime = 3;
-                          menudate = '7 days';
-                          setState(() {
-                            
-                          });
-                        },
-                        child: Text('Past 7 days')
-                      ),
-                       MenuItemButton(
-                        onPressed: () {
-                          filteredTime = 4;
-                          menudate = '30 days';
-                          setState(() {
-                            
-                          });
-                        },
-                        child: Text('Past 30 days')
-                      )
-                      ]),
-                  ),
-                  SizedBox(width: 20,),
-                  Tooltip(
-                    message: 'Focus Mode',
-                  decoration: BoxDecoration(
-      color: Colors.transparent, 
-    ),
-                    textStyle: TextStyle(fontFamily: 'Inter'),
-                    child: IconButton(
-                     
-                      onPressed: (){
-                        setState(() {
-                          focusmode = true;
-                        });
-                      }, icon: Icon(Icons.visibility, color: focusmode ? Colors.blue : Colors.grey,)),
-                  )
-                   ],),
-                  SizedBox(height: 25),
-    
-              Container(
-                decoration: BoxDecoration(
-              gradient: LinearGradient(
-                          colors: [ const Color.fromARGB(255, 186, 224, 254), const Color.fromARGB(255, 234, 245, 255) ],
-                        begin: Alignment.centerLeft, end: Alignment.centerRight),
-                         borderRadius: BorderRadius.only(topLeft: Radius.circular(16), topRight: Radius.circular(16))
-                  ),
-                
-                  height: 60,
-                  width:  focusmode ? MediaQuery.of(context).size.width : double.infinity,
-                  child: FutureBuilder(
-                    future: fetchUsername(),
-                    builder: (context, snapshot) {
-                      
-                      return Row(children: [
-                        SizedBox(width: MediaQuery.of(context).size.width * 0.009),
-                      
-                          SizedBox(width:  focusmode ? MediaQuery.of(context).size.width *  0.3 : MediaQuery.of(context).size.width *  0.15, child: Text('Requested Item', style: TextStyle(fontSize: 15, fontFamily: 'Inter', fontWeight: FontWeight.bold))),
-                             SizedBox(width: MediaQuery.of(context).size.width * 0.009),
-                          SizedBox(width: focusmode ? MediaQuery.of(context).size.width *  0.15 : MediaQuery.of(context).size.width * 0.088, child: Text('Needed', style: TextStyle(fontSize: 15, fontFamily: 'Inter',
-                          fontWeight: FontWeight.bold))),
-                              SizedBox(width: MediaQuery.of(context).size.width * 0.009),
-                              focusmode ? SizedBox.shrink() :
-                          SizedBox(width: MediaQuery.of(context).size.width * 0.088, child: Text('Request Time', style: TextStyle(fontSize: 15, fontFamily: 'Inter',
-                          fontWeight: FontWeight.bold))),
-                          
-                             SizedBox(width: MediaQuery.of(context).size.width * 0.009),
-                              focusmode ? SizedBox.shrink() :
-                              SizedBox(width: MediaQuery.of(context).size.width * 0.088, child: Text('Finished Time', style: TextStyle(fontSize: 15, fontFamily: 'Inter',
-                              fontWeight: FontWeight.bold))),
-                                SizedBox(width: MediaQuery.of(context).size.width * 0.009),
-                          SizedBox(width: MediaQuery.of(context).size.width * 0.088, child: Text('Total Time', style: TextStyle(fontSize: 15, fontFamily: 'Inter',
-                          fontWeight: FontWeight.bold))),
-                             SizedBox(width: MediaQuery.of(context).size.width * 0.009),
-                              if (forklifter)
-                              SizedBox(width: focusmode ? MediaQuery.of(context).size.width *  0.15 : MediaQuery.of(context).size.width * 0.088, child: Text('From', style: TextStyle(fontSize: 15, fontFamily: 'Inter',
-                              fontWeight: FontWeight.bold))),
-                                 SizedBox(width: MediaQuery.of(context).size.width * 0.009),
-                                    if (forklifter)
-                              SizedBox(width: focusmode ? MediaQuery.of(context).size.width *  0.013 : MediaQuery.of(context).size.width * 0.088, child: Text('To', style: TextStyle(fontSize: 15, fontFamily: 'Inter',
-                              fontWeight: FontWeight.bold))),
-                          SizedBox(width: MediaQuery.of(context).size.width * 0.05),
-                            
-                      ],);
-                    }
-                  )
-              ),
-              Expanded(
-              child: FutureBuilder(
-        future: fetchUsername(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting && (snapshot.data == null || snapshot.data!.isEmpty)) {
-      return Center(child: CircularProgressIndicator(color: Colors.blue));
-      }
-        
-          final username = snapshot.data!['username'];
-      final allowedProcess = snapshot.data!['allowedProcess'];
-      
-      final finalFilter = finalFiltern.where((entry) =>  entry['process'] == allowedProcess).toList();
-        
-                  
-                          
-                  return    isLoading && finalFilter.isEmpty ? Center(
-                child: SizedBox(
-                  width: 40, height: 50,
-                  child: CircularProgressIndicator(color: Colors.blue)),
-              ) :
-              finalFilter.isEmpty && !isLoading ? 
-               Center(child: Column(
-                  children: [
-                    SizedBox(height: 70),
-                    Stack(
-                      children: [
-                       Image( image: AssetImage('images/search.png'
-                      ),
-                       width: 400,
-                        height: 400,
-                        fit: BoxFit.contain,),
-                      Positioned
-                      (
-                        left: 100,
-                        top: 300, child: Text('Nothing here yet...', style: TextStyle(color:  const Color.fromARGB(255, 0, 55, 100), fontSize: 25, 
-                        fontWeight: FontWeight.bold )))
-                      ])
-                  ],
-                ))
-              : ListView.builder(
-                            controller: _scrollController,
-                itemCount: finalFilter.length   + (hasMore ? 1 : 0),
-                itemBuilder: (context, index) {
-                      if (index == finalFilter.length) {
-          return SizedBox.shrink();
-        }
-                      final entry = finalFilter[index];
-                            
-                      final startTime = DateFormat("MM-dd h:mm a")
-                          .format(DateTime.parse(entry['starttime']).toLocal());
-                      final endTime = (entry['endtime'] != null)
-                          ? DateFormat("MM-dd h:mm a")
-                              .format(DateTime.parse(entry['endtime']).toLocal())
-                          : 'N/A';
-                            
-                      int minutesElapsed;
-                      final createdAt = DateTime.parse(entry['starttime']);
-                      if (entry['endtime'] != null && entry['closed'] == 1) {
-                        minutesElapsed = DateTime.parse(entry['endtime'])
-                            .difference(createdAt)
-                            .inMinutes;
-                      } else {
-                        minutesElapsed = DateTime.now().difference(createdAt).inMinutes;
-                      }
-                            
-                    
-                            
-                             final id = entry['id'];
-                                           
-                          void fetchStatus() async {               
-                                           
-                            final response2 = await Supabase.instance.client.from('detail').select().eq('idreq', id);
-                            
-                            final filteredData = response2.where((row) => row['process'] == entry['currentprocess'] && row['starttime']
-                            == entry['starttime']);
-                            
-                            for (final match in filteredData){
-                  final response = await Supabase.instance.client.from('detail').select().eq('id', match['id']).maybeSingle();
-                            status = response?['status'];
-                            }
-                    }
-                            
-                            
-                            
-                            fetchStatus();
-                            
-                      return StatefulBuilder(
-                       builder: (context, setLocalState) {
-                              void updateGreenStatus() async {
-                    final int? status = await fetchStatusForEntry(entry);
-                    if (showGreenMap[entry['id']] != (status == 1)) {
-                      setLocalState(() {
-                        showGreenMap[entry['id']] = (status == 1);
-                      });
-                    }}
-                     WidgetsBinding.instance.addPostFrameCallback((_) async {
-                    final cacheKey = '${entry['id']}_${entry['currentprocess']}';
-                    if (!showGreenMap.containsKey(entry['id']) && !_statusCache.containsKey(cacheKey)) {
-                      final status = await fetchStatusForEntry(entry);
-                      setLocalState(() {
-                        showGreenMap[entry['id']] = (status == 1);
-                      });
-                    }
-                  });
-                   final fetchfromt = snapshot.data![0]?[entry['id']] ?? 'N/A';
-                         
-                             return Container(
-                              height: 60,
-                              
-                              decoration: BoxDecoration(
-                                        color:  entry['status'] == 1
-                                  ?  Color.fromARGB(255, 172, 250, 175) :
-                                  alone == 'false' ? 
-                                        entry['current_user'] != null ? entry['current_user'] == username 
-                                        ? const Color.fromARGB(255, 255, 250, 205) : const Color.fromARGB(255, 197, 197, 197) :  Colors.white : Colors.white,
-                                   border: const Border(
-                                        bottom: BorderSide(width: 1, color: Color.fromARGB(255, 118, 118, 118)),
-                              ),
-                              ),
-                              child: MouseRegion(
-                                onHover: (event){
-                                    setLocalState(() {
-                                       hoverIndex = entry['id'];
-                                    });
-                                  },
-                                  onExit: (event) {
-                                    setLocalState(() {
-                                      hoverIndex = null;
-                                    });
-                                   },
-                                child: Row(
-                                  children: [
-                                        SizedBox(width: MediaQuery.of(context).size.width * 0.009),
-                                    
-                                      SizedBox(width: focusmode ? MediaQuery.of(context).size.width *  0.3 : MediaQuery.of(context).size.width *  0.15, child: Text(entry['originalneed'], style: TextStyle(fontSize: 15, fontFamily: 'Inter'))),
-                                      
-                                         SizedBox(width: MediaQuery.of(context).size.width * 0.009),
-                                      SizedBox(width: focusmode ? MediaQuery.of(context).size.width *  0.15 : MediaQuery.of(context).size.width * 0.088, child: Text(entry['neededby'] ?? 'N/A', style: TextStyle(fontSize: 15, fontFamily: 'Inter'))),
-                                        SizedBox(width: MediaQuery.of(context).size.width * 0.009),
-                                         focusmode ? SizedBox.shrink() :
-                                      SizedBox(width: MediaQuery.of(context).size.width * 0.088, child: Text(startTime, style: TextStyle(fontSize: 15))),
-                                       SizedBox(width: MediaQuery.of(context).size.width * 0.009),
-                                        focusmode ? SizedBox.shrink() :
-                                           SizedBox(width: MediaQuery.of(context).size.width * 0.088, child: Text(endTime, style: TextStyle(fontSize: 15, fontFamily: 'Inter'))),
-                                                   SizedBox(width: MediaQuery.of(context).size.width * 0.009),
-                                      SizedBox(width: MediaQuery.of(context).size.width * 0.088, child: Text('$minutesElapsed', style: TextStyle(fontSize: 15, fontFamily: 'Inter'))),
-                                   
-                                   
-                                    SizedBox(width: MediaQuery.of(context).size.width * 0.009),
-                                           if (forklifter)
-                             
-                                  SizedBox(width: focusmode ? MediaQuery.of(context).size.width *  0.15 : MediaQuery.of(context).size.width * 0.088, child: Text(entry['detail_from'] ?? 'N/A', style: TextStyle(fontSize: 15, fontFamily: 'Inter',
-                                  ))),
-                              
-                              
-                                                          SizedBox(width: MediaQuery.of(context).size.width * 0.009),
-                                if (forklifter)
-                                                        SizedBox(width: focusmode ? MediaQuery.of(context).size.width *  0.13 : MediaQuery.of(context).size.width * 0.088, child: Text(entry['detail_to'] ?? 'N/A', style: TextStyle(fontSize: 15, fontFamily: 'Inter',
-                                                       ))),
-                                                              SizedBox(width: MediaQuery.of(context).size.width * 0.038, child: Row(
-                                        children: [
-                                        
-                                          Tooltip(
-                                          message: entry['current_user'] ?? 'Accept\nRequest',
-                                          decoration: BoxDecoration(
-                                            color: Colors.transparent
-                                          ),
-                                          textStyle: TextStyle(fontFamily: 'Inter'),
-                                            child:
-                                            
-                                            alone == 'false' ? IconButton(
-                                                                                        onPressed: entry['current_user'] != null ? null : () async {
-                                                         
-                                                                 await Supabase.instance.client.from('detail').update({
-                                                                  'current_user': username,
-                                                                  'timecurrent_user': DateTime.now().toUtc().toIso8601String()
-                                                                 }).eq('id', entry['id']);
-                                                                 setLocalState(() {
-                                                                   
-                                                                 },);
-                                             },
-                                                                                
-                                                                                        icon:( Icon(
-                                                                            Icons.thumb_up,
-                                                                            color: 
-                                                                            entry['current_user'] == null ? Colors.grey : const Color.fromARGB(255, 255, 219, 41),
-                                                                            //  entry['status'] == 0 ? const Color.fromARGB(255, 211, 211, 211) : const Color.fromARGB(255, 167, 229, 255),
-                                                                            size: 26,
-                                                                          )
-                                                                              )) : SizedBox.shrink(),
-                                          )],
-                                        
-                                      )
-                                      
-                                      ),
-                                      SizedBox(width: MediaQuery.of(context).size.width * 0.003),
-                                       SizedBox(width: MediaQuery.of(context).size.width * 0.032, child: Row(
-                                        children: [
-                                        
-                                          ValueListenableBuilder(
-                                            valueListenable: tot,
-                                            builder: (context, value, child) {
-                                              return ValueListenableBuilder(
-                                                valueListenable: fromt,
-                                                builder: (context, value, child) {
-                                                  return Tooltip(
-                                                  message: 'Finished?',
-                                                  textStyle: TextStyle(fontFamily: 'Inter'),
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.transparent
-                                                  ),
-                                                    child: IconButton(
-                                                                                                onPressed: alone == 'false' ? 
-                                                                                                entry['current_user'] != username ? null :  entry['status'] == 1 ? null : () async {
-                                                                 
-                                                                          whichPopUp(entry, tot.value, fromt.value);
-                                                     } : entry['status'] == 1 ? null : () async {
-                                                    whichPopUp(entry, tot.value, fromt.value);
-                                                     },
-                                                                                        
-                                                                                                icon:( Icon(
-                                                                                    Icons.check_circle_rounded,
-                                                                                    color:  entry['status'] == 1 ? Colors.green : Colors.grey,
-                                                                                    size: 26,
-                                                                                  )
-                                                                                      )),
-                                                  );
-                                                }
-                                              );
-                                            }
-                                          )],
-                                        
-                                      )
-                                      
-                                      ),
-
-                                  ],
                                 ),
-                              ),
-                                                 );
-                           }
-                         );
-                       },
-                      );
-                            },
-                  
-              
-              ),
-                        ),
-                        
-              ]),
-            ),
+                               
           ],
-        )
-      ],),
-    ),
+        ),
+      ),
+      Row(
+        children: [
+          SizedBox(width: 10),
+          SizedBox(
+            width: focusmode ?  MediaQuery.of(context).size.width : MediaQuery.of(context).size.width * 0.87 ,
+                height: MediaQuery.of(context).size.height * 0.93,
+            child: Column(children: [
+               focusmode ? SizedBox(height: 5,) :
+                       SizedBox(height: 20),
+                      
+                      Row(
+            children: [
+              SizedBox(width: 30),
+              focusmode == false ?
+              Text('Inbound Data', style: TextStyle(color: const Color.fromARGB(255, 23, 85, 161), fontWeight: FontWeight.bold, fontSize: 30
+              , fontFamily: 'Inter')) : 
+              TextButton(onPressed: (){
+                setState(() {
+                  focusmode = false;
+                });
+              }, child: Text('Exit', style: TextStyle(fontFamily: 'Inter', color: Colors.black, fontSize: 18),)),
+            ],
+                      ),
+                      focusmode ? SizedBox(height: 0,) :
+                       SizedBox(height: 30),
+                    
+                    focusmode ? SizedBox.shrink() :
+                    Row(children: [
+                SizedBox(width: 17),
+                Material(
+                  elevation: 5,
+                  borderRadius: BorderRadius.circular(5),
+                  child: MenuAnchor(
+                    controller: menuController,
+                    style: MenuStyle(
+                      backgroundColor: WidgetStateProperty.all( const Color.fromARGB(255, 255, 255, 255),),
+                    ),
+                    builder: (BuildContext context, MenuController controller, Widget? child) {
+                    return MouseRegion(
+                      cursor: SystemMouseCursors.click,
+                      child: GestureDetector(
+                      onTap: (){
+                        if (menuController.isOpen){
+                          menuController.close();
+                        } else {
+                          menuController.open();
+                        }
+                      },
+                      child: Container(
+                        width: 120,
+                        height: 45,
+                        decoration: BoxDecoration(
+                             borderRadius: BorderRadius.circular(5),
+                          color: const Color.fromARGB(255, 255, 255, 255),
+                          border: Border.all(width: 1, color:  const Color.fromARGB(255, 23, 85, 161))
+                        ),
+                        child: Row(children: [
+                          SizedBox(width: 6),
+                          Text(menuselected == 'All' ? 'All' : menuselected == 'Finished' ? 'Finished' : menuselected == 'Unfinished' ? 'Unfinished' : 'Status', style:
+                           TextStyle(fontFamily: 'WorkSans', fontSize: 15)),
+                          Spacer(),
+                          Icon(Icons.tune),
+                          SizedBox(width: 5,)
+                        ],),
+                      ),
+                      ),
+                    );
+                    },
+                    menuChildren: [
+                    MenuItemButton(
+                      onPressed: () {
+                        filteredData = 1;
+                        menuselected = 'All';
+                        setState(() {
+                          
+                        });
+                      },
+                      child: Text('All')
+                    ),
+                     MenuItemButton(
+                      onPressed: () {
+                        filteredData =2;
+                         menuselected = 'Finished';
+                        setState(() {
+                          
+                        });
+                      },
+                      child: Text('Finished')
+                    ),
+                     MenuItemButton(
+                      onPressed: () {
+                        filteredData = 3;
+                         menuselected = 'Unfinished';
+                        setState(() {
+                          
+                        });
+                      },
+                      child: Text('Unfinished')
+                    )
+                    ]),
+                ),
+                SizedBox(width: 20),
+                 Material(
+                  elevation: 5,
+                  borderRadius: BorderRadius.circular(5),
+                  child: MenuAnchor(
+                    controller: menuController2,
+                    style: MenuStyle(
+                      backgroundColor: WidgetStateProperty.all( const Color.fromARGB(255, 255, 255, 255),),
+                    ),
+                    builder: (BuildContext context, MenuController controller, Widget? child) {
+                    return MouseRegion(
+                      cursor: SystemMouseCursors.click,
+                      child: GestureDetector(
+                      onTap: (){
+                        if (menuController.isOpen){
+                          menuController2.close();
+                        } else {
+                          menuController2.open();
+                        }
+                      },
+                      child: Container(
+                        width: 120,
+                        height: 45,
+                        decoration: BoxDecoration(
+                             borderRadius: BorderRadius.circular(5),
+                          color: const Color.fromARGB(255, 255, 255, 255),
+                          border: Border.all(width: 1, color:  const Color.fromARGB(255, 23, 85, 161))
+                        ),
+                        child: Row(children: [
+                          SizedBox(width: 6),
+                          Text(menudate == 'All' ? 'All' : menudate == 'Day' ? 'Day' : menudate == '7 days' 
+                          ? '7 days' : menudate == '30 days' ? '30 days' :
+                           'Date', style: TextStyle(fontFamily: 'WorkSans', fontSize: 15)),
+                          Spacer(),
+                          Icon(Icons.calendar_month),
+                          SizedBox(width: 5,),
+                        ],),
+                      ),
+                      ),
+                    );
+                    },
+                    menuChildren: [
+                    MenuItemButton(
+                      onPressed: () {
+                        filteredTime = 1;
+                        menudate = 'All';
+                        setState(() {
+                          
+                        });
+                      },
+                      child: Text('All')
+                    ),
+                     MenuItemButton(
+                      onPressed: () {
+                        filteredTime  =2;
+                        menudate = 'Day';
+                        setState(() {
+                          
+                        });
+                      },
+                      child: Text('Past day')
+                    ),
+                     MenuItemButton(
+                      onPressed: () {
+                        filteredTime = 3;
+                        menudate = '7 days';
+                        setState(() {
+                          
+                        });
+                      },
+                      child: Text('Past 7 days')
+                    ),
+                     MenuItemButton(
+                      onPressed: () {
+                        filteredTime = 4;
+                        menudate = '30 days';
+                        setState(() {
+                          
+                        });
+                      },
+                      child: Text('Past 30 days')
+                    )
+                    ]),
+                ),
+                SizedBox(width: 20,),
+                Tooltip(
+                  message: 'Focus Mode',
+                decoration: BoxDecoration(
+    color: Colors.transparent, 
+  ),
+                  textStyle: TextStyle(fontFamily: 'Inter'),
+                  child: IconButton(
+                   
+                    onPressed: (){
+                      setState(() {
+                        focusmode = true;
+                      });
+                    }, icon: Icon(Icons.mobile_friendly, color: focusmode ? Colors.blue : Colors.grey,)),
+                )
+                 ],),
+                focusmode ? SizedBox(height: 5,) :
+                       SizedBox(height: 25),
+  
+            Container(
+              decoration: BoxDecoration(
+            gradient: LinearGradient(
+                        colors: [ const Color.fromARGB(255, 186, 224, 254), const Color.fromARGB(255, 234, 245, 255) ],
+                      begin: Alignment.centerLeft, end: Alignment.centerRight),
+                       borderRadius: BorderRadius.only(topLeft: Radius.circular(16), topRight: Radius.circular(16))
+                ),
+              
+                height: 60,
+                width:  focusmode ? MediaQuery.of(context).size.width : double.infinity,
+                child: FutureBuilder(
+                  future: fetchUsername(),
+                  builder: (context, snapshot) {
+                    
+                    return Row(children: [
+                        SizedBox(width: MediaQuery.of(context).size.width * 0.009),
+                    
+                        SizedBox(width:  focusmode ? MediaQuery.of(context).size.width *  0.3 : MediaQuery.of(context).size.width *  0.15, child: Text('ID', style: TextStyle(fontSize: 15, fontFamily: 'Inter', fontWeight: FontWeight.bold))),
+                      SizedBox(width: MediaQuery.of(context).size.width * 0.009),
+                    
+                        SizedBox(width:  focusmode ? MediaQuery.of(context).size.width *  0.3 : MediaQuery.of(context).size.width *  0.15, child: Text('Requested Item', style: TextStyle(fontSize: 15, fontFamily: 'Inter', fontWeight: FontWeight.bold))),
+                           SizedBox(width: MediaQuery.of(context).size.width * 0.009),
+                        SizedBox(width: focusmode ? MediaQuery.of(context).size.width *  0.15 : MediaQuery.of(context).size.width * 0.088, child: Text('Needed', style: TextStyle(fontSize: 15, fontFamily: 'Inter',
+                        fontWeight: FontWeight.bold))),
+                            SizedBox(width: MediaQuery.of(context).size.width * 0.009),
+                            focusmode ? SizedBox.shrink() :
+                        SizedBox(width: MediaQuery.of(context).size.width * 0.088, child: Text('Request Time', style: TextStyle(fontSize: 15, fontFamily: 'Inter',
+                        fontWeight: FontWeight.bold))),
+                        
+                           SizedBox(width: MediaQuery.of(context).size.width * 0.009),
+                            focusmode ? SizedBox.shrink() :
+                            SizedBox(width: MediaQuery.of(context).size.width * 0.088, child: Text('Finished Time', style: TextStyle(fontSize: 15, fontFamily: 'Inter',
+                            fontWeight: FontWeight.bold))),
+                              SizedBox(width: MediaQuery.of(context).size.width * 0.009),
+                        SizedBox(width: MediaQuery.of(context).size.width * 0.088, child: Text('Total Time', style: TextStyle(fontSize: 15, fontFamily: 'Inter',
+                        fontWeight: FontWeight.bold))),
+                           SizedBox(width: MediaQuery.of(context).size.width * 0.009),
+                            if (forklifter)
+                            SizedBox(width: focusmode ? MediaQuery.of(context).size.width *  0.15 : MediaQuery.of(context).size.width * 0.088, child: Text('From', style: TextStyle(fontSize: 15, fontFamily: 'Inter',
+                            fontWeight: FontWeight.bold))),
+                               SizedBox(width: MediaQuery.of(context).size.width * 0.009),
+                                  if (forklifter)
+                            SizedBox(width: focusmode ? MediaQuery.of(context).size.width *  0.09: MediaQuery.of(context).size.width * 0.088, child: Text('To', style: TextStyle(fontSize: 14, fontFamily: 'Inter',
+                            fontWeight: FontWeight.bold))),
+                        SizedBox(width: MediaQuery.of(context).size.width * 0.05),
+                          
+                    ],);
+                  }
+                )
+            ),
+            Expanded(
+            child: FutureBuilder(
+      future: fetchUsername(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting && (snapshot.data == null || snapshot.data!.isEmpty)) {
+    return Center(child: CircularProgressIndicator(color: Colors.blue));
+    }
+      
+        final username = snapshot.data!['username'];
+    final allowedProcess = snapshot.data!['allowedProcess'];
+    
+    final finalFilter = finalFiltern.where((entry) =>  entry['process'] == allowedProcess).toList();
+      
+                
+                        
+                return    isLoading && finalFilter.isEmpty ? Center(
+              child: SizedBox(
+                width: 40, height: 50,
+                child: CircularProgressIndicator(color: Colors.blue)),
+            ) :
+            finalFilter.isEmpty && !isLoading ? 
+             Center(child: Column(
+                children: [
+                  SizedBox(height: 70),
+                  Stack(
+                    children: [
+                     Image( image: AssetImage('images/search.png'
+                    ),
+                     width: 400,
+                      height: 400,
+                      fit: BoxFit.contain,),
+                    Positioned
+                    (
+                      left: 100,
+                      top: 300, child: Text('Nothing here yet...', style: TextStyle(color:  const Color.fromARGB(255, 0, 55, 100), fontSize: 25, 
+                      fontWeight: FontWeight.bold )))
+                    ])
+                ],
+              ))
+            : ListView.builder(
+              itemCount: finalFilter.length   + (hasMore ? 1 : 0),
+              itemBuilder: (context, index) {
+                    if (index == finalFilter.length) {
+        return SizedBox.shrink();
+      }
+                    final entry = finalFilter[index];
+                          
+                    final startTime = DateFormat("MM-dd h:mm a")
+                        .format(DateTime.parse(entry['starttime']).toLocal());
+                    final endTime = (entry['endtime'] != null)
+                        ? DateFormat("MM-dd h:mm a")
+                            .format(DateTime.parse(entry['endtime']).toLocal())
+                        : 'N/A';
+                          
+                    int minutesElapsed;
+                    final createdAt = DateTime.parse(entry['starttime']);
+                    if (entry['endtime'] != null) {
+                      minutesElapsed = DateTime.parse(entry['endtime'])
+                          .difference(createdAt)
+                          .inMinutes;
+                    } else {
+                      minutesElapsed = DateTime.now().toUtc().difference(createdAt).inMinutes;
+                    }
+                          
+                  
+                          
+                           final id = entry['id'];
+                                         
+                        void fetchStatus() async {               
+                                         
+                          final response2 = await Supabase.instance.client.from('detail').select().eq('idreq', id);
+                          
+                          final filteredData = response2.where((row) => row['process'] == entry['currentprocess'] && row['starttime']
+                          == entry['starttime']);
+                          
+                          for (final match in filteredData){
+                final response = await Supabase.instance.client.from('detail').select().eq('id', match['id']).maybeSingle();
+                          status = response?['status'];
+                          }
+                  }
+                          
+                          
+                          
+                          fetchStatus();
+                          
+                    return StatefulBuilder(
+                     builder: (context, setLocalState) {
+                            void updateGreenStatus() async {
+                  final int? status = await fetchStatusForEntry(entry);
+                  if (showGreenMap[entry['id']] != (status == 1)) {
+                    setLocalState(() {
+                      showGreenMap[entry['id']] = (status == 1);
+                    });
+                  }}
+                   WidgetsBinding.instance.addPostFrameCallback((_) async {
+                  final cacheKey = '${entry['id']}_${entry['currentprocess']}';
+                  if (!showGreenMap.containsKey(entry['id']) && !_statusCache.containsKey(cacheKey)) {
+                    final status = await fetchStatusForEntry(entry);
+                    setLocalState(() {
+                      showGreenMap[entry['id']] = (status == 1);
+                    });
+                  }
+                });
+                 final fetchfromt = snapshot.data![0]?[entry['id']] ?? 'N/A';
+                       
+                           return Container(
+                            height: 60,
+                            
+                            decoration: BoxDecoration(
+                                      color:  entry['status'] == 1
+                                ?  Color.fromARGB(255, 172, 250, 175) :
+                                alone == 'false' ? 
+                                      entry['current_user'] != null ? entry['current_user'] == username 
+                                      ? const Color.fromARGB(255, 255, 250, 205) : const Color.fromARGB(255, 197, 197, 197) :  Colors.white : Colors.white,
+                                 border: const Border(
+                                      bottom: BorderSide(width: 1, color: Color.fromARGB(255, 118, 118, 118)),
+                            ),
+                            ),
+                            child: MouseRegion(
+                              onHover: (event){
+                                  setLocalState(() {
+                                     hoverIndex = entry['id'];
+                                  });
+                                },
+                                onExit: (event) {
+                                  setLocalState(() {
+                                    hoverIndex = null;
+                                  });
+                                 },
+                              child: Row(
+                                children: [
+                                    SizedBox(width: MediaQuery.of(context).size.width * 0.009),
+                                  
+                                    SizedBox(width: focusmode ? MediaQuery.of(context).size.width *  0.27 : MediaQuery.of(context).size.width *  0.15, child: Text("${entry['id']}", style: TextStyle(fontSize: 15, fontFamily: 'Inter'))),
+                                    
+                                      SizedBox(width: MediaQuery.of(context).size.width * 0.009),
+                                  
+                                    SizedBox(width: focusmode ? MediaQuery.of(context).size.width *  0.27 : MediaQuery.of(context).size.width *  0.15, child: Text(entry['originalneed'], style: TextStyle(fontSize: 15, fontFamily: 'Inter'))),
+                                    
+                                       SizedBox(width: MediaQuery.of(context).size.width * 0.009),
+                                    SizedBox(width: focusmode ? MediaQuery.of(context).size.width *  0.15 : MediaQuery.of(context).size.width * 0.088, child: Text(entry['neededby'] ?? 'N/A', style: TextStyle(fontSize: 15, fontFamily: 'Inter'))),
+                                      SizedBox(width: MediaQuery.of(context).size.width * 0.009),
+                                       focusmode ? SizedBox.shrink() :
+                                    SizedBox(width: MediaQuery.of(context).size.width * 0.088, child: Text(startTime, style: TextStyle(fontSize: 15))),
+                                     SizedBox(width: MediaQuery.of(context).size.width * 0.009),
+                                      focusmode ? SizedBox.shrink() :
+                                         SizedBox(width: MediaQuery.of(context).size.width * 0.088, child: Text(endTime, style: TextStyle(fontSize: 15, fontFamily: 'Inter'))),
+                                                 SizedBox(width: MediaQuery.of(context).size.width * 0.009),
+                                    SizedBox(width: MediaQuery.of(context).size.width * 0.088, child: Text('$minutesElapsed', style: TextStyle(fontSize: 15, fontFamily: 'Inter'))),
+                                 
+                                 
+                                  SizedBox(width: MediaQuery.of(context).size.width * 0.009),
+                                         if (forklifter)
+                           
+                                SizedBox(width: focusmode ? MediaQuery.of(context).size.width *  0.15 : MediaQuery.of(context).size.width * 0.088, child: Text(entry['detail_from'] ?? 'N/A', style: TextStyle(fontSize: 15, fontFamily: 'Inter',
+                                ))),
+                            
+                            
+                                                        SizedBox(width: MediaQuery.of(context).size.width * 0.009),
+                              if (forklifter)
+                                                      SizedBox(width: focusmode ? MediaQuery.of(context).size.width *  0.13 : MediaQuery.of(context).size.width * 0.088, child: Text(entry['detail_to'] ?? 'N/A', style: TextStyle(fontSize: 15, fontFamily: 'Inter',
+                                                     ))),
+                                                            SizedBox(width: MediaQuery.of(context).size.width * 0.038, child: Row(
+                                      children: [
+                                      
+                                        Tooltip(
+                                        message: entry['current_user'] ?? 'Accept\nRequest',
+                                        decoration: BoxDecoration(
+                                          color: Colors.transparent
+                                        ),
+                                        textStyle: TextStyle(fontFamily: 'Inter'),
+                                          child:
+                                          
+                                          alone == 'false' ? IconButton(
+                                                                                      onPressed: entry['current_user'] != null ? null : () async {
+                                                       
+                                                               await Supabase.instance.client.from('detail').update({
+                                                                'current_user': username,
+                                                                'timecurrent_user': DateTime.now().toUtc().toIso8601String()
+                                                               }).eq('id', entry['id']);
+                                                               setLocalState(() {
+                                                                 
+                                                               },);
+                                           },
+                                                                              
+                                                                                      icon:( Icon(
+                                                                          Icons.thumb_up,
+                                                                          color: 
+                                                                          entry['current_user'] == null ? Colors.grey : const Color.fromARGB(255, 255, 219, 41),
+                                                                          //  entry['status'] == 0 ? const Color.fromARGB(255, 211, 211, 211) : const Color.fromARGB(255, 167, 229, 255),
+                                                                          size: 26,
+                                                                        )
+                                                                            )) : SizedBox.shrink(),
+                                        )],
+                                      
+                                    )
+                                    
+                                    ),
+                                    SizedBox(width: focusmode ? MediaQuery.of(context).size.width * 0.036 : MediaQuery.of(context).size.width * 0.01),
+                                     SizedBox(width: MediaQuery.of(context).size.width * 0.032, child: Row(
+                                      children: [
+                                      
+                                        ValueListenableBuilder(
+                                          valueListenable: tot,
+                                          builder: (context, value, child) {
+                                            return ValueListenableBuilder(
+                                              valueListenable: fromt,
+                                              builder: (context, value, child) {
+                                                return Tooltip(
+                                                message: 'Finished?',
+                                                textStyle: TextStyle(fontFamily: 'Inter'),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.transparent
+                                                ),
+                                                  child: IconButton(
+                                                                                              onPressed: hasID.contains(entry['id']) ? null : alone == 'false' ? 
+                                                                                              entry['current_user'] != username ? null :  entry['status'] == 1 ? null : () async {
+                                                                                                   print('hasid $hasID entry id ${entry['id']}');
+                                                                                                
+                                                                                                  if (!hasID.add(entry['id'])) {
+  
+    print('Duplicate tap blocked');
+    return;
+  }
+                                                           
+                                                               
+                                                                  print('hasid $hasID entry id ${entry['id']}');
+                                                                     whichPopUp(entry, tot.value, fromt.value);
+                                                              
+                                                              
+                                                                     
+                                                   } : entry['status'] == 1 ? null : () async {
+                                                  whichPopUp(entry, tot.value, fromt.value);
+                                                   },
+                                                                                      
+                                                                                              icon:( Icon(
+                                                                                  Icons.check_circle_rounded,
+
+                                                                                  color:  entry['status'] == 1 ? Colors.green : Colors.grey,
+                                                                                  size: 26,
+                                                                                )
+                                                                                    )),
+                                                );
+                                              }
+                                            );
+                                          }
+                                        )],
+                                      
+                                    )
+                                    
+                                    ),
+  
+                                ],
+                              ),
+                            ),
+                                               );
+                         }
+                       );
+                     },
+                    );
+                          },
+                
+            
+            ),
+                      ),
+                      
+            ]),
+          ),
+        ],
+      )
+    ],),
   ),
 );
 }

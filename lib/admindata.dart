@@ -3,11 +3,13 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
-
 import 'dart:async';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
+import 'dart:convert';
 import 'routes.dart';
+import 'package:http/http.dart' as http;
+import 'dart:html' as html;
 
 void main() async {
   setUrlStrategy(PathUrlStrategy());
@@ -35,6 +37,7 @@ class AdminData extends StatefulWidget {
 
 class _AdminDataState extends State<AdminData> {
 String menuselected = '';
+bool hovered = false;
 String menudate = '';
 int? hoverIndex;
  bool selected1 = false;
@@ -48,7 +51,46 @@ int filteredData = 1;
 int filteredTime = 1;
 
 List<Map<String, dynamic>> entries = [];
+
 List<StreamSubscription> pageStreams = [];
+void downloaderCsv(String csvData, String filename) {
+  final bytes = utf8.encode(csvData);
+  final blob = html.Blob([bytes]);
+  final url = html.Url.createObjectUrlFromBlob(blob);
+  final anchor = html.AnchorElement(href: url)
+    ..setAttribute('download', filename)
+    ..click();
+  html.Url.revokeObjectUrl(url); // Cleanup
+}
+final accessToken = Supabase.instance.client.auth.currentSession?.accessToken;
+Future<void> downloadCsv() async {
+  final url = Uri.parse('https://rmotaezqlbiiiwwiaomh.supabase.co/functions/v1/validate-csv');
+
+  final response = await http.post(
+    url,
+    headers: {
+      'Authorization': 'Bearer $accessToken',
+      'Content-Type': 'application/json',
+    },
+    body: '{}', // If your function expects JSON body, otherwise send needed data here
+  );
+
+  if (response.statusCode == 200) {
+    // response.body contains CSV data as plain text
+    final csvData = response.body;
+
+  downloaderCsv(csvData, 'entries_export.csv');
+    // Now handle this csvData in Flutter, e.g. save to file or share
+    print('CSV data received:\n$csvData');
+
+    // You could write csvData to a file, or open a share dialog, etc.
+  } else {
+    print('Failed to get CSV: ${response.statusCode} - ${response.body}');
+  }
+}
+
+
+
 
 int pageSize = 30;
 int currentPage = 0;
@@ -56,14 +98,14 @@ bool isLoading = false;
 bool hasMore = true;
 
 final ScrollController _scrollController = ScrollController();
-
+int maxId = 0;
 @override
 
 void initState() {
   super.initState();
    _loadUserRole();
   fetchNextPage();
-
+checkUserStatus();
   _scrollController.addListener(() {
     if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200 &&
         !isLoading && hasMore) {
@@ -82,6 +124,19 @@ void initState() {
   
  String? _role;
   bool _loading = true;
+bool showbutton = false;
+Future<void> checkUserStatus() async {
+final user = Supabase.instance.client.auth.currentUser;
+final email = user?.email;
+final responser = await Supabase.instance.client.from('user').select().eq('email', email ?? '').maybeSingle();
+final company = responser?['company'];
+final response2 = await Supabase.instance.client.from('company').select().eq('companyname', company).maybeSingle();
+print('response 2 $response2');
+if (response2?['subscription'] != 'Basic'){
+  
+  showbutton = true;
+}
+}
 
 
   
@@ -97,46 +152,27 @@ void initState() {
       _loading = false;
     });
   }
-  
+ 
 Future<void> fetchNextPage() async {
-  if (isLoading || !hasMore) return;
-
-  setState(() => isLoading = true);
-
-  final from = currentPage * pageSize;
-  final to = from + pageSize - 1;
+  
 
   final response = await Supabase.instance.client
       .from('masterdata')
-      .select()
+      .select('*') // ✅ IMPORTANT: without this, .range() is ignored!
+     
       .order('id', ascending: false)
-      .range(from, to);
+     .limit(500);
 
-  if (response.isEmpty) {
-    setState(() {
-      hasMore = false;
-      isLoading = false;
-    });
-    return;
-  }
-
-  // Filter out duplicates (just in case)
-  final newEntries = response.where((item) {
-    final id = item['id'];
-    return !entries.any((e) => e['id'] == id);
-  }).toList();
-
-  // Add new entries
   setState(() {
-    entries.addAll(newEntries);
-    currentPage++;
-    isLoading = false;
+    entries.addAll(response);
   });
 
-  // Subscribe to realtime updates
-  final pageIds = newEntries.map((e) => e['id'] as int).toList();
+  // Subscribe to new pages (if needed)
+  final pageIds = response.map((e) => e['id'] as int).toList();
   subscribeToPageStream(pageIds);
 }
+
+
 
 void subscribeToPageStream(List<int> ids) {
   final sub = Supabase.instance.client
@@ -159,6 +195,7 @@ void subscribeToPageStream(List<int> ids) {
 
   pageStreams.add(sub);
 }
+
 
 
 @override
@@ -188,33 +225,26 @@ void dispose() {
 MenuController menuController  = MenuController();
 MenuController menuController2 = MenuController();
 
-void updateTotalTimeOnce() async {
-  try {
-    final List<dynamic> records = await Supabase.instance.client
-        .from('masterdata')
-        .select('id, starttime, finishedtisme, closed');
 
-    for (var entry in records) {
-      if (entry['starttime'] == null) continue;
 
-      final createdAt = DateTime.parse(entry['starttime']);
-      int minutesElapsed;
+ bool didntpayed = false;
 
-      if (entry['finishedtime'] != null && entry['closed'] == 1) {
-        minutesElapsed = DateTime.parse(entry['finishedtime']).difference(createdAt).inMinutes;
-      } else {
-        minutesElapsed = DateTime.now().difference(createdAt).inMinutes;
+Future<void> didntPay () async{
+final user = Supabase.instance.client.auth.currentUser;
+    final email = user?.email;
+
+    final response = await Supabase.instance.client.from('user').select().eq('email', email ?? 'Hi').single();
+    final company = response['company'];
+    final response1 = await Supabase.instance.client.from('company').select().eq('companyname', company).single();
+    final enddate = response1['enddate'];
+    if (enddate != null){
+      if ((DateTime.parse(enddate)).difference(DateTime.now()).inDays <= 1){
+        didntpayed = true;
       }
-
-      await Supabase.instance.client
-          .from('masterdata')
-          .update({'totaltime': minutesElapsed})
-          .eq('id', entry['id']);
     }
-  } catch (e) {
-    print('Error updating totaltime: $e');
-  }
 }
+    
+
 
 @override
   Widget build(BuildContext context){
@@ -287,19 +317,66 @@ return DateTime.parse(entry['starttime']).difference(DateTime.now()).inDays.abs(
    
 
    
-    if (_role == 'user') {
+   
+    if (_role == 'user' || Supabase.instance.client.auth.currentSession == null) {
       return Scaffold(
         backgroundColor: Colors.white,
-        body: Center(
-          child: Image.asset(
-            'images/restrict.png',
-            width: 400,
-            height: 400,
-            fit: BoxFit.contain,
+        body: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Center(
+            child: Image.asset(
+              'images/restrict.png',
+              width: 400,
+              height: 400,
+              fit: BoxFit.contain,
+            ),
           ),
         ),
       );
     }
+
+if (didntpayed == true){
+  return Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+            
+                children: [
+                  Container(
+                    width: MediaQuery.of(context).size.width *0.13188,
+                    height: MediaQuery.of(context).size.height * 0.27251,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                    color: const Color.fromARGB(255, 255, 193, 188),
+                    ),
+                    child: Icon(
+                    Icons.warning, color: Colors.red, size: MediaQuery.of(context).size.width * 0.06,
+                    ),
+                  ),
+                  SizedBox(height: 30,),
+                  Text('Membership Expired', style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.bold, fontSize: MediaQuery.of(context).size.height * 0.059242),),
+          SizedBox(height: 40,),
+          Container(
+            width:  MediaQuery.of(context).size.width * 0.229358,
+            height:MediaQuery.of(context).size.height * 0.059242,
+            decoration: BoxDecoration(
+              color: Colors.red,
+              borderRadius: BorderRadius.circular(10)
+            ), child: Center(child: Text('Renew', style: TextStyle(fontFamily: 'Inter', color: Colors.white, fontSize: MediaQuery.of(context).size.height * 0.026066),),),
+          )
+                ],
+              )
+            ),
+          ),
+        ),
+      );
+}
+
     return  
     
     Scaffold(
@@ -837,6 +914,70 @@ return DateTime.parse(entry['starttime']).difference(DateTime.now()).inDays.abs(
                     )
                     ]),
                 ),
+                Spacer(),
+                showbutton ?
+                StatefulBuilder(
+                  builder: (context, setLocalState) {
+                    return MouseRegion(
+                      cursor: SystemMouseCursors.click,
+                      onEnter: (event){
+                        setLocalState(() {
+                          hovered = true;
+                        });
+                      },
+                       onExit: (event){
+                        setLocalState(() {
+                          hovered = false;
+                        });
+                      },
+                      child: GestureDetector(
+                        onTap: ()  async {
+                      
+                    
+                          downloadCsv();
+                        
+                      
+                    
+                        },
+                        child: Align(
+                          alignment: Alignment.center,
+                          child: AnimatedPadding(
+                            duration: Duration(milliseconds: 200),
+                            
+                            padding: const EdgeInsets.all(8.0),
+                            child: AnimatedContainer(
+                              duration: Duration(milliseconds: 200),
+                              width: hovered ? 125 : 120,
+                              height: hovered ? 47 : 45,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(5),
+                                color: hovered ? const Color.fromARGB(255, 237, 247, 255) : Colors.white,
+                                boxShadow: [BoxShadow(color: const Color.fromARGB(255, 181, 181, 181), blurRadius: 10, offset:  Offset(0, 5))],
+                                border: Border.all(width: 1.5, color: const Color.fromARGB(255, 176, 208, 255))
+                              ),
+                              child: Center(child:       ShaderMask(
+                                                       shaderCallback: (bounds) => LinearGradient(
+                                                         colors: [const Color.fromARGB(255, 154, 195, 244),const Color.fromARGB(255, 0, 0, 0)],
+                                                       ).createShader(Rect.fromLTWH(0, 0, bounds.width, bounds.height)),
+                                                       blendMode: BlendMode.srcIn,
+                                                       child: Text(
+                                                        'Save as CSV',
+                                                         style: TextStyle(
+                                                           fontSize: 16,
+                                                           fontFamily: 'Inter',
+                                                           color: Colors.white, // Needed for ShaderMask to work
+                                                         ),
+                                                       ),
+                                                     )),
+                              
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }
+                ) : SizedBox.shrink(),
+                SizedBox(width: 25,),
                  ],),
                        SizedBox(height: 25),
             Container(
@@ -851,7 +992,10 @@ return DateTime.parse(entry['starttime']).difference(DateTime.now()).inDays.abs(
                 height: 60,
                 width: double.infinity,
                 child: Row(children: [
+                   SizedBox(width: MediaQuery.of(context).size.width * 0.009),
+                    SizedBox(width:  MediaQuery.of(context).size.width * 0.03, child: Text('ID', style: TextStyle(fontSize: 15, fontFamily: 'Inter',)),),
                   SizedBox(width: 20),
+
                    
                     SizedBox(width: 150, child: Text('From', style: TextStyle(fontSize: 15, fontFamily: 'Inter',  fontWeight: FontWeight.bold))),
                     SizedBox(width: 20),
@@ -918,8 +1062,7 @@ return DateTime.parse(entry['starttime']).difference(DateTime.now()).inDays.abs(
             :
             
          ListView.builder(
-          controller: _scrollController,
-              itemCount: finalFilter.length   + (hasMore ? 1 : 0),
+              itemCount: finalFilter.length,
               itemBuilder: (context, index) {
                     if (index == finalFilter.length) {
         return SizedBox.shrink();
@@ -941,7 +1084,7 @@ return DateTime.parse(entry['starttime']).difference(DateTime.now()).inDays.abs(
                       .inMinutes;
                      
                 } else {
-                  minutesElapsed = DateTime.now().difference(createdAt).inMinutes;
+                  minutesElapsed = DateTime.now().toUtc().difference(createdAt).inMinutes;
                  
                 }
                       
@@ -980,6 +1123,8 @@ return DateTime.parse(entry['starttime']).difference(DateTime.now()).inDays.abs(
                               SizedBox(height: 5),
                               Row(
                                 children: [
+                                  SizedBox(width: MediaQuery.of(context).size.width * 0.009),
+                    SizedBox(width:  MediaQuery.of(context).size.width * 0.03, child: Text('${entry['id']}', style: TextStyle(fontSize: 15, fontFamily: 'Inter',)),),
                                   SizedBox(width: 20),
                                 
                                         SizedBox(width: 150, child: Text('${entry['usernamem']}', style: TextStyle(fontFamily: 'Inter', fontSize: 16))),

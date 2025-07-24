@@ -47,8 +47,84 @@ Timer.periodic(Duration(minutes: 1), (timer){
 }
 String? mat;
 bool loadingUser = false;
-  @override
-  Widget build (BuildContext context){
+  bool didntpayed = false;
+
+Future<void> didntPay () async{
+final user = Supabase.instance.client.auth.currentUser;
+    final email = user?.email;
+
+    final response = await Supabase.instance.client.from('user').select().eq('email', email ?? 'Hi').single();
+    final company = response['company'];
+    final response1 = await Supabase.instance.client.from('company').select().eq('companyname', company).single();
+    final enddate = response1['enddate'];
+    if (enddate != null){
+      if ((DateTime.parse(enddate)).difference(DateTime.now()).inDays <= 1){
+        didntpayed = true;
+      }
+    }
+}
+@override
+Widget build(BuildContext content){
+    
+
+    if (Supabase.instance.client.auth.currentSession == null) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        body: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Center(
+            child: Image.asset(
+              'images/restrict.png',
+              width: 400,
+              height: 400,
+              fit: BoxFit.contain,
+            ),
+          ),
+        ),
+      );
+    }
+
+if (didntpayed == true){
+  return Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+            
+                children: [
+                  Container(
+                    width: MediaQuery.of(context).size.width *0.13188,
+                    height: MediaQuery.of(context).size.height * 0.27251,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                    color: const Color.fromARGB(255, 255, 193, 188),
+                    ),
+                    child: Icon(
+                    Icons.warning, color: Colors.red, size: MediaQuery.of(context).size.width * 0.06,
+                    ),
+                  ),
+                  SizedBox(height: 30,),
+                  Text('Membership Expired', style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.bold, fontSize: MediaQuery.of(context).size.height * 0.059242),),
+          SizedBox(height: 40,),
+          // Container(
+          //   width:  MediaQuery.of(context).size.width * 0.229358,
+          //   height:MediaQuery.of(context).size.height * 0.059242,
+          //   decoration: BoxDecoration(
+          //     color: Colors.red,
+          //     borderRadius: BorderRadius.circular(10)
+          //   ), child: Center(child: Text('Renew', style: TextStyle(fontFamily: 'Inter', color: Colors.white, fontSize: MediaQuery.of(context).size.height * 0.026066),),),
+          // )
+                ],
+              )
+            ),
+          ),
+        ),
+      );
+}
   return Scaffold(
   backgroundColor: Color.fromARGB(255, 236, 244, 254),
   body: SingleChildScrollView(
@@ -97,7 +173,8 @@ bool loadingUser = false;
                     if (data.isNotEmpty) {
                    mat = data[0]['originalneed'];
                     }
-                  return Text('Details - $mat', style: TextStyle(color: const Color.fromARGB(255, 23, 85, 161), fontWeight: FontWeight.bold, fontSize: 30));
+                  return Text('Details - ${data[0]['route_name'] ?? mat}', style: TextStyle(color: const Color.fromARGB(255, 39, 101, 177), fontWeight: FontWeight.bold, fontSize: 30
+                  , fontFamily: 'Inter'));
                 }
               ),
             ],
@@ -114,11 +191,17 @@ bool loadingUser = false;
                 height: 50,
                 width: double.infinity,
                 child: Row(children: [
+                                    SizedBox(width: MediaQuery.of(context).size.width * 0.009),
+                  
+                    SizedBox(width: MediaQuery.of(context).size.width * 0.03, child: Text('ID', style: TextStyle(fontSize: 15,  fontFamily: 'Inter', fontWeight: FontWeight.bold))),
                   SizedBox(width: MediaQuery.of(context).size.width * 0.009),
                   
-                    SizedBox(width: MediaQuery.of(context).size.width * 0.15, child: Text('Process', style: TextStyle(fontSize: 15,  fontFamily: 'Inter', fontWeight: FontWeight.bold))),
+                    SizedBox(width: MediaQuery.of(context).size.width * 0.1, child: Text('Process', style: TextStyle(fontSize: 15,  fontFamily: 'Inter', fontWeight: FontWeight.bold))),
+                    
                       SizedBox(width: MediaQuery.of(context).size.width * 0.009),
-                    SizedBox(width: MediaQuery.of(context).size.width * 0.1, child: Text('Request Time', style: TextStyle(fontSize: 15,  fontFamily: 'Inter', fontWeight: FontWeight.bold))),
+                      SizedBox(width: MediaQuery.of(context).size.width * 0.1, child: Text('Material', style: TextStyle(fontSize: 15,  fontFamily: 'Inter', fontWeight: FontWeight.bold))),
+                      SizedBox(width: MediaQuery.of(context).size.width * 0.009),
+                    SizedBox(width: MediaQuery.of(context).size.width * 0.09, child: Text('Request Time', style: TextStyle(fontSize: 15,  fontFamily: 'Inter', fontWeight: FontWeight.bold))),
                      SizedBox(width: MediaQuery.of(context).size.width * 0.009),
                      
                     SizedBox(width: MediaQuery.of(context).size.width * 0.1, child: Text('Start time', style: TextStyle(fontSize: 15,  fontFamily: 'Inter', fontWeight: FontWeight.bold))),
@@ -127,11 +210,11 @@ bool loadingUser = false;
                        SizedBox(width: MediaQuery.of(context).size.width * 0.009),
                     SizedBox(width:  MediaQuery.of(context).size.width * 0.06, child: Text('Status', style: TextStyle(fontSize: 15,  fontFamily: 'Inter', fontWeight: FontWeight.bold))),
                         SizedBox(width: MediaQuery.of(context).size.width * 0.009),
-                    SizedBox(width: MediaQuery.of(context).size.width * 0.15, child: Text('Next process', style: TextStyle(fontSize: 15,  fontFamily: 'Inter', fontWeight: FontWeight.bold))),
+                    SizedBox(width: MediaQuery.of(context).size.width * 0.12, child: Text('Next process', style: TextStyle(fontSize: 15,  fontFamily: 'Inter', fontWeight: FontWeight.bold))),
                       SizedBox(width: MediaQuery.of(context).size.width * 0.009),
                     SizedBox(width: MediaQuery.of(context).size.width * 0.1, child: Text('Current User', style: TextStyle(fontSize: 15,  fontFamily: 'Inter', fontWeight: FontWeight.bold))),
                        SizedBox(width: MediaQuery.of(context).size.width * 0.01),
-                    SizedBox(width: MediaQuery.of(context).size.width * 0.088, child: Text('Total Time', style: TextStyle(fontSize: 15,  fontFamily: 'Inter', fontWeight: FontWeight.bold))),
+                    SizedBox(width: MediaQuery.of(context).size.width * 0.07, child: Text('Total Time', style: TextStyle(fontSize: 15,  fontFamily: 'Inter', fontWeight: FontWeight.bold))),
                 ],)
             ),
             Expanded(
@@ -241,22 +324,29 @@ bool loadingUser = false;
                       ),
                       
                       child: SizedBox(
-                        height: 55,
-                        child: Column(
-                          children: [
-                            SizedBox(height: 10),
-                            Row(
-                              children: [
-                              
+                              height: 65,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                 
+                                  Row(
+                                    children: [
+                                    SizedBox(width: MediaQuery.of(context).size.width * 0.009),
+                  
+                    SizedBox(width: MediaQuery.of(context).size.width * 0.03, child: Text('${entry['id']}', style: TextStyle(fontSize: 15,  fontFamily: 'Inter',))),
                                                   SizedBox(width: MediaQuery.of(context).size.width * 0.009),
-                                              SizedBox(width: MediaQuery.of(context).size.width * 0.15, child: Text(process, style: TextStyle(fontSize: 15,  fontFamily: 'Inter', ))),
-                                                 SizedBox(width: MediaQuery.of(context).size.width * 0.009),
+                                              SizedBox(width: MediaQuery.of(context).size.width * 0.1, child: Text(process, style: TextStyle(fontSize: 15,  fontFamily: 'Inter', ))),
+                                              SizedBox(width: MediaQuery.of(context).size.width * 0.009),
+                  
+                    SizedBox(width: MediaQuery.of(context).size.width * 0.09, child: Text(entry['originalneed'], style: TextStyle(fontSize: 15,  fontFamily: 'Inter',))),
+                                                 SizedBox(width: MediaQuery.of(context).size.width * 0.02),
                                               SizedBox(width: MediaQuery.of(context).size.width * 0.1, child: Text(startTime, style: TextStyle(fontSize: 15,  fontFamily: 'Inter', ))),
-                                                 SizedBox(width: MediaQuery.of(context).size.width * 0.009),
+                                                 SizedBox(width: MediaQuery.of(context).size.width * 0.001),
                                               SizedBox(width: MediaQuery.of(context).size.width * 0.1, child: Text(startTimeU, style: TextStyle(fontSize: 15,  fontFamily: 'Inter', ))),
                                                  SizedBox(width: MediaQuery.of(context).size.width * 0.009),
                                                     SizedBox(width: MediaQuery.of(context).size.width * 0.1, child: Text(endTime, style: TextStyle(fontSize: 15,  fontFamily: 'Inter', ))),
-                                                  SizedBox(width: MediaQuery.of(context).size.width * 0.009),
+                                                  SizedBox(width: MediaQuery.of(context).size.width * 0.004),
                                               SizedBox(width:  MediaQuery.of(context).size.width * 0.04598, child: Container(
                                                width: MediaQuery.of(context).size.width * 0.04598,
                                                 height: MediaQuery.of(context).size.height * 0.04147,
@@ -314,18 +404,21 @@ bool loadingUser = false;
                                                       
                                                  
                                                 ))),
-                                                  SizedBox(width: MediaQuery.of(context).size.width * 0.021),
-                                              SizedBox(width: MediaQuery.of(context).size.width * 0.1, child: Text(entry['nextprocess'] ?? 'N/A', style: TextStyle(fontSize: 15))),
-                                                SizedBox(width: MediaQuery.of(context).size.width * 0.064),
-                                                 SizedBox(width: MediaQuery.of(context).size.width * 0.1, child: Text(entry['current_user'] ?? entry['user_unique'] ?? 'N/A', style: TextStyle(fontSize: 15))),
+                                                  SizedBox(width: MediaQuery.of(context).size.width * 0.024),
+                                              SizedBox(width: MediaQuery.of(context).size.width * 0.073, child: Text(entry['nextprocess'] ?? 'N/A', style: TextStyle(fontSize: 15))),
+                                                SizedBox(width: MediaQuery.of(context).size.width * 0.06),
+                                                 SizedBox(width: MediaQuery.of(context).size.width * 0.1, child: Text(entry['current_user'] ?? entry['user_unique'] ?? 'N/A', style: TextStyle(fontSize: 15
+                                                 , fontFamily: 'Inter'))),
                                                   SizedBox(width: MediaQuery.of(context).size.width * 0.01),
-                                                 SizedBox(width: MediaQuery.of(context).size.width * 0.088, child: Text('$minutesElapsed', style: TextStyle(fontSize: 15))),
-                                              
-                              ],
+                                                 SizedBox(width: MediaQuery.of(context).size.width * 0.07, child: Text('$minutesElapsed', style: TextStyle(fontSize: 15, fontFamily: 'Inter'))),
+                                                   SizedBox(width:  MediaQuery.of(context).size.width * 0.01, child: Column(children: [
+                                        SizedBox(height: MediaQuery.of(context).size.width * 0.02587,),
+                                      ],)),
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
-                          ],
-                        ),
-                      ),
                     );
                   }
                 );
@@ -343,3 +436,4 @@ bool loadingUser = false;
   );
   }
 }
+    

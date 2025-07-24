@@ -24,7 +24,67 @@ void main() async {
   routerConfig: appRouter));
 
 }
+class CustomToast {
+  static void show(
+    BuildContext context,
+     {
+    Duration duration = const Duration(seconds: 3),
+  }) {
+    final overlay = Overlay.of(context);
+    final overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        bottom: 50,
+        left: 0,
+        right: 0,
+        child: Align(
+          alignment: Alignment.bottomCenter,
+          child: _ToastContent(),
+        ),
+      ),
+    );
 
+    overlay.insert(overlayEntry);
+
+    Future.delayed(duration, () {
+      overlayEntry.remove();
+    });
+  }
+}
+
+
+
+class _ToastContent extends StatelessWidget {
+  
+
+  const _ToastContent({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: AnimatedContainer(
+        duration: Duration(milliseconds: 300),
+        width: 250, // 👈 This will now work!
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color:Colors.green,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.task_alt, color: Colors.white),
+            SizedBox(width: 10, ),
+            Text(
+              'Created successfully!',
+              style: TextStyle(color: const Color.fromARGB(255, 255, 255, 255), fontSize: 15, fontFamily: 'Inter'),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 class AddMaterial extends StatefulWidget {
   const AddMaterial({super.key});
@@ -563,7 +623,7 @@ showDialog(
                                                             ),
                                                             ),
                                                          
-                                                          ),
+                                                          ), 
                                                         ),
                             ]),
                       
@@ -578,7 +638,7 @@ showDialog(
         
                                          children: [
                                                              snackbarNotifier.value  ?
-                        Text('Added sucessfully.', style: TextStyle(fontFamily: 'Inter', color: Colors.green, fontWeight: FontWeight.bold, fontSize: 16))
+                        Text('Invalid date.', style: TextStyle(fontFamily: 'Inter', color:Colors.red, fontWeight: FontWeight.bold, fontSize: 16))
                     
                         : SizedBox.shrink(),
                        snackbarNotifier.value ?     SizedBox(width: 20,) : SizedBox.shrink(),
@@ -624,105 +684,147 @@ showDialog(
                                             onTap: () async {
                                                final response56 = await Supabase.instance.client.from('process').select().eq('description', nameController.text).maybeSingle();
                                              if (nameController.text.isEmpty){
-                                               showDialog(
-          context: context, 
-          builder: (_) => AlertDialog(
-            content: SizedBox(
-                width: 300,
-                height: 150,
-                child: Center(
-                  child: Column(
-                    children: [
-                      SizedBox(height: 20),
-                      Icon(Icons.error, color: Colors.red,),
-                      SizedBox(height: 10,),
-                      Text('Please do not leave the name field blank.', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),),
-                      SizedBox(height: 17),
-                      Container(
-                                      width: 120,
-                                      height: 40,
-                                      decoration: BoxDecoration(
-                                        border: Border.all(width: 1, color: Colors.red),
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
-                                      
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(8),
-                                        child: Row(
-                                          children: [
-                                            SizedBox(width: 13),
-                                            MouseRegion(
-                                              cursor: SystemMouseCursors.click,
-                                              child: GestureDetector
-                                              ( onTap: (){
-                                              Navigator.pop(context);
-                                              },
-                                                child: Text('Understood', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red))),
-                                            ),
-                                          ],
+                                             showDialog(
+      context: context, 
+      builder: (_) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+  borderRadius: BorderRadius.circular(10),
+),
+        content: SizedBox(
+            width: 300,
+            height: 150,
+            child: Center(
+              child: Column(
+                children: [
+                  SizedBox(height: 10),
+                 Container(
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: const Color.fromARGB(255, 255, 193, 188),
+                      ),
+                      child: Icon(Icons.error, color: Colors.red,)),
+                  SizedBox(height: 10,),
+                  Text('Please do not leave the name field blank.', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),),
+                  SizedBox(height: 19),
+                  Container(
+                                  width: 120,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                  color: Colors.red,
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8),
+                                    child: Row(
+                                      children: [
+                                        SizedBox(width: 13),
+                                        MouseRegion(
+                                          cursor: SystemMouseCursors.click,
+                                          child: GestureDetector
+                                          ( onTap: (){
+                                          Navigator.pop(context);
+                                          },
+                                            child: Text('Understood', style: TextStyle(fontWeight: FontWeight.bold, color: const Color.fromARGB(255, 255, 255, 255)))),
                                         ),
-                                      ),
-                                    )
-                  
-                           ] ),
-                ),
-              )
-          ),
-          );
+                                      ],
+                                    ),
+                                  ),
+                                )
+              
+                       ] ),
+            ),
+          )
+      ),
+      );
                                              } 
                                              
                                              else if (response56 != null ? response56.isNotEmpty : response56 != null ){
-                                                 showDialog(
-          context: context, 
-          builder: (_) => AlertDialog(
-            content: SizedBox(
-                width: 300,
-                height: 150,
-                child: Center(
-                  child: Column(
-                    children: [
-                      SizedBox(height: 20),
-                      Icon(Icons.error, color: Colors.red,),
-                      SizedBox(height: 10,),
-                      Text('Material already exists', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),),
-                      SizedBox(height: 17),
-                      Container(
-                                      width: 120,
-                                      height: 40,
-                                      decoration: BoxDecoration(
-                                        border: Border.all(width: 1, color: Colors.red),
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
-                                      
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(8),
-                                        child: Row(
-                                          children: [
-                                            SizedBox(width: 13),
-                                            MouseRegion(
-                                              cursor: SystemMouseCursors.click,
-                                              child: GestureDetector
-                                              ( onTap: (){
-                                              Navigator.pop(context);
-                                              },
-                                                child: Text('Understood', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red))),
-                                            ),
-                                          ],
+                                               showDialog(
+      context: context, 
+      builder: (_) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+  borderRadius: BorderRadius.circular(10),
+),
+        content: SizedBox(
+            width: 300,
+            height: 150,
+            child: Center(
+              child: Column(
+                children: [
+                  SizedBox(height: 10),
+                 Container(
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: const Color.fromARGB(255, 255, 193, 188),
+                      ),
+                      child: Icon(Icons.error, color: Colors.red,)),
+                  SizedBox(height: 10,),
+                  Text('Error: Material already exists.', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),),
+                  SizedBox(height: 19),
+                  Container(
+                                  width: 120,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                  color: Colors.red,
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8),
+                                    child: Row(
+                                      children: [
+                                        SizedBox(width: 13),
+                                        MouseRegion(
+                                          cursor: SystemMouseCursors.click,
+                                          child: GestureDetector
+                                          ( onTap: (){
+                                          Navigator.pop(context);
+                                          },
+                                            child: Text('Understood', style: TextStyle(fontWeight: FontWeight.bold, color: const Color.fromARGB(255, 255, 255, 255)))),
                                         ),
-                                      ),
-                                    )
-                  
-                           ] ),
-                ),
-              )
-          ),
-          );
+                                      ],
+                                    ),
+                                  ),
+                                )
+              
+                       ] ),
+            ),
+          )
+      ),
+      );
                                              }
                                              else {
          setState(() {
            
          });
-           snackbarNotifier.value = true;
+           
+                                             
+                                             final expText = expController.text;
+final dobText = dobController.text;
+
+bool isValidDate(String input) {
+  try {
+    final parsedDate = DateFormat('MM/dd/yyyy').parseStrict(input);
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
+final isExpValid = expText.isEmpty || isValidDate(expText);
+final isDobValid = dobText.isEmpty || isValidDate(dobText);
+
+
+
+if (!isExpValid || !isDobValid) {
+  snackbarNotifier.value = true;
         
                Future.delayed(Duration(seconds: 3), () {
           snackbarNotifier.value = false;
@@ -730,7 +832,8 @@ showDialog(
               setState(() {
                 
               });
-                                             
+  return;
+}
                                               final actualexpdate = expController.text.isNotEmpty ? DateFormat('yyyy-MM-dd').format(DateFormat('MM/dd/yyyy').parse(expController.text)) : '';
         
                                               
@@ -739,7 +842,9 @@ showDialog(
           final email = user?.email;
           final response = await Supabase.instance.client.from('user').select().eq('email', email!).maybeSingle();
           final company = response?['company'];
+          
           final username = response?['username'];
+          CustomToast.show(context);
                                               await Supabase.instance.client.from('materials').insert({
                                                 'company': company,
                                                 'usermat': username,
@@ -810,6 +915,25 @@ showDialog(
   }
 
 
+ bool didntpayed = false;
+
+Future<void> didntPay () async{
+final user = Supabase.instance.client.auth.currentUser;
+    final email = user?.email;
+
+    final response = await Supabase.instance.client.from('user').select().eq('email', email ?? 'Hi').single();
+    final company = response['company'];
+    final response1 = await Supabase.instance.client.from('company').select().eq('companyname', company).single();
+    final enddate = response1['enddate'];
+    if (enddate != null){
+      if ((DateTime.parse(enddate)).difference(DateTime.now()).inDays <= 1){
+        didntpayed = true;
+      }
+    }
+}
+
+
+
 @override
 Widget build(BuildContext context){
   final searchTerm = searchMController.text.toLowerCase();
@@ -826,19 +950,64 @@ entries.sort((a, b) => a['name'].compareTo(b['name']));
 
 filteredEntries.sort((a, b) => a['name'].compareTo(b['name']));
 
-   if (_role == 'user') {
+     if (_role == 'user' || Supabase.instance.client.auth.currentSession == null) {
       return Scaffold(
         backgroundColor: Colors.white,
-        body: Center(
-          child: Image.asset(
-            'images/restrict.png',
-            width: 400,
-            height: 400,
-            fit: BoxFit.contain,
+        body: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Center(
+            child: Image.asset(
+              'images/restrict.png',
+              width: 400,
+              height: 400,
+              fit: BoxFit.contain,
+            ),
           ),
         ),
       );
     }
+
+if (didntpayed == true){
+  return Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+            
+                children: [
+                  Container(
+                    width: MediaQuery.of(context).size.width *0.13188,
+                    height: MediaQuery.of(context).size.height * 0.27251,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                    color: const Color.fromARGB(255, 255, 193, 188),
+                    ),
+                    child: Icon(
+                    Icons.warning, color: Colors.red, size: MediaQuery.of(context).size.width * 0.06,
+                    ),
+                  ),
+                  SizedBox(height: 30,),
+                  Text('Membership Expired', style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.bold, fontSize: MediaQuery.of(context).size.height * 0.059242),),
+          SizedBox(height: 40,),
+          Container(
+            width:  MediaQuery.of(context).size.width * 0.229358,
+            height:MediaQuery.of(context).size.height * 0.059242,
+            decoration: BoxDecoration(
+              color: Colors.red,
+              borderRadius: BorderRadius.circular(10)
+            ), child: Center(child: Text('Renew', style: TextStyle(fontFamily: 'Inter', color: Colors.white, fontSize: MediaQuery.of(context).size.height * 0.026066),),),
+          )
+                ],
+              )
+            ),
+          ),
+        ),
+      );
+}
 
   return Scaffold(
        backgroundColor: Color.fromARGB(255, 236, 244, 254),

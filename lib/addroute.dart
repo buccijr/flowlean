@@ -975,7 +975,7 @@ SizedBox(width: 30),
                     ),
                     ),
                    ),
-                                SizedBox(width:   MediaQuery.of(context).size.width * 0.32,),
+                                SizedBox(width:  600),
                                     Center(child: Text('Steps', style: TextStyle(fontFamily: 'WorkSans', 
              fontWeight: FontWeight.bold,
              color:  const Color.fromARGB(255, 0, 75, 132), fontSize: 21 ),)),
@@ -1531,12 +1531,15 @@ double fontSizeBasedOnLength(String text) {
                                                                                 if (data.isEmpty){
                                                                              return Center(child: Text('Select a material...', style: TextStyle(fontFamily: 'Inter', color: Colors.black, fontSize: 16.5),));
                                                                               }
-                                                                             return Center(
-                                                                               child: Text(tapIndexes[index] == -1 ? 'Select a material...' : truncateWithEllipsis(31, data['name'] ?? 'Select a material...'), 
-                                                                               style: TextStyle(fontFamily: 'Inter', color: Colors.black, fontSize: 
-                                                                                 (data['name'] == null || data['name'].toString().isEmpty)
-    ? 16.5
-    : fontSizeBasedOnLength(data['name'].toString())),),
+                                                                             return SizedBox(
+                                                                              width: 155,
+                                                                               child: Center(
+                                                                                 child: Text(tapIndexes[index] == -1 ? 'Select a material...' : data['name'] ?? 'Select a material...', overflow: TextOverflow.ellipsis,
+                                                                                 style: TextStyle(fontFamily: 'Inter', color: Colors.black, fontSize: 
+                                                                                   (data['name'] == null || data['name'].toString().isEmpty)
+                                                                                   ? 16.5
+                                                                                   : fontSizeBasedOnLength(data['name'].toString())),),
+                                                                               ),
                                                                              ); }
                                                                                                                                                                                                 ),
                                                                                                                                                                    
@@ -1607,7 +1610,9 @@ double fontSizeBasedOnLength(String text) {
                                                                                               ...data.map((entry){
                                                                                                 return DropdownMenuItem(
                                                                                                   value: entry['description']  ?? 'N/A',
-                                                                                                  child: Center(child: Text(truncateWithEllipsis(31, entry['description'] ?? 'N/A'), style: TextStyle(fontFamily: 'Inter', color: Colors.black, fontSize: 16.5),)));
+                                                                                                  child: SizedBox(
+                                                                                                    width: 155,
+                                                                                                    child: Center(child: Text( entry['description'] ?? 'N/A', overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: 'Inter', color: Colors.black, fontSize: 16.5),))));
                                                                                               })
                                                                                           ],
                                                                                            onChanged: (value){
@@ -1648,7 +1653,9 @@ setLocallyState(() {
                                                                           Row(
                                                                             children: [
                                                                               SizedBox(width: 10,),
-                                                                              Center(child: Text(truncateWithEllipsis(31,  processed[index] ?? 'Select a process...') ,style: TextStyle(fontFamily: 'Inter', color: Colors.black, fontSize: 16.5),)),
+                                                                            SizedBox(
+                                                                                width: 155,
+                                                                                child: Center(child: Text( processed[index] ?? 'Select a process...', overflow: TextOverflow.ellipsis,style: TextStyle(fontFamily: 'Inter', color: Colors.black, fontSize: 16.5),))),
                                                                             ],
                                                                           ),
                                                                         ],
@@ -1747,6 +1754,8 @@ setLocallyState(() {
                                                                                                                                                   final data = snapshot.data?[0] ?? {};
                                                                                                                                                   final   data2 = snapshot.data?[1] ?? {};
                                                                                                                                                   final List<dynamic> datas = snapshot.data?[2] ?? [];
+                                                                                                                                                  final data40 = datas.where((entry) => entry['description'] != 'Material Location' && 
+                                                                                                                                                  entry['description'] != 'Current Process');
                                                                                                                                                   if (fromTo[index]?['From'] == null){
                                                                                                                                                  fromTo[index] = {};
                                                                                                                                                   }
@@ -1773,10 +1782,21 @@ setLocallyState(() {
                                                                                                                                              value: 'From',
                                                                                                                                              child: Text('From')
                                                                                                                                              ),
-                                                                                                                                             ...datas.map((entry) {
+                                                                                                                                             DropdownMenuItem(
+                                                                                                                                             value: 'Material Location',
+                                                                                                                                             child: Text('Material Location')
+                                                                                                                                             ),
+                                                                                                                                             DropdownMenuItem(
+                                                                                                                                             value: 'Current Process',
+                                                                                                                                             child: Text('Current Process')
+                                                                                                                                             ),
+                                                                                                                                            
+                                                                                                                                             ...data40.map((entry) {
                                                                                                                                               return DropdownMenuItem(
                                                                                                                                              value: entry['description'] ?? 'N/A',
-                                                                                                                                             child: Text(truncateWithEllipsis(25, entry['description'] ?? 'N/A'))
+                                                                                                                                             child: SizedBox(
+                                                                                                                                             width: 149, 
+                                                                                                                                              child: Text( entry['description'] ?? 'N/A', overflow: TextOverflow.ellipsis,))
                                                                                                                                              );}),
                                                                                                                                          ],
                                                                                                                                          onChanged: (value){
@@ -1806,10 +1826,20 @@ setLocallyState(() {
                                                                                                                                              value: 'To',
                                                                                                                                              child: Text('To')
                                                                                                                                              ),
-                                                                                                                                             ...datas.map((entry) {
+                                                                                                                                             DropdownMenuItem(
+                                                                                                                                             value: 'Material Location',
+                                                                                                                                             child: Text('Material Location')
+                                                                                                                                             ),
+                                                                                                                                             DropdownMenuItem(
+                                                                                                                                             value: 'Current Process',
+                                                                                                                                             child: Text('Current Process')
+                                                                                                                                             ),
+                                                                                                                                             ...data40.map((entry) {
                                                                                                                                               return DropdownMenuItem(
                                                                                                                                              value: entry['description'] ?? 'N/A', 
-                                                                                                                                             child: Text(truncateWithEllipsis(25, entry['description'] ?? 'N/A'))
+                                                                                                                                             child: SizedBox(
+                                                                                                                                              width: 149,
+                                                                                                                                              child: Text( entry['description'] ?? 'N/A', overflow: TextOverflow.ellipsis,))
                                                                                                                                              );}),
                                                                                                                                          ],
                                                                                                                                          onChanged: (value){
@@ -2208,7 +2238,7 @@ SizedBox(width: 30),
                     ),
                     ),
                    ),
-                                SizedBox(width:   MediaQuery.of(context).size.width * 0.32,),
+                                SizedBox(width:   600),
                                     Center(child: Text('Steps', style: TextStyle(fontFamily: 'WorkSans', 
              fontWeight: FontWeight.bold,
              color:  const Color.fromARGB(255, 0, 75, 132), fontSize: 21 ),)),
@@ -2744,8 +2774,11 @@ SizedBox(width: 30),
                                                                                   return Center(child: Text('Select a material...', style: TextStyle(fontFamily: 'Inter', color: Colors.black, fontSize: 16.5),));
                                                                                      }
                                                                                      tapIndexes[index] = tapIndexNotifier.value ?? -1;
-                                                                                      return Center(child: Text(truncateWithEllipsis(31, data['name'] ?? 'Select a material...'), style: TextStyle(fontFamily: 'Inter', color: Colors.black, 
-                                                                                    fontSize: data['name'] == null ? 16.5 : fontSizeBasedOnLength(data['name'])),));
+                                                                                      return SizedBox(
+                                                                                        width: 155,
+                                                                                        child: Center(child: Text(data['name'] ?? 'Select a material...', overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: 'Inter', color: Colors.black, 
+                                                                                                                                                                            fontSize: data['name'] == null ? 16.5 : fontSizeBasedOnLength(data['name'])),)),
+                                                                                      );
                                                                                       }
                                                                                      )
                                                                                      : tapIndexes[index] != null ? FutureBuilder(
@@ -2756,10 +2789,13 @@ SizedBox(width: 30),
                                                                               Center(child: Text('Select a material...', style: TextStyle(fontFamily: 'Inter', color: Colors.black, fontSize: 16.5),));
                                                                               }
                                                                              return Center(
-                                                                               child: Text(tapIndexes[index] == -1 ? 'Select a material...' : truncateWithEllipsis(31, data['name'] ?? 'Select a material...') ,
-                                                                               style: TextStyle(fontFamily: 'Inter', color: Colors.black, fontSize:
-                                                                               data['name'] == null ? 16.5 : 
-                                                                                fontSizeBasedOnLength(data['name'])),),
+                                                                               child: SizedBox(
+                                                                                width: 155,
+                                                                                 child: Text(tapIndexes[index] == -1 ? 'Select a material...' :  data['name'] ?? 'Select a material...', overflow: TextOverflow.ellipsis ,
+                                                                                 style: TextStyle(fontFamily: 'Inter', color: Colors.black, fontSize:
+                                                                                 data['name'] == null ? 16.5 : 
+                                                                                  fontSizeBasedOnLength(data['name'])),),
+                                                                               ),
                                                                              ); }
                                                                                                                                                                                                 ) : Center(
                                                                                child: Text('Select a material...',
@@ -2832,7 +2868,9 @@ SizedBox(width: 30),
                                                                                               ...data.map((entry){
                                                                                                 return DropdownMenuItem(
                                                                                                   value: entry['description']  ?? 'N/A',
-                                                                                                  child: Center(child: Text(truncateWithEllipsis(31, entry['description'] ?? 'N/A'), style: TextStyle(fontFamily: 'Inter', color: Colors.black, fontSize: 16.5),)));
+                                                                                                  child: SizedBox(
+                                                                                                    width: 155,
+                                                                                                    child: Center(child: Text( entry['description'] ?? 'N/A', overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: 'Inter', color: Colors.black, fontSize: 16.5),))));
                                                                                               })
                                                                                           ],
                                                                                            onChanged: (value){
@@ -2873,7 +2911,9 @@ SizedBox(width: 30),
                                                                           Row(
                                                                             children: [
                                                                               SizedBox(width: 10,),
-                                                                              Center(child: Text(truncateWithEllipsis( 31, processed[index] ?? 'Select a process...') ,style: TextStyle(fontFamily: 'Inter', color: Colors.black, fontSize: 16.5),)),
+                                                                              SizedBox(
+                                                                                width: 155,
+                                                                                child: Center(child: Text( processed[index] ?? 'Select a process...', overflow: TextOverflow.ellipsis,style: TextStyle(fontFamily: 'Inter', color: Colors.black, fontSize: 16.5),))),
                                                                             ],
                                                                           ),
                                                                         ],
@@ -2994,9 +3034,12 @@ SizedBox(width: 30),
                                                                                                                                                   final data = snapshot.data?[0] ?? {};
                                                                                                                                                   final   data2 = snapshot.data?[1] ?? {};
                                                                                                                                                   final List<dynamic> datas = snapshot.data?[2] ?? [];
+                                                                                                                                                  final data40 = datas.where((entry) => entry['description'] != 'Material Location' && 
+                                                                                                                                                  entry['description'] != 'Current Process');
                                                                                                                                                   if (fromTo[index]?['From'] == null){
                                                                                                                                                  fromTo[index] = {};
                                                                                                                                                   }
+                                                                                                                                                  
                                                                                                                                                   if (data2['matmov'] == true) {
                                                                                                                                                     return Row(children: [
                                                                                                                                           Container(
@@ -3020,10 +3063,20 @@ SizedBox(width: 30),
                                                                                                                                              value: 'From',
                                                                                                                                              child: Text('From')
                                                                                                                                              ),
-                                                                                                                                             ...datas.map((entry) {
+                                                                                                                                             DropdownMenuItem(
+                                                                                                                                             value: 'Material Location',
+                                                                                                                                             child: Text('Material Location')
+                                                                                                                                             ),
+                                                                                                                                             DropdownMenuItem(
+                                                                                                                                             value: 'Current Process',
+                                                                                                                                             child: Text('Current Process')
+                                                                                                                                             ),
+                                                                                                                                             ...data40.map((entry) {
                                                                                                                                               return DropdownMenuItem(
                                                                                                                                              value: entry['description'] ?? 'N/A',
-                                                                                                                                             child: Text(truncateWithEllipsis(25, entry['description'] ?? 'N/A'))
+                                                                                                                                             child: SizedBox(
+                                                                                                                                              width: 149,
+                                                                                                                                              child: Text(entry['description'] ?? 'N/A', overflow: TextOverflow.ellipsis,))
                                                                                                                                              );}),
                                                                                                                                          ],
                                                                                                                                          onChanged: (value){
@@ -3053,10 +3106,20 @@ SizedBox(width: 30),
                                                                                                                                              value: 'To',
                                                                                                                                              child: Text('To')
                                                                                                                                              ),
-                                                                                                                                             ...datas.map((entry) {
+                                                                                                                                             DropdownMenuItem(
+                                                                                                                                             value: 'Material Location',
+                                                                                                                                             child: Text('Material Location')
+                                                                                                                                             ),
+                                                                                                                                             DropdownMenuItem(
+                                                                                                                                             value: 'Current Process',
+                                                                                                                                             child: Text('Current Process')
+                                                                                                                                             ),
+                                                                                                                                             ...data40.map((entry) {
                                                                                                                                               return DropdownMenuItem(
                                                                                                                                              value: entry['description'] ?? 'N/A', 
-                                                                                                                                             child: Text(truncateWithEllipsis(25, entry['description'] ?? 'N/A'))
+                                                                                                                                             child: SizedBox(
+                                                                                                                                              width: 149,
+                                                                                                                                              child: Text(entry['description'] ?? 'N/A', overflow: TextOverflow.ellipsis,))
                                                                                                                                              );}),
                                                                                                                                          ],
                                                                                                                                          onChanged: (value){
@@ -3170,6 +3233,27 @@ SizedBox(width: 30),
     
   
 }
+
+
+ bool didntpayed = false;
+
+Future<void> didntPay () async{
+final user = Supabase.instance.client.auth.currentUser;
+    final email = user?.email;
+
+    final response = await Supabase.instance.client.from('user').select().eq('email', email ?? 'Hi').single();
+    final company = response['company'];
+    final response1 = await Supabase.instance.client.from('company').select().eq('companyname', company).single();
+    final enddate = response1['enddate'];
+    if (enddate != null){
+      if ((DateTime.parse(enddate)).difference(DateTime.now()).inDays <= 1){
+        didntpayed = true;
+      }
+    }
+}
+
+
+
   @override
   Widget build(BuildContext context) {
             Map<String, List<Map<String, dynamic>>> groupedData = {};
@@ -3183,21 +3267,67 @@ SizedBox(width: 30),
                 }
                 groupedData[material]!.add(Map<String, dynamic>.from(entry));
               }
-         
-  
-   if (_role == 'user') {
+    
+    
+
+    if (_role == 'user' || Supabase.instance.client.auth.currentSession == null) {
       return Scaffold(
         backgroundColor: Colors.white,
-        body: Center(
-          child: Image.asset(
-            'images/restrict.png',
-            width: 400,
-            height: 400,
-            fit: BoxFit.contain,
+        body: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Center(
+            child: Image.asset(
+              'images/restrict.png',
+              width: 400,
+              height: 400,
+              fit: BoxFit.contain,
+            ),
           ),
         ),
       );
     }
+
+if (didntpayed == true){
+  return Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+            
+                children: [
+                  Container(
+                    width: MediaQuery.of(context).size.width *0.13188,
+                    height: MediaQuery.of(context).size.height * 0.27251,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                    color: const Color.fromARGB(255, 255, 193, 188),
+                    ),
+                    child: Icon(
+                    Icons.warning, color: Colors.red, size: MediaQuery.of(context).size.width * 0.06,
+                    ),
+                  ),
+                  SizedBox(height: 30,),
+                  Text('Membership Expired', style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.bold, fontSize: MediaQuery.of(context).size.height * 0.059242),),
+          SizedBox(height: 40,),
+          Container(
+            width:  MediaQuery.of(context).size.width * 0.229358,
+            height:MediaQuery.of(context).size.height * 0.059242,
+            decoration: BoxDecoration(
+              color: Colors.red,
+              borderRadius: BorderRadius.circular(10)
+            ), child: Center(child: Text('Renew', style: TextStyle(fontFamily: 'Inter', color: Colors.white, fontSize: MediaQuery.of(context).size.height * 0.026066),),),
+          )
+                ],
+              )
+            ),
+          ),
+        ),
+      );
+}
 
 
    return 
@@ -3628,131 +3758,128 @@ SizedBox(width: 30),
                                    String truncateWithEllipsis(int cutoff, String myString) {
                                    return (myString.length <= cutoff) ? myString : '${myString.substring(0, cutoff)}...';
                                  }
-                              return SizedBox(
-                                    width: MediaQuery.of(context).size.width * 0.88,
-                                                    height:  MediaQuery.of(context).size.width >  1500 ?  MediaQuery.of(context).size.height * 0.21  :  MediaQuery.of(context).size.width >  1450 ? 
-                          MediaQuery.of(context).size.height *  0.26 :
-                        MediaQuery.of(context).size.height*  0.28,
-                                child: Padding(
-                                          padding: EdgeInsets.all(10),
-                                          child: Material(
-                                            elevation: 3,
-                                            borderRadius: BorderRadius.circular(10),
-                                            color: Colors.white,
-                                            child: Container(
-                                              decoration: BoxDecoration(
-                                                        color: Colors.white,
-                                                        borderRadius: BorderRadius.circular(10),
-                                              ),
-                                              padding: EdgeInsets.all(20),
-                                              child: Column(
-                                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                                        children: [
-                                                          // Material header row
-                                                          Row(
-                                children: [
-                                  Text(truncateWithEllipsis(72, entry), style: TextStyle(fontFamily: 'Inter', fontSize: 30)),
-                                  Spacer(),
-                                  ValueListenableBuilder(
-                                    valueListenable: tapIndexNotifier,
-                                    builder: (context, tapIndex, _) {
-                                      return IconButton(
-                                        onPressed: (){
-                                         
-                                         routeEditPopUp(entry);
-                                        },
-                                        icon: Icon(Icons.edit));
-                                    }
-                                  ),
-                                  SizedBox(width: 10),
-                                  IconButton(
-                                        onPressed: () {
-                                       
-                                          final routeId = uniqueMaterials[index]; 
-                                       deletePopUp(routeId);
-                                        },
-                                        icon:  Icon(Icons.delete, color: Colors.red),
-                                      )
-                                    
-                                  
-                                                          ] 
-                                                          ),
-                                          
-                                                          SizedBox(height: 20),
-                                                         
-                                                          SizedBox(
-                            
-                                child: SingleChildScrollView(
-                                  scrollDirection: Axis.horizontal,
-                                  child: Row(
-                                    children: routesForMaterial.map((routeEntry) {
-                                     double fontSizeBasedOnLength(String text) {
-                                     if (text.length > 15){
-                                    return 13.5;
-                                     }
-                                   else if (text.length > 30){
-                                    return 10.00;
-                                     } else {
-                                    return 17;
-                                     }
-                                   }
-                                  
-                                    
-
-  bool isStepOne = routeEntry['step'] == 1;
-                                    int occurrenceIndex = isStepOne ? isDuplicates.indexWhere((e) => e == routeEntry) : -1;
-
-  bool showArrow = !isStepOne || (isStepOne && occurrenceIndex > 0);
-                                      return 
-                                      Center(
-                                     child: Row(
-                                        children: [
-                                          SizedBox(width: 10),
-                                        showArrow == false ? SizedBox.shrink() : Icon(Icons.arrow_forward),
-                                          routeEntry['material']  != data[routeEntry['step'] - 1]['material'] ?
-                                          Container(
-                                       width: MediaQuery.of(context).size.width * 0.12,
-                                                    height: MediaQuery.of(context).size.height * 0.06,
-                                          decoration: BoxDecoration(
-                                            color: const Color.fromARGB(255, 0, 98, 178),
-                                            borderRadius: BorderRadius.circular(10),
-                                          ),
-                                          child:  Center(
-                                            child: Text(
-                                                      truncateWithEllipsis(31, routeEntry['material'] ?? ''),
-                                                      style: TextStyle(fontFamily: 'Inter', fontSize: fontSizeBasedOnLength(  '${routeEntry['material']}'), color: Colors.white),
-                                                    ),
-                                          ),
-                                          ) : SizedBox.shrink(),
-                                                  Icon(Icons.arrow_forward),
-                                          SizedBox(width: 5),
-                                          Container(
-                                             width: MediaQuery.of(context).size.width * 0.07,
-                                                    height: MediaQuery.of(context).size.height * 0.06,
+                              return Padding(
+                                        padding: EdgeInsets.all(10),
+                                        child: Material(
+                                          elevation: 3,
+                                          borderRadius: BorderRadius.circular(10),
+                                          color: Colors.white,
+                                          child: Container(
                                             decoration: BoxDecoration(
-                                              borderRadius: BorderRadius.circular(10),
-                                              color: Color(0xFFEDEDED),
+                                                      color: Colors.white,
+                                                      borderRadius: BorderRadius.circular(10),
                                             ),
-                                            child: Center(
-                                              child: Text(
-                                                
-                                                truncateWithEllipsis(31, routeEntry['process'] ?? ''),
-                                                style: TextStyle(fontFamily: 'Inter', fontSize: fontSizeBasedOnLength('${routeEntry['process']}')),
-                                              ),
+                                            padding: EdgeInsets.all(20),
+                                            child: Column(
+                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      children: [
+                                                        // Material header row
+                                                        Row(
+                              children: [
+                               SizedBox(
+                                width: MediaQuery.of(context).size.width * 0.8 - 90,
+                                child: Text(entry,  overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: 'Inter', fontSize: 30))),
+                                Spacer(),
+                                
+                                ValueListenableBuilder(
+                                  valueListenable: tapIndexNotifier,
+                                  builder: (context, tapIndex, _) {
+                                    return IconButton(
+                                      onPressed: (){
+                                       
+                                       routeEditPopUp(entry);
+                                      },
+                                      icon: Icon(Icons.edit));
+                                  }
+                                ),
+                                SizedBox(width: 10),
+                                // IconButton(
+                                //       onPressed: () {
+                                     
+                                //         final routeId = uniqueMaterials[index]; 
+                                //      deletePopUp(routeId);
+                                //       },
+                                //       icon:  Icon(Icons.delete, color: Colors.red),
+                                //     )
+                                  
+                                
+                                                        ] 
+                                                        ),
+                                        
+                                                        SizedBox(height: 20),
+                                                       
+                                                        SizedBox(
+                                                          
+                              child: SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Row(
+                                  children: routesForMaterial.map((routeEntry) {
+                                   double fontSizeBasedOnLength(String text) {
+                                   if (text.length > 15){
+                                  return 13.5;
+                                   }
+                                 else if (text.length > 30){
+                                  return 10.00;
+                                   } else {
+                                  return 17;
+                                   }
+                                 }
+                                
+                                  
+                              
+                                bool isStepOne = routeEntry['step'] == 1;
+                                  int occurrenceIndex = isStepOne ? isDuplicates.indexWhere((e) => e == routeEntry) : -1;
+                              
+                                bool showArrow = !isStepOne || (isStepOne && occurrenceIndex > 0);
+                                    return 
+                                    Center(
+                                   child: Row(
+                                      children: [
+                                        SizedBox(width: 10),
+                                      showArrow == false ? SizedBox.shrink() : Icon(Icons.arrow_forward),
+                                        routeEntry['material']  != data[routeEntry['step'] - 1]['material'] ?
+                                        Container(
+                                     width: MediaQuery.of(context).size.width * 0.12,
+                                                  height: MediaQuery.of(context).size.height * 0.06,
+                                        decoration: BoxDecoration(
+                                          color: const Color.fromARGB(255, 0, 98, 178),
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                        child:  Center(
+                                          child: Text(
+                                                    routeEntry['material'] ?? 'N/A',  overflow: TextOverflow.ellipsis,
+                                                    style: TextStyle(fontFamily: 'Inter', fontSize: fontSizeBasedOnLength(  '${routeEntry['material']}'), color: Colors.white),
+                                                  ),
+                                        ),
+                                        ) : SizedBox.shrink(),
+                                                Icon(Icons.arrow_forward),
+                                        SizedBox(width: 5),
+                                        Container(
+                                           width: MediaQuery.of(context).size.width * 0.07,
+                                                  height: MediaQuery.of(context).size.height * 0.06,
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(10),
+                                            color: Color(0xFFEDEDED),
+                                          ),
+                                          child: Center(
+                                            child: Text(
+                                              
+                                             routeEntry['process'] ?? 'N/A' , overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(fontFamily: 'Inter', fontSize: fontSizeBasedOnLength('${routeEntry['process']}')),
                                             ),
                                           ),
-                                         
-                                        ],
-                                      ));
-                                    }).toList(),
-                                  ),
+                                        ),
+                                       
+                                      ],
+                                    ));
+                                  }).toList(),
                                 ),
-                                                          ),
-                                                        ],
-                                              ),
+                              ),
+                                                        ),
+                                                      ],
                                             ),
                                           ),
-                                ),
+                                        ),
                               );
                             },
                           );

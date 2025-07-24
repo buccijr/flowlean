@@ -17,12 +17,13 @@ void main() async {
 
   runApp(MaterialApp(
   debugShowCheckedModeBanner: false,
-  home: AddNewUser()));
+  home: AddNewUser(onSuccess: (){},)));
 
 }
 
 class AddNewUser extends StatefulWidget {
-  const AddNewUser({super.key});
+   final VoidCallback onSuccess;
+  const AddNewUser({super.key, required this.onSuccess,});
 
   @override
   State<AddNewUser> createState() => _AddNewUserState();
@@ -50,8 +51,7 @@ Map<int, bool> isCheckedMap = {};
 Timer? _debounce;
 
   void addUserPopUp(){
-    
-    
+   
  showDialog(
     context: context, 
     builder: (_) => StatefulBuilder(
@@ -437,7 +437,6 @@ onSearchChanged();
                       if (selectedRole != 'Role' && usernameController.text.isNotEmpty && passwordController.text.isNotEmpty
                       && mailController.text.isNotEmpty){
                       addUser();
-                      successPage = true;
                       // Navigator.pop(context);
                       } else {
                         errorText = "Please don't leave a field blank";
@@ -524,17 +523,15 @@ Future<void> addUser() async {
   );
 
   if (response.statusCode == 200) {
-     snackbarNotifier.value = true;
-
-           Future.delayed(Duration(seconds: 3), () {
-  snackbarNotifier.value = false;
-});
+    widget.onSuccess();
           setState(() {
+
             
           });
     print('User created successfully!');
   } else {
     print('Failed to create user: ${response.body}');
+    errorText = '${response.body}';
   }
 }
   

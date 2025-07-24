@@ -31,6 +31,67 @@ class AddUser extends StatefulWidget {
   State<AddUser> createState() => _AddUserState();
 }
 
+class CustomToast {
+  static void show(
+    BuildContext context,
+     {
+    Duration duration = const Duration(seconds: 3),
+  }) {
+    final overlay = Overlay.of(context);
+    final overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        bottom: 50,
+        left: 0,
+        right: 0,
+        child: Align(
+          alignment: Alignment.bottomCenter,
+          child: _ToastContent(),
+        ),
+      ),
+    );
+
+    overlay.insert(overlayEntry);
+
+    Future.delayed(duration, () {
+      overlayEntry.remove();
+    });
+  }
+}
+
+
+
+class _ToastContent extends StatelessWidget {
+  
+
+  const _ToastContent({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: AnimatedContainer(
+        duration: Duration(milliseconds: 300),
+        width: 250, // 👈 This will now work!
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color:Colors.green,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.task_alt, color: Colors.white),
+            SizedBox(width: 10, ),
+            Text(
+              'Created successfully!',
+              style: TextStyle(color: const Color.fromARGB(255, 255, 255, 255), fontSize: 15, fontFamily: 'Inter'),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 class _AddUserState extends State<AddUser> {
 Map<String, bool> isCheckedMapEdit = {};
 TextEditingController searchController2 = TextEditingController(); 
@@ -408,7 +469,7 @@ _onSearchChanged(setLocalState);
                                                                                         final isChecked = isCheckedMapEdit[usernames] ?? permittedProcesses.contains(usernames);
                                                                                                                                 
                                                                             return CheckboxListTile(
-                                                                            title: Text(entry['description'], style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.bold, fontSize: 16)),
+                                                                            title: Text(entry['description'],  overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.bold, fontSize: 16)),
                                                                             activeColor: Colors.blue,
                                                                             value: isChecked,
                                                                             onChanged: (value){
@@ -584,28 +645,90 @@ _onSearchChanged(setLocalState);
       _loading = false;
     });
   }
+ bool didntpayed = false;
 
+Future<void> didntPay () async{
+final user = Supabase.instance.client.auth.currentUser;
+    final email = user?.email;
+
+    final response = await Supabase.instance.client.from('user').select().eq('email', email ?? 'Hi').single();
+    final company = response['company'];
+    final response1 = await Supabase.instance.client.from('company').select().eq('companyname', company).single();
+    final enddate = response1['enddate'];
+    if (enddate != null){
+      if ((DateTime.parse(enddate)).difference(DateTime.now()).inDays <= 1){
+        didntpayed = true;
+      }
+    }
+}
 @override
 Widget build(BuildContext content){
+    
 
- 
-
-
-    if (_role == 'user') {
+    if (_role == 'user' || Supabase.instance.client.auth.currentSession == null) {
       return Scaffold(
         backgroundColor: Colors.white,
-        body: Center(
-          child: Image.asset(
-            'images/restrict.png',
-            width: 400,
-            height: 400,
-            fit: BoxFit.contain,
+        body: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Center(
+            child: Image.asset(
+              'images/restrict.png',
+              width: 400,
+              height: 400,
+              fit: BoxFit.contain,
+            ),
           ),
         ),
       );
     }
+
+if (didntpayed == true){
+  return Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+            
+                children: [
+                  Container(
+                    width: MediaQuery.of(context).size.width *0.13188,
+                    height: MediaQuery.of(context).size.height * 0.27251,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                    color: const Color.fromARGB(255, 255, 193, 188),
+                    ),
+                    child: Icon(
+                    Icons.warning, color: Colors.red, size: MediaQuery.of(context).size.width * 0.06,
+                    ),
+                  ),
+                  SizedBox(height: 30,),
+                  Text('Membership Expired', style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.bold, fontSize: MediaQuery.of(context).size.height * 0.059242),),
+          SizedBox(height: 40,),
+          Container(
+            width:  MediaQuery.of(context).size.width * 0.229358,
+            height:MediaQuery.of(context).size.height * 0.059242,
+            decoration: BoxDecoration(
+              color: Colors.red,
+              borderRadius: BorderRadius.circular(10)
+            ), child: Center(child: Text('Renew', style: TextStyle(fontFamily: 'Inter', color: Colors.white, fontSize: MediaQuery.of(context).size.height * 0.026066),),),
+          )
+                ],
+              )
+            ),
+          ),
+        ),
+      );
+}
+
+
    return  Scaffold(
-      floatingActionButton: AddNewUser(),
+      floatingActionButton: AddNewUser(
+          onSuccess: () => CustomToast.show(context),
+      ),
     backgroundColor: Color.fromARGB(255, 236, 244, 254),
       body: SingleChildScrollView(
         scrollDirection: Axis.horizontal,

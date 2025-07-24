@@ -43,8 +43,10 @@ class Mbi extends StatefulWidget {
 }
 
 class _MbiState extends State<Mbi> {
+  bool hovering = false;
   bool ialwaysfalse = false;
   bool selected1 = true;
+  
 
   bool selected2 = false;
 
@@ -94,7 +96,7 @@ Future machineFetch() async {
 }
 
 String username = '';
-String allowedProcess = '';
+String? allowedProcess;
 String? fetchedUsername;
 Map<int, bool> isHovered = {};
 Map<int, bool> isHovered2 = {};
@@ -121,9 +123,11 @@ print('emil $email');
       .maybeSingle();
 
   fetchedUsername = response?['username'] ?? 'hi';
+print(' fetched $fetchedUsername');
 
   if (fetchedUsername != null) {
     final response3 = await Supabase.instance.client.from('user_machine').select().eq('user_mac', fetchedUsername ?? 'hi').maybeSingle();
+    print('response3 $response3');
     if (response3 != null){
       allowedProcess = response3['machine'];
 
@@ -134,8 +138,9 @@ print('emil $email');
         .select()
         .eq('userpu', fetchedUsername ?? 'hi')
         .or('disabled.is.null,disabled.not.eq.true');
-
+ print('response2 $response2');
     if (response2 != null && response2.isNotEmpty) {
+      
       allowedProcess = response2[0]['processpu'];
     } else {
       allowedProcess = ''; // or handle the missing data case
@@ -144,7 +149,9 @@ print('emil $email');
 
     
     }}
-       final response10 = await Supabase.instance.client.from('process_users').select().eq('processpu', allowedProcess).or('disabled.is.null,disabled.not.eq.true');
+   
+   print('allo $allowedProcess');
+       final response10 = await Supabase.instance.client.from('process_users').select().eq('processpu', allowedProcess ?? "").or('disabled.is.null,disabled.not.eq.true');
 
           if (response10.length > 1){
             
@@ -154,15 +161,15 @@ print('emil $email');
            alone = 'true';
           }
 
-  setState(() {
-    loadingUser.value = false;
-  });
+
+print('alone $alone');
     return {
     'username': fetchedUsername,
     'allowedProcess': allowedProcess,
     'alone': alone
   };
 }
+
 
 List<String> morning = ['Rise and shine!', 'Good morning!', "Let's make today awesome!", "Morning, what's on the schedule today?",
 "Let's get this day started.", "Ready to knock out some tasks?"];
@@ -207,9 +214,84 @@ String selectedProcess = 'Please select a process';
 
 bool materialSelected = true;
 bool processSelected = false;
+bool didntpayed = false;
 
-  @override
-  Widget build(BuildContext context) {
+Future<void> didntPay () async{
+final user = Supabase.instance.client.auth.currentUser;
+    final email = user?.email;
+
+    final response = await Supabase.instance.client.from('user').select().eq('email', email ?? 'Hi').single();
+    final company = response['company'];
+    final response1 = await Supabase.instance.client.from('company').select().eq('companyname', company).single();
+    final enddate = response1['enddate'];
+    if (enddate != null){
+      if ((DateTime.parse(enddate)).difference(DateTime.now()).inDays <= 1){
+        didntpayed = true;
+      }
+    }
+}
+@override
+Widget build(BuildContext content){
+    
+
+    if (Supabase.instance.client.auth.currentSession == null) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        body: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Center(
+            child: Image.asset(
+              'images/restrict.png',
+              width: 400,
+              height: 400,
+              fit: BoxFit.contain,
+            ),
+          ),
+        ),
+      );
+    }
+
+if (didntpayed == true){
+  return Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+            
+                children: [
+                  Container(
+                    width: MediaQuery.of(context).size.width *0.13188,
+                    height: MediaQuery.of(context).size.height * 0.27251,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                    color: const Color.fromARGB(255, 255, 193, 188),
+                    ),
+                    child: Icon(
+                    Icons.warning, color: Colors.red, size: MediaQuery.of(context).size.width * 0.06,
+                    ),
+                  ),
+                  SizedBox(height: 30,),
+                  Text('Membership Expired', style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.bold, fontSize: MediaQuery.of(context).size.height * 0.059242),),
+          SizedBox(height: 40,),
+          // Container(
+          //   width:  MediaQuery.of(context).size.width * 0.229358,
+          //   height:MediaQuery.of(context).size.height * 0.059242,
+          //   decoration: BoxDecoration(
+          //     color: Colors.red,
+          //     borderRadius: BorderRadius.circular(10)
+          //   ), child: Center(child: Text('Renew', style: TextStyle(fontFamily: 'Inter', color: Colors.white, fontSize: MediaQuery.of(context).size.height * 0.026066),),),
+          // )
+                ],
+              )
+            ),
+          ),
+        ),
+      );
+}
      
    return Scaffold(
     floatingActionButton: AddButton(),
@@ -294,26 +376,39 @@ bool processSelected = false;
                               selected3 = false;
                             });
                             },
-                            child: Container(
-                              width: 165,
-                              height: 60,
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10),
-                                color: selected2 ?  const Color.fromARGB(255, 0, 55, 100) : null,
-                              ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Row(
-                                children: [
-                                    SizedBox(width: 7),
-                                     Icon(Icons.pageview_outlined, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
-                                     SizedBox(width: 5),
-                                  Text('Inbound',  textAlign: TextAlign.center, style: TextStyle(
-                                    color: const Color.fromARGB(255, 255, 255, 255),
-                                    fontSize: 20, fontWeight: FontWeight.w500),),
-                                ],
-                              ),
-                            )),
+                            child:Container(
+                          width: 175,
+                          height: 60,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            color: selected2 ?  const Color.fromARGB(255, 0, 55, 100) : null,
+                          ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Row(
+                            children: [
+                                SizedBox(width: 7),
+                                 Icon(Icons.pageview_outlined, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
+                                 SizedBox(width: 5),
+                              Text('Inbound',  textAlign: TextAlign.center, style: TextStyle(
+                                color: const Color.fromARGB(255, 255, 255, 255),
+                                fontSize: 20, fontWeight: FontWeight.w500),),
+                                 SizedBox(width: 5),
+                                  StreamBuilder(stream: Supabase.instance.client.from('detail').stream(primaryKey: ['id']), builder:(context, snapshot) {
+                                    
+                                     final data = snapshot.data ?? [];
+
+                                     final filteredData = data.where((entry) => entry['endtime'] == null && entry['process'] == allowedProcess && ((entry['current_user'] == null && entry['user_unique'] == null) || ((entry['current_user'] == username|| entry['user_unique'] == username) )));
+                                     return                               Flexible(
+                                       child: Text('(${filteredData.length})',  textAlign: TextAlign.center, style: TextStyle(
+                                                                       color:filteredData.isEmpty ?  const Color.fromARGB(255, 255, 255, 255) : const Color.fromARGB(255, 253, 242, 143),
+                                                                         fontSize: filteredData.length > 9 ? 13.5 : 16, fontWeight: FontWeight.w500),),
+                                     );
+                                   },),
+                                  
+                            ],
+                          ),
+                        )),
                                      ),
                      ),
                    ],
@@ -337,26 +432,36 @@ bool processSelected = false;
                               selected3 = true;
                             });
                             },
-                            child: Container(
-                              width: 165,
-                              height: 60,
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10),
-                                color: selected3 ?  const Color.fromARGB(255, 0, 55, 100) : null,
-                              ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Row(
-                                children: [
-                                    SizedBox(width: 7),
-                                     Icon(Icons.pageview_outlined, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
-                                     SizedBox(width: 5),
-                                  Text('Outbound',  textAlign: TextAlign.center, style: TextStyle(
-                                    color: const Color.fromARGB(255, 255, 255, 255),
-                                    fontSize: 20, fontWeight: FontWeight.w500),),
-                                ],
-                              ),
-                            )),
+                            child:  Container(
+                          width: 175,
+                          height: 60,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            color: selected3 ?  const Color.fromARGB(255, 0, 55, 100) : null,
+                          ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Row(
+                            children: [
+                                SizedBox(width: 7),
+                                 Icon(Icons.pageview_outlined, size: 29 ,color: const Color.fromARGB(255, 142, 204, 255)),
+                                 SizedBox(width: 3),
+                              Text('Outbound',  textAlign: TextAlign.center, style: TextStyle(
+                                color: const Color.fromARGB(255, 255, 255, 255),
+                                fontSize: 20, fontWeight: FontWeight.w500),),
+                                 SizedBox(width: 5),
+                                   StreamBuilder(stream: Supabase.instance.client.from('masterdata').stream(primaryKey: ['id']), builder:(context, snapshot) {
+                                     final data = snapshot.data ?? [];
+                                     final filteredData = data.where((entry) => entry['usernamem'] == fetchedUsername && entry['finishedtime'] == null);
+                                     return                               Flexible(
+                                       child: Text('(${filteredData.length})',  textAlign: TextAlign.center, style: TextStyle(
+                                                                       color: filteredData.isEmpty ?  const Color.fromARGB(255, 255, 255, 255) : const Color.fromARGB(255, 253, 242, 143),
+                                                                         fontSize: filteredData.length > 9 ? 13.5 : 16, fontWeight: FontWeight.w500),),
+                                     );
+                                   },)
+                            ],
+                          ),
+                        )),
                                      ),
                      ),
                    ],
@@ -533,487 +638,94 @@ bool processSelected = false;
           mainAxisAlignment: MainAxisAlignment.start,
            children: [
              SizedBox(width: 40),
-             Material(
-              elevation: 11,
-              borderRadius: BorderRadius.circular(16),
-               child: Container(
-               width: MediaQuery.of(context).size.width * 0.78,
-                    height: MediaQuery.of(context).size.height * 0.3 ,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  color: const Color.fromARGB(255, 0, 69, 125)
-                  
-                  
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                    FutureBuilder(
-                      future: Supabase.instance.client.from('user').select(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting){
-                          loadingUser.value = true;
+            StatefulBuilder(
+                   builder: (context, setLocalState) {
+                     return MouseRegion(
+                      onEnter: (event){
+                        setLocalState(() {
+                          hovering = true;
+                        });
+                      },
+                       onExit: (event){
+                        setLocalState(() {
+                          hovering = false;
+                        });
+                      },
+                   child: Material(
+                    elevation: 11,
+                    borderRadius: BorderRadius.circular(16),
+                     child: Container(
+                     width: MediaQuery.of(context).size.width * 0.78,
+                          height: MediaQuery.of(context).size.height * 0.3 ,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        color: const Color.fromARGB(255, 255, 255, 255),
+                          image: DecorationImage(
+                                   image: AssetImage(hovering ? 'images/newforklift.png' : 'images/lightsoff2.png'),
+                                   fit: BoxFit.cover,
+                                 ),
+                        
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                          FutureBuilder(
+                            future: Supabase.instance.client.from('user').select(),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState == ConnectionState.waiting){
+                                loadingUser.value = true;
+                              }
+                              final user = Supabase.instance.client.auth.currentUser;
+                              final email = user?.email;
+                              final data = snapshot.data ?? [];
+                               final filteredData = data.where((entry) => entry['email'] == email,).toList();
+                        for(final entry in filteredData){
+                         usernames = entry['username'];
                         }
-                        final user = Supabase.instance.client.auth.currentUser;
-                        final email = user?.email;
-                        final data = snapshot.data ?? [];
-                         final filteredData = data.where((entry) => entry['email'] == email,).toList();
-                  for(final entry in filteredData){
-                   usernames = entry['username'];
-                  }
-                        return Align(
-                          alignment: Alignment.centerLeft,
-                          child: ShaderMask(
-                            shaderCallback: (bounds) => LinearGradient(
-                              colors: [const Color.fromARGB(255, 164, 200, 255), const Color.fromARGB(255, 255, 226, 81)],
-                            ).createShader(Rect.fromLTWH(0, 0, bounds.width, bounds.height)),
-                            blendMode: BlendMode.srcIn,
-                            child: Text(
-                              '${greeting()}, $usernames!', 
-                              style: TextStyle(
-                                fontSize: MediaQuery.of(context).size.height * 0.07,
-                              
-                                fontFamily: 'Inter',
-                                color: Colors.white, // Needed for ShaderMask to work
-                              ),
-                            ),
+                              return Align(
+                                alignment: Alignment.centerLeft,
+                                child: hovering ? Text(
+                                    '${greeting()}, $usernames!', 
+                                    style: TextStyle(
+                                      fontSize: MediaQuery.of(context).size.height * 0.07,
+                                    shadows: [    Shadow(offset: Offset(-1, -1), color: Colors.black),
+          Shadow(offset: Offset(1, -1), color: Colors.black),
+          Shadow(offset: Offset(-1, 1), color: Colors.black),
+          Shadow(offset: Offset(1, 1), color: Colors.black),],
+                                      fontFamily: 'Inter',
+                                      color: Colors.white, // Needed for ShaderMask to work
+                                    ),
+                                  ) : ShaderMask(
+                                  shaderCallback: (bounds) => LinearGradient(
+                                    colors: [const Color.fromARGB(255, 164, 200, 255), const Color.fromARGB(255, 255, 226, 81)],
+                                  ).createShader(Rect.fromLTWH(0, 0, bounds.width, bounds.height)),
+                                  blendMode: BlendMode.srcIn,
+                                  child: Text(
+                                    '${greeting()}, $usernames!', 
+                                    style: TextStyle(
+                                      fontSize: MediaQuery.of(context).size.height * 0.07,
+                                    
+                                      fontFamily: 'Inter',
+                                      color: Colors.white, // Needed for ShaderMask to work
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }
                           ),
-                        );
-                      }
-                    ),
-                 SizedBox(height: 20),
-//                 FutureBuilder(
-//            future: Future.wait([
-//             Supabase.instance.client.from('masterdata').select(),
-//             fetchUsername(),
-//             Supabase.instance.client.from('detail').select(),
-//             ]),
-//            builder: (context, snapshot) {
-//              if (snapshot.connectionState == ConnectionState.waiting || snapshot.data == null){
-//               loadingUser.value = true;
-          
-//              } else {
-            
-//              } if (snapshot.hasError){
-//               return Text('Error: ${snapshot.error}');
-//              }
-        
-//         print('loadus $loadingUser');
-//         final data3 = snapshot.data?[0] ?? [];
-//    final userData = snapshot.data?[1];
-//    final data = snapshot.data?[2] ?? [];
-// if (userData == null || userData is! Map<String, dynamic> ) {
-//   loadingUser.value = true;
-//   return Text('');
-// }
-//   print('loadus2 $loadingUser');
-// final usernamer = userData['username'];
-// final allowedProcessa = userData['allowedProcess'];
-// final aloner = userData['alone'];
+                       SizedBox(height: 20),
 
-
-//         final filteredData = 
-        
-//         data
-//         .where((entry) => entry['usernamem'] == fetchedUsername && entry['closed'] == 1);
-           
-         
-        
-      
-         
-        
-        
-//           final filteredData7 = 
-//         aloner == 'false' ?
-//         data3
-//         .where((entry) => entry['current_user'] == fetchedUsername )
-//         .where((entry) {
-//         final start = DateTime.parse(entry['starttime']);
-//         final finish = entry['finishedtime'];
-//         if (finish == null) return false;
-//         final finish1 = DateTime.parse(entry['finishedtime']);
-//          return start.difference(finish1).inDays.abs() <= 1;
-         
-        
-//         }).toList()
-//         : 
-//         data
-//         .where((entry) => entry['user_unique'] == fetchedUsername)
-//         .where((entry) {
-//         final start = DateTime.parse(entry['starttime']);
-//         final finish = entry['finishedtime'];
-//         if (finish == null) return false;
-//         final finish1 = DateTime.parse(entry['finishedtime']);
-//          return start.difference(finish1).inDays.abs() <= 1;
-         
-        
-//         }).toList();
-        
-        
-//         final filteredData1 = data3
-//         .where((entry) => entry['usernamem'] == usernamer);
-        
-      
-//           final filteredData3 = 
-      
-//         data
-//         .where((entry) => (entry['current_user'] == fetchedUsername|| entry['user_unique'] == fetchedUsername ) && entry['usernamem'] != fetchedUsername);
-        
-          
-//         final filteredData2 = data
-//          .where((entry) => (entry['current_user'] == fetchedUsername|| entry['user_unique'] == fetchedUsername ) && entry['usernamed'] != fetchedUsername)
-//           .where((entry) => entry['endtime'] != null)
-       
-//           .toList();
-//           int total = 0;
-// for (final entry in filteredData2){
-//             final startTime = DateTime.parse(entry['starttime']);
-//             final endTime = DateTime.parse(entry['endtime']);
-//             total += endTime.difference(startTime).inSeconds;
-//            }
-       
-//        final avg1 = filteredData2.isNotEmpty ? (total / filteredData2.length  /60).toStringAsFixed(2): -1;
-      
-//        final filteredData19 = data
-//          .where((entry) => entry['usernamed'] == fetchedUsername)
-//           .where((entry) => entry['endtime'] != null)
-       
-//           .toList();
-//           int total2 = 0;
-// for (final entry in filteredData19){
-//             final startTime = DateTime.parse(entry['starttime']);
-//             final endTime = DateTime.parse(entry['endtime']);
-//             total2 += endTime.difference(startTime).inSeconds;
-//            }
-       
-//        final avg2 = filteredData19.isNotEmpty ? (total2 / filteredData19.length  /60).toStringAsFixed(2): -1;
-      
-        
-// final filteredData9 = data.where((entry) => (entry['current_user'] == fetchedUsername || entry['user_unique'] == fetchedUsername)  && entry['endtime'] != null && DateTime.now().difference(DateTime.parse(entry['endtime'])).abs().inDays <= 1);
-//        final filteredData10 = data.where((entry) => (entry['usernamed'] == fetchedUsername  && entry['endtime'] != null && DateTime.now().difference(DateTime.parse(entry['starttime'])).inDays <= 1));
-    
-
-//              return 
-//                  Row(
-                
-//                    children: [
-//                      Material(
-//                      elevation: 8,
-//                      borderRadius: BorderRadius.circular(16),
-//                      child: MouseRegion(
-//                       cursor: SystemMouseCursors.click,
-//                        child: GestureDetector(
-//  onTap: (){
-//                                  context.go('/inbound');
-//                                   },
-//                          child: Container(
-//                           width: 350,
-//                           height: 150,
-//                          decoration: BoxDecoration(
-//                           color: const Color.fromARGB(255, 228, 240, 250),
-//                           borderRadius: BorderRadius.circular(16),
-//                          ),
-//                          child: Padding(
-//                           padding: const EdgeInsets.all(10),
-//                           child: Row(
-//                             children: [
-//                               SizedBox(width: 10),
-//                             Column(
-//                               children: [
-//                                     SizedBox(height: 10),
-//                                 Row(
-//                                   children: [
-//                                 Container(
-//                                   width: 40,
-//                                                           height: 40,
-//                                                           decoration: BoxDecoration(
-//                                  color: const Color.fromARGB(255, 177, 220, 255),
-//                                  borderRadius: BorderRadius.circular(10),
-//                                                           ), child: Icon(Icons.call_received_outlined, color:  const Color.fromARGB(255, 0, 55, 100), size: 30)),
-                                                                 
-//                                                                 SizedBox(width: 30),
-//                                                                 Text('Inbound (${filteredData3.length})' , style: TextStyle(color:  const Color.fromARGB(255, 0, 55, 100), fontWeight: FontWeight.bold, 
-//                                                                 fontSize: 22, fontFamily: 'WorkSans')),
-                                                              
-//                               ]),
-//                                        SizedBox(height: 10),                          
-//                                   Row(
-//                                                       children: [
-                                                               
-                                                                
-//                                                                 SizedBox(height: 3),
-//                                                                 Text('Finished Today:', style: TextStyle(color:  const Color.fromARGB(255, 0, 55, 100), fontWeight: FontWeight.bold, fontFamily: 'Inter', 
-//                                                                 fontSize: 16)),
-                                                            
-//                                                                   SizedBox(width: 10),
-//                                 Text('${filteredData9.length}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
-//                                 SizedBox(width: 20),
-                                                                 
-//                                                       ],
-//                                                     ),
-//                                                       SizedBox(height: 10),
-//                                                        Row(
-//                                                                  children: [
-//                                                                   SizedBox(width: 20,),
-//                                                                   Text('Avg. Duration (min)', style: TextStyle(color:  const Color.fromARGB(255, 0, 55, 100), fontWeight: FontWeight.bold, fontFamily: 'Inter',
-//                                                        fontSize: 16)),
-//                                                            SizedBox(width: 10),
-//                                                                    Text(avg1 != -1 ?'$avg1' : 'N/A', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
-                                                               
-                                                       
-//                                                        SizedBox(height: 3),
-                                                       
-//                                                                  ],
-//                                                        ),
-//                               ],
-//                             ),
-                         
-//                           ],),
-//                          ),
-//                          ),
-//                        ),
-//                      ),
-//                      ),
-//                      SizedBox(width: 20),
-//                       Material(
-//                      elevation: 8,
-//                      borderRadius: BorderRadius.circular(16),
-//                      child: MouseRegion(
-//                       cursor: SystemMouseCursors.click,
-//                        child: GestureDetector(
-//  onTap: (){
-//                                  context.go('/outbound');
-//                                   },
-//                          child: Container(
-//                           width: 350,
-//                           height: 150,
-//                          decoration: BoxDecoration(
-//                           color: const Color.fromARGB(255, 228, 240, 250),
-//                           borderRadius: BorderRadius.circular(16),
-//                          ),
-//                          child: Padding(
-//                           padding: const EdgeInsets.all(10),
-//                           child: Row(
-//                             children: [
-//                               SizedBox(width: 10),
-//                             Column(
-//                               children: [
-//                                     SizedBox(height: 10),
-//                                 Row(
-//                                   children: [
-//                                 Container(
-//                                   width: 40,
-//                                                           height: 40,
-//                                                           decoration: BoxDecoration(
-//                                  color: const Color.fromARGB(255, 177, 220, 255),
-//                                  borderRadius: BorderRadius.circular(10),
-//                                                           ), child: Icon(Icons.call_made_outlined, color:  const Color.fromARGB(255, 0, 55, 100), size: 30)),
-                                                                 
-//                                                                 SizedBox(width: 30),
-//                                                                 Text('Outbound (${filteredData1.length})' , style: TextStyle(color:  const Color.fromARGB(255, 0, 55, 100), fontWeight: FontWeight.bold, 
-//                                                                 fontSize: 22, fontFamily: 'WorkSans')),
-                                                              
-//                               ]),
-//                                        SizedBox(height: 10),                          
-//                                   Row(
-//                                                       children: [
-                                                               
-                                                                
-//                                                                 SizedBox(height: 3),
-//                                                                 Text('Finished Today:', style: TextStyle(color:  const Color.fromARGB(255, 0, 55, 100), fontWeight: FontWeight.bold, fontFamily: 'Inter', 
-//                                                                 fontSize: 16)),
-                                                            
-//                                                                   SizedBox(width: 10),
-//                                 Text('${filteredData10.length}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
-//                                 SizedBox(width: 20),
-                                                                 
-//                                                       ],
-//                                                     ),
-//                                                       SizedBox(height: 10),
-//                                                        Row(
-//                                                                  children: [
-//                                                                   SizedBox(width: 20,),
-//                                                                   Text('Avg. Duration (min)', style: TextStyle(color:  const Color.fromARGB(255, 0, 55, 100), fontWeight: FontWeight.bold, fontFamily: 'Inter',
-//                                                        fontSize: 16)),
-//                                                            SizedBox(width: 10),
-//                                                                    Text(avg2 != -1 ?'$avg2' : 'N/A', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
-                                                               
-                                                       
-//                                                        SizedBox(height: 3),
-                                                       
-//                                                                  ],
-//                                                        ),
-//                               ],
-//                             ),
-                         
-//                           ],),
-//                          ),
-//                          ),
-//                        ),
-//                      ),
-//                      ),
-// //                         Row(
-// //                    children: [
-// //                      Material(
-// //                      elevation: 11,
-// //                      borderRadius: BorderRadius.circular(16),
-// //                      child: MouseRegion(
-// //                       cursor: SystemMouseCursors.click,
-// //                        child: GestureDetector(
-// //  onTap: (){
-// //                                    Navigator.push(context, PageRouteBuilder(
-// //                                          pageBuilder: (context, animation, secondaryAnimation) => Outbound(
-                                          
-// //                                          ),
-// //                                          transitionDuration: Duration.zero,
-// //                                          reverseTransitionDuration: Duration.zero,
-                                       
-                                     
-                                   
-// //                                    ));
-// //                                   },
-// //                                child:   Container(
-// //                       width: 220,
-// //                       height: 100,
-// //                      decoration: BoxDecoration(
-// //                       color: const Color.fromARGB(255, 228, 240, 250),
-// //                       borderRadius: BorderRadius.circular(16),
-// //                      ),
-// //                      child: Padding(
-// //                       padding: const EdgeInsets.all(10),
-// //                       child: Row(
-// //                         children: [
-// //                           SizedBox(width: 10),
-// //                         Center(child: Container(
-// //                            width: 40,
-// //                           height: 40,
-// //                           decoration: BoxDecoration(
-// //                             color: const Color.fromARGB(255, 177, 220, 255),
-// //                             borderRadius: BorderRadius.circular(10),
-// //                           ),child: Icon(Icons.call_made, color:  const Color.fromARGB(255, 0, 55, 100), size: 30))),
-// //                         SizedBox(width: 20),
-// //                         Column(
-// //                           children: [
-// //                            SizedBox(height: 2),
-// //                             Row(
-// //                               children: [
-// //                                 Text('${filteredData1.length}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
-// //                                 SizedBox(width: 60),
-// //                               ],
-// //                             ),
-// //                             SizedBox(height: 3),
-// //                             Text('Outbound', style: TextStyle(color:  const Color.fromARGB(255, 0, 55, 100), fontWeight: FontWeight.bold, 
-// //                             fontSize: 16))
-// //                           ],
-// //                         ),
-                     
-// //                       ],),
-// //                      ),
-// //                      ),
-// //                      ))),
-// //                            SizedBox(width: 30),
-                   
-// //                                    Material(
-// //                      elevation: 11,
-// //                      borderRadius: BorderRadius.circular(16),
-// //                      child: Container(
-// //                       width: 220,
-// //                       height: 100,
-// //                      decoration: BoxDecoration(
-// //                       color: const Color.fromARGB(255, 228, 240, 250),
-// //                       borderRadius: BorderRadius.circular(16),
-// //                      ),
-// //                      child: Padding(
-// //                       padding: const EdgeInsets.all(10),
-// //                       child: Row(
-// //                         children: [
-// //                           SizedBox(width: 10),
-// //                         Center(child: Container(
-// //                            width: 40,
-// //                           height: 40,
-// //                           decoration: BoxDecoration(
-// //                             color: const Color.fromARGB(255, 177, 220, 255),
-// //                             borderRadius: BorderRadius.circular(10),
-// //                           ),child: Icon(Icons.task_alt, color:  const Color.fromARGB(255, 0, 55, 100), size: 30))),
-// //                         SizedBox(width: 20),
-// //                         Column(
-// //                           children: [
-// //                            SizedBox(height: 2),
-// //                             Row(
-// //                               children: [
-// //                                 Text('$finishedToday', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
-// //                                 SizedBox(width: 70),
-// //                               ],
-// //                             ),
-// //                             SizedBox(height: 3),
-// //                             Text('Finished Today', style: TextStyle(color:  const Color.fromARGB(255, 0, 55, 100), fontWeight: FontWeight.bold, 
-// //                             fontSize: 15.5))
-// //                           ],
-// //                         ),
-                     
-// //                       ],),
-// //                      ),
-// //                      ),
-// //                      ),
-// //                      SizedBox(width: 30),
-                   
-// //                                    Material(
-// //                      elevation: 11,
-// //                      borderRadius: BorderRadius.circular(16),
-// //                      child: Container(
-// //                       width: 220,
-// //                       height: 100,
-// //                      decoration: BoxDecoration(
-// //                       color: const Color.fromARGB(255, 228, 240, 250),
-// //                       borderRadius: BorderRadius.circular(16),
-// //                      ),
-// //                      child: Padding(
-// //                       padding: const EdgeInsets.all(10),
-// //                       child: Row(
-// //                         children: [
-// //                           SizedBox(width: 10),
-// //                         Center(child: Container(
-// //                            width: 40,
-// //                           height: 40,
-// //                           decoration: BoxDecoration(
-// //                             color: const Color.fromARGB(255, 177, 220, 255),
-// //                             borderRadius: BorderRadius.circular(10),
-// //                           ),child: Icon(Icons.schedule, color:  const Color.fromARGB(255, 0, 55, 100), size: 30))),
-// //                         SizedBox(width: 20),
-// //                         Column(
-// //                           children: [
-// //                            SizedBox(height: 2),
-// //                             Row(
-// //                               children: [
-// //                                 Text('$average', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
-// //                                 SizedBox(width: 70),
-// //                               ],
-// //                             ),
-// //                             SizedBox(height: 3),
-// //                             Text('Average Completion\n time (min)', style: TextStyle(color:  const Color.fromARGB(255, 0, 55, 100), fontWeight: FontWeight.bold, 
-// //                             fontSize: 14))
-// //                           ],
-// //                         ),
-                     
-// //                       ],),
-// //                      ),
-// //                      ),
-// //                      ),
-// //                    ],
-// //                  )
-//                  ]);
-             
-              
-//            }
-//          )
-                    ]
-                  ),
-                
-                ),
-                ),
+                          ]
+                        ),
+                      
+                      ),
+                      ),
+                   ),
+                 );
+               }
              )])),]),
              SizedBox(width: 40,),
 //          
@@ -1035,302 +747,534 @@ bool processSelected = false;
       ),
     ],
     ),
-    SizedBox(height: 20),
-    Row(
-       mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(width: 45,),
-        Text('Inbound', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, fontFamily: 'Montserrat'),),
-            SizedBox(width: 1280,),
-      ],
-    ),
-    Row(
-       mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(width: 48),
-        SizedBox(
-          // width: 1250,
-          // height: 173,
-           width: MediaQuery.of(context).size.width * 0.72,
-                    height: MediaQuery.of(context).size.height * 0.20 ,
-          child: FutureBuilder(
-            future: Supabase.instance.client
-  .from('detail')
-  .select()
-  .not('usernamed', 'eq', fetchedUsername)
-  .eq('process', allowedProcess)
-  .order('id', ascending: false)
-  .limit(4),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting){
-              loadingUser.value = true;
-              } else if (snapshot.hasError){
-                return Text('Error: ${snapshot.error}');
-              }
-     
-              final data = snapshot.data ?? [];
-              if (data.isEmpty){
-                return Text('Nothing to see here yet.');
-              }
-
-              
-            String truncateWithEllipsis(int cutoff, String myString) {
-  return (myString.length <= cutoff) ? myString : '${myString.substring(0, cutoff)}...';
-}
-     
-     
-              return   ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: data.length,
-                itemBuilder: (context, index) {
-                 
-                 int minutesElapsed;
-                  final entry = data[index];
-               
-               
-               
-                    final createdAt = DateTime.parse(entry['starttime']);
-                  if (entry['endtime'] != null){
-                    final finishedTime = DateTime.parse(entry['endtime']);
-                    minutesElapsed = finishedTime.toUtc().difference(createdAt).inMinutes;
-                  } else {
-                    final now = DateTime.now().toUtc();
-                    minutesElapsed = now.toUtc().difference(createdAt).inMinutes;
-                  }
-                  return StatefulBuilder(
-                    builder: (context, setLocalState) {
-                      return MouseRegion(
-                         
-                                    onEnter: (event){
-                                    setLocalState(() {
-                          isHovered2[index] = true;
-                        });
-                                    },
-                                    onExit: (event) {
-                                     setLocalState(() {
-                          isHovered2[index] = false;
-                        });
-                                    },
-                        child: Row(
-                           mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                           Align(
-                                    alignment: Alignment.center,
-                                    child: AnimatedPadding(
-                                      duration: Duration(milliseconds: 200),
-                                      padding:  isHovered2[index] ?? false
-                                          ? EdgeInsets.symmetric(horizontal: 0)
-                                          : EdgeInsets.symmetric(horizontal: 12),
-                                      child: AnimatedContainer(
-                                        
-
-                                        duration: Duration(milliseconds: 200),
-                                              width: isHovered2[index]  ?? ialwaysfalse ? MediaQuery.of(context).size.height * 0.35 : MediaQuery.of(context).size.height * 0.33,
-                                              height: isHovered2[index]  ?? ialwaysfalse ? MediaQuery.of(context).size.height * 0.19 : MediaQuery.of(context).size.height * 0.17,
-                                        decoration: BoxDecoration(
-                                          color: const Color.fromARGB(255, 240, 245, 249),
-                                          borderRadius: BorderRadius.circular(20),
-                                                                      boxShadow: isHovered2[index] ?? ialwaysfalse ? [BoxShadow(color: const Color.fromARGB(255, 255, 233, 109),  blurRadius: 10)] : 
-                                                                       [BoxShadow(color: const Color.fromARGB(255, 198, 198, 198),  blurRadius: 10)]
-                                          // boxShadow: [ BoxShadow(
-                                          //   color: const Color.fromARGB(255, 241, 241, 241),
-                                          //   blurRadius: 3,
-                                          //   offset: Offset(-4, 0)
-                                          // )]
-                                        ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(4.5),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                  Text('${truncateWithEllipsis(25, entry['originalneed'])}', style: TextStyle(
-                                    fontFamily: 'Inter', fontSize: fontSizeBasedOnLength('${entry['originalneed']}'), color: const Color.fromARGB(255, 2, 2, 2),)),
-                                  SizedBox(height: 10),
-                                  Text('Sent by: ${entry['usernamed']}', style: TextStyle(fontWeight: FontWeight.bold,  fontFamily: 'WorkSans', color: const Color.fromARGB(255, 68, 68, 68))),
-                                  SizedBox(height: 10),
-                                  Text('Needed: ${entry['neededby']}', style: TextStyle(fontWeight: FontWeight.bold,  fontFamily: 'WorkSans', color: const Color.fromARGB(255, 70, 70, 70)),),
-                                  SizedBox(height: 10),
-                                  Text('Time: $minutesElapsed', style: TextStyle(fontWeight: FontWeight.bold,  fontFamily: 'WorkSans',  color: const Color.fromARGB(255, 70, 70, 70))),
-                                ],),
-                               
-                              )
-                            ),
-                                    )),
-                      
-                          ]),
-                      );
-                    }
-                  );
-                 ;
-             } );
-            }
-          ),
-        ),
-        SizedBox(width: 150,),
-      ],
-    ),
-    Column(
-      mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(height: 10),
-        Row(
+    SizedBox(height : MediaQuery.of(context).size.height < 670 ?  5 : 20),
+    Expanded(
+      child: SingleChildScrollView(
+        scrollDirection: Axis.vertical,
+        child: Column(
           children: [
-            SizedBox(width: 48,),
-            Text('Outbound', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, fontFamily: 'Montserrat'),),
-              SizedBox(width: 1250,),
-          ],
-        ),
-      ],
-    ),
-    SizedBox(height: 0),
-    Row(
-       mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(width: 42),
-        SizedBox(
-         width: MediaQuery.of(context).size.width * 0.72,
-                    height: MediaQuery.of(context).size.height * 0.20,
-          child: FutureBuilder(
-            future:Supabase.instance.client
-          .from('masterdata')
-          .select()
-          .eq('usernamem', fetchedUsername ?? 'h')
-          .order('id', ascending: false)
-          .limit(4),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting){
-              loadingUser.value = true;
-              } else if (snapshot.hasError){
-                return Text('Error: ${snapshot.error}');
+            Row(
+               mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(width: 60,),
+                FutureBuilder(
+                   future: Future.wait([
+                    Supabase.instance.client.from('masterdata').select(),
+                    fetchUsername(),
+                    Supabase.instance.client.from('detail').select(),
+                    ]),
+                   builder: (context, snapshot) {
+                    print('${snapshot.data} datar');
+                  if (snapshot.connectionState == ConnectionState.waiting || !snapshot.hasData) {
+            return Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+            return Text('Error: ${snapshot.error}');
               }
-             
-              final data = snapshot.data ?? [];
-              if (data.isEmpty){
-                return Text('Nothing to see here yet.');
-              }
-             
-              
             
-             
-            String truncateWithEllipsis(int cutoff, String myString) {
-          return (myString.length <= cutoff) ? myString : '${myString.substring(0, cutoff)}...';
-        }
-        
-        
-        
-              return ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: data.length,
-                itemBuilder: (context, index) {
+               
+                final data3 = snapshot.data?[0] ?? [];
+               final userData = snapshot.data?[1];
+               final data = snapshot.data?[2] ?? [];
+            print('data $data');
+            if (userData == null || userData is! Map<String, dynamic> ) {
+            
+              return Text('');
+            }
+              print('loadus2 $loadingUser');
+            final usernamer = userData['username'];
+            final allowedProcessa = userData['allowedProcess'];
+            final aloner = userData['alone'];
+            
+            
+                final filteredData = 
+                
+                data
+                .where((entry) => entry['usernamem'] == fetchedUsername && entry['closed'] == 1);
+                   
                  
                 
-                  final entry = data[index];
               
-                final currentProcess = entry['currentprocess'];
-                    int minutesElapsed;
+                 
+                
+                
+                  final filteredData7 = 
+                aloner == 'false' ?
+                data3
+                .where((entry) => entry['current_user'] == fetchedUsername )
+                .where((entry) {
+                final start = DateTime.parse(entry['starttime']);
+                final finish = entry['finishedtime'];
+                if (finish == null) return false;
+                final finish1 = DateTime.parse(entry['finishedtime']);
+                 return start.difference(finish1).inDays.abs() <= 1;
+                 
+                
+                }).toList()
+                : 
+                data
+                .where((entry) => entry['user_unique'] == fetchedUsername)
+                .where((entry) {
+                final start = DateTime.parse(entry['starttime']);
+                final finish = entry['finishedtime'];
+                if (finish == null) return false;
+                final finish1 = DateTime.parse(entry['finishedtime']);
+                 return start.difference(finish1).inDays.abs() <= 1;
+                 
+                
+                }).toList();
+                
+                
+                final filteredData1 = data3
+                .where((entry) => entry['usernamem'] == usernamer && entry['finishedtime'] == null);
+                
               
-                    
-                      final createdAt = DateTime.parse(entry['starttime']);
-                     
-                      if (entry['finishedtime'] != null){
-                        final finishedTime = DateTime.parse(entry['finishedtime']);
-                        
-                        minutesElapsed = finishedTime.toUtc().difference(createdAt).inMinutes;
-                      } else {
-                        final now = DateTime.now().toUtc();
-                        minutesElapsed = now.toUtc().difference(createdAt).inMinutes;
-                      }
+                  final filteredData3 = 
               
-                      
-                      return Row(
-                         mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          StatefulBuilder(
-                            builder: (context, setLocalState) {
-                              return MouseRegion(
-                                cursor: SystemMouseCursors.click,
-                                onEnter: (event){
-                                setLocalState(() {
-                      isHovered[index] = true;
-                    });
-                                },
-                                onExit: (event) {
-                                 setLocalState(() {
-                      isHovered[index] = false;
-                    });
-                                },
-                                child: GestureDetector(
-                                                  onTap: (){
-                                                   context.go('/details/${entry['id']}', extra: {'route': '/dashboard'});
-                                                  },
-                                  child: Align(
-                                    alignment: Alignment.center,
-                                    child: AnimatedPadding(
-                                      duration: Duration(milliseconds: 200),
-                                      padding:  isHovered[index] ?? false
-                                          ? EdgeInsets.symmetric(horizontal: 0)
-                                          : EdgeInsets.symmetric(horizontal: 12),
-                                      child: AnimatedContainer(
-                                        duration: Duration(milliseconds: 200),
-                                             width: isHovered[index]  ?? ialwaysfalse ? MediaQuery.of(context).size.height * 0.35 : MediaQuery.of(context).size.height * 0.33,
-                                              height: isHovered[index]  ?? ialwaysfalse ? MediaQuery.of(context).size.height * 0.15 : MediaQuery.of(context).size.height * 0.14,
-                                        decoration: BoxDecoration(
-                                          color: const Color.fromARGB(255, 240, 245, 249),
-                                          borderRadius: BorderRadius.circular(20),
-                                                                      boxShadow: isHovered[index] ?? ialwaysfalse ? [BoxShadow(color: const Color.fromARGB(255, 230, 217, 113),  blurRadius: 10)] : 
-                                                                       [BoxShadow(color: const Color.fromARGB(255, 198, 198, 198),  blurRadius: 10)]
-                                          // boxShadow: [ BoxShadow(
-                                          //   color: const Color.fromARGB(255, 241, 241, 241),
-                                          //   blurRadius: 3,
-                                          //   offset: Offset(-4, 0)
-                                          // )]
-                                        ),
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(5),
-                                          child: Column(
-                                            mainAxisAlignment: MainAxisAlignment.start,
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                            Text(truncateWithEllipsis(25,  entry['requestitem']), style: TextStyle
-                                            (fontFamily: 'Inter',
-                                              fontSize: fontSizeBasedOnLength(entry['requestitem']), color: const Color.fromARGB(255, 0, 0, 0),)),
-                                            SizedBox(height: 10),
-                                            Text('Process: ${truncateWithEllipsis(25, currentProcess)}', style: TextStyle(fontWeight: FontWeight.bold, fontFamily: 'WorkSans',
-                                          color: const Color.fromARGB(255, 93, 93, 93))),
-                                            SizedBox(height: 10),
-                                            Text('Time Elapsed: $minutesElapsed', style: TextStyle(fontWeight: FontWeight.bold, fontFamily: 'WorkSans',  color: const Color.fromARGB(255, 72, 72, 72)),),
-                                           
-                                          ],),
-                                         
-                                        )
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              );
-                            }
-                          ),
-                        ]);
-                    });
-                }
-              )
+                data
+                .where((entry) => (entry['current_user'] == fetchedUsername|| entry['user_unique'] == fetchedUsername )  && entry['endtime'] == null && entry['process'] == allowedProcessa);
+                
+                  
+                final filteredData2 = data
+                 .where((entry) => (entry['current_user'] == fetchedUsername|| entry['user_unique'] == fetchedUsername ) && entry['usernamed'] != fetchedUsername && entry['process'] == 
+                 allowedProcessa)
+                  .where((entry) => entry['endtime'] != null)
+               
+                  .toList();
+                  int total = 0;
+            for (final entry in filteredData2){
+                    final startTime = DateTime.parse(entry['starttime']);
+                    final endTime = DateTime.parse(entry['endtime']);
+                    total += endTime.difference(startTime).inSeconds;
+                   }
+               
+               final avg1 = filteredData2.isNotEmpty ? (total / filteredData2.length  /60).toStringAsFixed(2): -1;
+              
+               final filteredData19 = data
+                 .where((entry) => entry['usernamed'] == fetchedUsername)
+                  .where((entry) => entry['endtime'] != null)
+               
+                  .toList();
+                  int total2 = 0;
+            for (final entry in filteredData19){
+                    final startTime = DateTime.parse(entry['starttime']);
+                    final endTime = DateTime.parse(entry['endtime']);
+                    total2 += endTime.difference(startTime).inSeconds;
+                   }
+               
+               final avg2 = filteredData19.isNotEmpty ? (total2 / filteredData19.length  /60).toStringAsFixed(2): -1;
+              print('width: ${MediaQuery.of(context).size.width}, height: ${MediaQuery.of(context).size.height}');
+                
+            final filteredData9 = data.where((entry) => (entry['current_user'] == fetchedUsername || entry['user_unique'] == fetchedUsername)  && entry['endtime'] != null && DateTime.now().toUtc().difference(DateTime.parse(entry['endtime'])).abs().inHours <= 24
+       && entry['process'] == allowedProcessa    );
+       print('dataaa9 $filteredData9');
+            final filteredData10 = data3.where((entry) {
+              try {
+            final startTime = DateTime.parse(entry['starttime']);
+            final duration = DateTime.now().toUtc().difference(startTime);
+            return entry['usernamem'] == fetchedUsername &&
+                   entry['finishedtime'] != null &&
+                   duration.inHours <= 24;
+              } catch (_) {
+            return false;
+              }
+            }).toList();
             
-          ),
-               SizedBox(width: 150)
-      ]),
-   
-      ],
+            
+            
+                    return Row(
+                      children: [
+                        MouseRegion(
+                          cursor: SystemMouseCursors.click,
+                          child: GestureDetector(
+                             onTap: (){
+                                         context.go('/inbound');
+                                          },
+            
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.vertical,
+                              child: Container(decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10)), width: 
+                              MediaQuery.of(context).size.width * 0.36
+                              , 
+                              height: MediaQuery.of(context).size.height < 420? 300 : MediaQuery.of(context).size.height * 0.5, child: Column(children: [
+                              Column(
+                                                    children: [
+                                                     SizedBox(height : MediaQuery.of(context).size.height < 640 ?  6 : 20),
+                                                      Center(child: Text('Inbound (Sent to you)', style: TextStyle(fontFamily: 'Inter', fontSize: 20),)),
+                                                     
+                                                    // Center(child: 
+                                                      //  Container(
+                                                      //    width: 40,
+                                                      // height: 40,
+                                                      // decoration: BoxDecoration(
+                                                      //   color: const Color.fromARGB(255, 177, 220, 255),
+                                                      //   borderRadius: BorderRadius.circular(10),
+                                                       
+                                                      // ), child: Icon(Icons.pending_outlined, color:  const Color.fromARGB(255, 0, 55, 100), size: 30)),
+                                                      // ),
+                                              SizedBox(height : MediaQuery.of(context).size.height < 610 ?  3 : 10),
+                                                    Row(
+                                                  
+                                                      children: [
+                                                        
+                                                          Row(
+                                                            children: [
+                                                              SizedBox(width: 20,),
+                                                              //  Center(child: 
+                                                       Container(
+                                                         width: MediaQuery.of(context).size.width * .03,
+                                        height: MediaQuery.of(context).size.height * 0.06 ,
+                                                      decoration: BoxDecoration(
+                                                        color: const Color.fromARGB(255, 208, 104, 0),
+                                                        borderRadius: BorderRadius.circular(10),
+                                                       
+                                                      ), child: Icon(Icons.forklift, color:  const Color.fromARGB(255, 255, 255, 255), size: MediaQuery.of(context).size.width * .017)),
+                                                      // ),
+                                                     
+                                                              
+                                                            ],
+                                                          ),
+                                                          SizedBox(width:MediaQuery.of(context).size.width * 0.02 ,),
+                                                       Row(
+                                                         mainAxisAlignment: MainAxisAlignment.start,
+                                                         crossAxisAlignment: CrossAxisAlignment.start,
+                                                         children: [
+                                                           Column(
+                                                                                     children: [
+                                                                                         SizedBox(height: 15),
+                                                                                       Text('Active Requests', style: TextStyle(color:  const Color.fromARGB(255, 0, 0, 0), 
+                                                                                                    fontSize: MediaQuery.of(context).size.width * 0.0118, fontFamily: 'WorkSans',)),
+                                                                                                      
+                                                                                       SizedBox(height: 5),
+                                                                                       Row(
+                                                                                       
+                                                                                         children: [
+                                                                                        
+                                                                                           Text('${filteredData3.length}', style: TextStyle(fontFamily: 'Inter', fontSize: MediaQuery.of(context).size.width * 0.02, color: const Color.fromARGB(255, 0, 0, 0)),),
+                                                           
+                                                                                         ],
+                                                                                       ),
+                                                                                    
+                                                                                     ],
+                                                                                   ),
+                                                                                  
+                                                         ],
+                                                       ),
+                              
+                                
+                              ],),
+                                 SizedBox(height : MediaQuery.of(context).size.height < 610 ?  3 : 10),
+                                                    Row(
+                                                  
+                                                      children: [
+                                                        
+                                                          Row(
+                                                            children: [
+                                                              SizedBox(width: 20,),
+                                                              //  Center(child: 
+                                                       Container(
+                                                         width: MediaQuery.of(context).size.width * .03,
+                                        height: MediaQuery.of(context).size.height * 0.06 ,
+                                                      decoration: BoxDecoration(
+                                                        color: const Color.fromARGB(255, 0, 46, 93),
+                                                        borderRadius: BorderRadius.circular(10),
+                                                       
+                                                      ), child: Icon(Icons.task_alt, color:  const Color.fromARGB(255, 255, 255, 255), size: MediaQuery.of(context).size.width * .017)),
+                                                      // ),
+                                                     
+                                                              
+                                                            ],
+                                                          ),
+                                                          SizedBox(width:MediaQuery.of(context).size.width * 0.02 ,),
+                                                       Row(
+                                                         mainAxisAlignment: MainAxisAlignment.start,
+                                                         crossAxisAlignment: CrossAxisAlignment.start,
+                                                         children: [
+                                                           Column(
+                                                                                     children: [
+                                                                                       Text('Finished Today', style: TextStyle(color:  const Color.fromARGB(255, 0, 0, 0), 
+                                                                                                    fontSize: MediaQuery.of(context).size.width * 0.0118, fontFamily: 'WorkSans',)),
+                                                                                                      
+                                                                                       SizedBox(height: 5),
+                                                                                       Row(
+                                                                                       
+                                                                                         children: [
+                                                                                        
+                                                                                           Text('${filteredData9.length}', style: TextStyle(fontFamily: 'Inter', fontSize: MediaQuery.of(context).size.width * 0.02, color: const Color.fromARGB(255, 0, 0, 0)),),
+                                                           
+                                                                                         ],
+                                                                                       ),
+                                                                                    
+                                                                                     ],
+                                                                                   ),
+                                                                                  
+                                                         ],
+                                                       ),
+                              
+                                
+                              ],),
+                               SizedBox(height : MediaQuery.of(context).size.height < 610 ?  3 : 10),
+                                                    Row(
+                                                  
+                                                      children: [
+                                                        
+                                                          Row(
+                                                            children: [
+                                                              SizedBox(width: 20,),
+                                                              //  Center(child: 
+                                                       Container(
+                                                         width: MediaQuery.of(context).size.width * .03,
+                                        height: MediaQuery.of(context).size.height * 0.06 ,
+                                                      decoration: BoxDecoration(
+                                                        color: const Color.fromARGB(255, 0, 0, 0),
+                                                        borderRadius: BorderRadius.circular(10),
+                                                       
+                                                      ), child: Icon(Icons.schedule, color:  const Color.fromARGB(255, 255, 255, 255), size: MediaQuery.of(context).size.width * .017)),
+                                                      // ),
+                                                     
+                                                              
+                                                            ],
+                                                          ),
+                                                          SizedBox(width:MediaQuery.of(context).size.width * 0.02 ,),
+                                                       Row(
+                                                         mainAxisAlignment: MainAxisAlignment.start,
+                                                         crossAxisAlignment: CrossAxisAlignment.start,
+                                                         children: [
+                                                           Column(
+                                                                                     children: [
+                                                                                        SizedBox(height : MediaQuery.of(context).size.height < 610 ?  6: 15),
+                                                                                   
+                                                                                          Text('Avg. Time', style: TextStyle(color:  const Color.fromARGB(255, 0, 0, 0), 
+                                                                                                      fontSize: MediaQuery.of(context).size.width * 0.0118, fontFamily: 'WorkSans',)),
+                                                                                       
+                                                                                                     
+                                                                                       SizedBox(height: 5),
+                                                                                       Row(
+                                                                                       
+                                                                                         children: [
+                                                                                        
+                                                                                           Text(avg1 != -1 ? '$avg1' : 'N/A',style: TextStyle(fontFamily: 'Inter', fontSize: MediaQuery.of(context).size.width * 0.02, color: const Color.fromARGB(255, 0, 0, 0)),),
+                                                           
+                                                                                         ],
+                                                                                       ),
+                                                                                    
+                                                                                     ],
+                                                                                   ),
+                                                                                  
+                                                         ],
+                                                       ),
+                              
+                                
+                              ],),
+                              ]) ,
+                                 
+                                    ],
+                                  ),
+                                  
+                               
+                                  ),
+                            ),
+                          ),
+                        ),
+                              SizedBox(width: 30),
+                             MouseRegion(
+                              cursor: SystemMouseCursors.click,
+                               child: GestureDetector(
+                                 onTap: (){
+                                         context.go('/outbound');
+                                          },
+                                 child: Container(decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(5)), width: 
+                                                 MediaQuery.of(context).size.width * 0.36,
+                                                    height: MediaQuery.of(context).size.height < 420? 300 : MediaQuery.of(context).size.height * 0.5,  child: Column(children: [
+                                                 Column(
+                                                  children: [
+                                                      SizedBox(height : MediaQuery.of(context).size.height < 640 ?  6 : 20),
+                                                    Center(child: Text('Outbound (Requested by you)', style: TextStyle(fontFamily: 'Inter', fontSize: 20),)),
+                                                   
+                                                  // Center(child: 
+                                                    //  Container(
+                                                    //    width: 40,
+                                                    // height: 40,
+                                                    // decoration: BoxDecoration(
+                                                    //   color: const Color.fromARGB(255, 177, 220, 255),
+                                                    //   borderRadius: BorderRadius.circular(10),
+                                                     
+                                                    // ), child: Icon(Icons.pending_outlined, color:  const Color.fromARGB(255, 0, 55, 100), size: 30)),
+                                                    // ),
+                                             SizedBox(height : MediaQuery.of(context).size.height < 610 ?  3 : 10),
+                                                  Row(
+                                                
+                                                    children: [
+                                                      
+                                                        Row(
+                                                          children: [
+                                                            SizedBox(width: 20,),
+                                                            //  Center(child: 
+                                                     Container(
+                                                       width: MediaQuery.of(context).size.width * .03,
+                                      height: MediaQuery.of(context).size.height * 0.06 ,
+                                                    decoration: BoxDecoration(
+                                                      color: const Color.fromARGB(255, 208, 104, 0),
+                                                      borderRadius: BorderRadius.circular(10),
+                                                     
+                                                    ), child: Icon(Icons.forklift, color:  const Color.fromARGB(255, 255, 255, 255), size: MediaQuery.of(context).size.width * .017)),
+                                                    // ),
+                                                   
+                                                            
+                                                          ],
+                                                        ),
+                                                        SizedBox(width:MediaQuery.of(context).size.width * 0.02 ,),
+                                                     Row(
+                                                       mainAxisAlignment: MainAxisAlignment.start,
+                                                       crossAxisAlignment: CrossAxisAlignment.start,
+                                                       children: [
+                                                         Column(
+                                                                                   children: [
+                                                                                       SizedBox(height : MediaQuery.of(context).size.height < 610 ? 5: 15),
+                                                                                     Text('Active Requests', style: TextStyle(color:  const Color.fromARGB(255, 0, 0, 0), 
+                                                                                                  fontSize: MediaQuery.of(context).size.width * 0.0118, fontFamily: 'WorkSans',)),
+                                                                                                    
+                                                                                     SizedBox(height: 5),
+                                                                                     Row(
+                                                                                     
+                                                                                       children: [
+                                                                                      
+                                                                                         Text('${filteredData1.length}', style: TextStyle(fontFamily: 'Inter', fontSize: MediaQuery.of(context).size.width * 0.02, color: const Color.fromARGB(255, 0, 0, 0)),),
+                                                         
+                                                                                       ],
+                                                                                     ),
+                                                                                  
+                                                                                   ],
+                                                                                 ),
+                                                                                
+                                                       ],
+                                                     ),
+                                                 
+                                                   
+                                                 ],),
+                                                    SizedBox(height : MediaQuery.of(context).size.height < 610 ?  3 : 10),
+                                                  Row(
+                                                
+                                                    children: [
+                                                      
+                                                        Row(
+                                                          children: [
+                                                            SizedBox(width: 20,),
+                                                            //  Center(child: 
+                                                     Container(
+                                                       width: MediaQuery.of(context).size.width * .03,
+                                      height: MediaQuery.of(context).size.height * 0.06 ,
+                                                    decoration: BoxDecoration(
+                                                      color: const Color.fromARGB(255, 0, 46, 93),
+                                                      borderRadius: BorderRadius.circular(10),
+                                                     
+                                                    ), child: Icon(Icons.task_alt, color:  const Color.fromARGB(255, 255, 255, 255), size: MediaQuery.of(context).size.width * .017)),
+                                                    // ),
+                                                   
+                                                            
+                                                          ],
+                                                        ),
+                                                        SizedBox(width:MediaQuery.of(context).size.width * 0.02 ,),
+                                                     Row(
+                                                       mainAxisAlignment: MainAxisAlignment.start,
+                                                       crossAxisAlignment: CrossAxisAlignment.start,
+                                                       children: [
+                                                         Column(
+                                                                                   children: [
+                                                                                       SizedBox(height: 15),
+                                                                                     Text('Finished Today', style: TextStyle(color:  const Color.fromARGB(255, 0, 0, 0), 
+                                                                                                  fontSize: MediaQuery.of(context).size.width * 0.0118, fontFamily: 'WorkSans',)),
+                                                                                                    
+                                                                                     SizedBox(height: 5),
+                                                                                     Row(
+                                                                                     
+                                                                                       children: [
+                                                                                      
+                                                                                         Text('${filteredData10.length}', style: TextStyle(fontFamily: 'Inter', fontSize: MediaQuery.of(context).size.width * 0.02, color: const Color.fromARGB(255, 0, 0, 0)),),
+                                                         
+                                                                                       ],
+                                                                                     ),
+                                                                                  
+                                                                                   ],
+                                                                                 ),
+                                                                                
+                                                       ],
+                                                     ),
+                                                 
+                                                   
+                                                 ],),
+                                                 SizedBox(height : MediaQuery.of(context).size.height < 610 ?  3 : 10),
+                                                  Row(
+                                                
+                                                    children: [
+                                                      
+                                                        Row(
+                                                          children: [
+                                                            SizedBox(width: 20,),
+                                                            //  Center(child: 
+                                                     Container(
+                                                       width: MediaQuery.of(context).size.width * .03,
+                                      height: MediaQuery.of(context).size.height * 0.06 ,
+                                                    decoration: BoxDecoration(
+                                                      color: const Color.fromARGB(255, 0, 0, 0),
+                                                      borderRadius: BorderRadius.circular(10),
+                                                     
+                                                    ), child: Icon(Icons.schedule, color:  const Color.fromARGB(255, 255, 255, 255), size: MediaQuery.of(context).size.width * .017)),
+                                                    // ),
+                                                   
+                                                            
+                                                          ],
+                                                        ),
+                                                        SizedBox(width:MediaQuery.of(context).size.width * 0.02 ,),
+                                                     Row(
+                                                       mainAxisAlignment: MainAxisAlignment.start,
+                                                       crossAxisAlignment: CrossAxisAlignment.start,
+                                                       children: [
+                                                         Column(
+                                                                                   children: [
+                                                                                       SizedBox(height: 15),
+                                                                                     Text('Avg. Time', style: TextStyle(color:  const Color.fromARGB(255, 0, 0, 0), 
+                                                                                                  fontSize: MediaQuery.of(context).size.width * 0.0118, fontFamily: 'WorkSans',)),
+                                                                                                    
+                                                                                     SizedBox(height: 5),
+                                                                                     Row(
+                                                                                     
+                                                                                       children: [
+                                                                                      
+                                                                                         Text(avg2 != -1 ? '$avg2' : 'N/A',style: TextStyle(fontFamily: 'Inter', fontSize: MediaQuery.of(context).size.width * 0.02, color: const Color.fromARGB(255, 0, 0, 0)),),
+                                                         
+                                                                                       ],
+                                                                                     ),
+                                                                                  
+                                                                                   ],
+                                                                                 ),
+                                                                                
+                                                       ],
+                                                     ),
+                                                 
+                                                   
+                                                 ],),
+                                                 ]) ,
+                                                    
+                                  ],
+                                                     ),
+                                                     
+                                                    
+                                                     ),
+                               ),
+                             ),
+                      ],
+                    );
+                  }
+                )],
+            ),
+          ],
+        ),
+      ),
     ),
     ],),
-  )
-    );
+  ])
+    ));
  
   }
 }
