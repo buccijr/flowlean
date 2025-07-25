@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:mbi2/admindashboard.dart';
+
 
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:dropdown_button2/dropdown_button2.dart';
+
 
 import 'adduserbutton.dart';
+
 
 import 'package:go_router/go_router.dart';
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
@@ -12,24 +17,31 @@ void main() async {
   setUrlStrategy(PathUrlStrategy());
   WidgetsFlutterBinding.ensureInitialized();
 
+
   await Supabase.initialize(
     url: 'https://rmotaezqlbiiiwwiaomh.supabase.co',
     anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJtb3RhZXpxbGJpaWl3d2lhb21oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk2NDcxMDUsImV4cCI6MjA2NTIyMzEwNX0.wW_Ynh1N8C5HFFV_xl-K1i1DOLYULcStX1Y2QAX6d8s',
   );
 
+
    runApp(MaterialApp.router(
   debugShowCheckedModeBanner: false,
   routerConfig: appRouter));
 
+
 }
+
+
 
 
 class AddUser extends StatefulWidget {
   const AddUser({super.key});
 
+
   @override
   State<AddUser> createState() => _AddUserState();
 }
+
 
 class CustomToast {
   static void show(
@@ -50,7 +62,9 @@ class CustomToast {
       ),
     );
 
+
     overlay.insert(overlayEntry);
+
 
     Future.delayed(duration, () {
       overlayEntry.remove();
@@ -60,10 +74,15 @@ class CustomToast {
 
 
 
+
+
+
 class _ToastContent extends StatelessWidget {
-  
+ 
+
 
   const _ToastContent({super.key});
+
 
   @override
   Widget build(BuildContext context) {
@@ -94,14 +113,16 @@ class _ToastContent extends StatelessWidget {
 }
 class _AddUserState extends State<AddUser> {
 Map<String, bool> isCheckedMapEdit = {};
-TextEditingController searchController2 = TextEditingController(); 
+TextEditingController searchController2 = TextEditingController();
 String updateText = '';
 Map<int, bool> isCheckedMap = {};
 bool selectAll = false;
 
- Set<String> permittedProcesses = {};
+
+ List permittedProcesses = [];
 String username = 'Username';
 String role = 'User';
+bool changed = false;
 String email = 'Email';
 String password = 'Password';
  bool selected1 = false;
@@ -112,12 +133,15 @@ bool selected4 = false;
 bool selected5 = false;
 bool selected6 = false;
 
+
 SearchController searchController =   SearchController();
 TextEditingController usernameController = TextEditingController();
 TextEditingController mailController = TextEditingController();
 TextEditingController passwordController = TextEditingController();
 
+
 Set<String> selected = {'Details'};
+
 
 @override
 initState(){
@@ -126,11 +150,14 @@ initState(){
   searchController2.addListener((){
 _onSearchChanged2();
         });
-  
+ 
 }
 
 
+String selectedProcess = 'Select a process...';
 Timer? _debounce;
+
+
 
 
 void _onSearchChanged2() {
@@ -142,6 +169,7 @@ void _onSearchChanged2() {
     });
   });
 }
+
 
 void _onSearchChanged(setLocalState) {
   if (_debounce?.isActive ?? false) _debounce!.cancel();
@@ -155,37 +183,46 @@ void _onSearchChanged(setLocalState) {
 
 
 
+
+
+
 @override
 void dispose() {
-    _debounce?.cancel(); 
+    _debounce?.cancel();
   searchController2.clear();
-  searchController2.dispose();  // 
+  searchController2.dispose();  //
   super.dispose();
 }
+
+
 
 
 TextEditingController usereditControl = TextEditingController();
 
 
 
+
+
+
 void editUserButton(usernamer){
  showDialog(
-  context: context, 
+  context: context,
   builder: (_)  => StatefulBuilder(
     builder: (context, setLocalState) {
       usereditControl.addListener((){
 _onSearchChanged(setLocalState);
         });
 
+
     return StatefulBuilder(
       builder: (context, setLocalState) {
         return AlertDialog(
           backgroundColor: Colors.transparent,
           contentPadding: EdgeInsets.all(0),
-          
+         
           content: Container(
             width: 500,
-            height: 500,
+            height: 300,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
               color: Colors.white,
@@ -199,16 +236,16 @@ _onSearchChanged(setLocalState);
                     backgroundColor: const Color.fromARGB(255, 255, 255, 255),
                   selectedBackgroundColor:  const Color.fromARGB(255, 204, 232, 255),
                 side: BorderSide(color: const Color.fromARGB(255, 0, 36, 97), width: 0.4),
-  
-  
+ 
+ 
                   elevation: 10,
-                  
+                 
                   ),
                   selected: selected,
                   selectedIcon: Icon(Icons.edit),
-                  segments: 
+                  segments:
                   <ButtonSegment<String>>[
-                  
+                 
                     ButtonSegment<String>(
                     value: 'Details',
                     label: Text('Details', style: TextStyle(fontSize: 18, fontFamily: 'WorkSans', color: Colors.black),),
@@ -220,18 +257,18 @@ _onSearchChanged(setLocalState);
                   ],
                   onSelectionChanged: (p0) {
                     setLocalState(() {
-                      
+                     
                     });
                     selected = p0;
                 final value = selected.first;
                     if (value == 'Permissions'){
                     onDetails = false;
-                    } 
+                    }
                     if (value == 'Details'){
                       onDetails = true;
                     }
                     setLocalState(() {
-                      
+                     
                     },);
                   },
                       ),
@@ -251,8 +288,8 @@ _onSearchChanged(setLocalState);
                        ],
                                  ),
                     ),
-        
-                    SizedBox(height: 5),           
+       
+                    SizedBox(height: 5),          
                              Row(
                 children: [
                   SizedBox(width: 30),
@@ -266,7 +303,7 @@ _onSearchChanged(setLocalState);
                     ),
                     child: Padding(
                       padding: const EdgeInsets.all(10),
-                      child: DropdownButtonHideUnderline(child: DropdownButton(
+                      child: DropdownButtonHideUnderline(child: DropdownButton2(
                         value: role,
                         items: [
                           DropdownMenuItem(
@@ -284,18 +321,47 @@ _onSearchChanged(setLocalState);
                             child: Text('admin', style: TextStyle(fontFamily: 'Inter'))
                             ),
 
-                        ], 
+
+                        ],
                         onChanged: (value){
                          setLocalState(() {
                            role = value!;
                          },);
-                        }))
+
+                        },
+                                   dropdownStyleData: DropdownStyleData(
+    maxHeight: 200,
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(10),
+    ),
+    offset: const Offset(0, 5),
+    scrollbarTheme: ScrollbarThemeData(
+      thumbColor: WidgetStatePropertyAll(const Color.fromARGB(255, 90, 181, 255)),
+      radius: const Radius.circular(8),
+      thickness: WidgetStatePropertyAll(4),
+      trackVisibility: WidgetStatePropertyAll(false),
+      mainAxisMargin: 10, // ⬅️ This controls vertical margin (effectively makes it shorter)
+    ),
+  ),
+  menuItemStyleData: const MenuItemStyleData(
+    overlayColor: WidgetStatePropertyAll(Color.fromARGB(255, 240, 245, 253)), // ⬅️ Hover color (light blue)
+    padding: EdgeInsets.symmetric(horizontal: 2, vertical: 10),
+  ),
+           buttonStyleData: const ButtonStyleData(
+    height: 45,
+    padding: EdgeInsets.symmetric(horizontal: 10),
+    decoration: BoxDecoration(
+      color: Colors.transparent,
+    ),
+  ),   
+                        ))
                     ),
                   ),
                 ],
                              ),
-                           onDetails ?  SizedBox(height: 220,) : SizedBox(height: 0,),
-                            
+                           onDetails ?  SizedBox(height: 40,) : SizedBox(height: 0,),
+                           
                  
                              Row(
                               mainAxisAlignment: MainAxisAlignment.end,
@@ -334,13 +400,13 @@ _onSearchChanged(setLocalState);
                                    'role': role,
                                     });
                                     }
-                                  
+                                 
                                       updateText = 'Changes saved.';
-                                    
+                                   
                                     setLocalState(() {
-                                      
+                                     
                                     },);
-                                    
+                                   
                                   },
                                   child: Container(
                                     width: 100,
@@ -350,7 +416,7 @@ _onSearchChanged(setLocalState);
                                       borderRadius: BorderRadiusDirectional.circular(10),
                                     ),
                                     child: Center(
-                                      
+                                     
                                       child: Text('Save', style: TextStyle(fontWeight: FontWeight.bold) )),
                                   ),
                                 ),
@@ -361,178 +427,158 @@ _onSearchChanged(setLocalState);
                 ) : Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                  Container(
-                    height: 35,
-                    width: 450,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                          color: const Color.fromARGB(255, 238, 238, 238),
-                          border: Border.all(width: 0.5, color: const Color.fromARGB(255, 215, 214, 214)),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
-                      child: TextField(
-                      controller: usereditControl,
-                      cursorColor: Colors.black,
-                      decoration: InputDecoration(
-                        label: Text('Search for a process',style: TextStyle()),
-                        floatingLabelStyle: TextStyle(color: const Color.fromARGB(255, 238, 238, 238),),
-                        enabledBorder: InputBorder.none,
-                        disabledBorder: InputBorder.none,
-                        focusedBorder: InputBorder.none,
-                        prefixIcon: Icon(Icons.search),
-                      ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 35),
                  
-                        Row(
+                 
+                 
+                        Column(
                           children: [
-                            SizedBox(width: 0),
-                            FutureBuilder(
-                              future: Supabase.instance.client.from('process').select(),
-                              builder: (context, snapshot) {
-                             
-                               if (snapshot.hasError){
-                                  return Text('Error: ${snapshot.error}');
-                                } 
-                                    
-                                final data = snapshot.data ?? [];
-                                if (data.isEmpty){
-                                  return Text('');
-                                }
-                                  
-                                    
-                               return Align(
-                                alignment: Alignment.topLeft,
-                                 child: Column(
-                                   children: [
-                                     Row(
-                                       children: [
-                                      
-                                                    Column(
-                                                      children: [
-                                                               
-                                                   
-                                                          
-                                                            Row(
-                                                              children: [
-                                                                SizedBox(width: 30,),
-                                                                FutureBuilder(
-                                                                  future: Future.wait([ Supabase.instance.client.from('process').select(),
-                                                                  Supabase.instance.client.from('process_users').select().eq('userpu', usernamer),
-                                                                 
-                                                                  ]),
-                                                                  builder: (context, snapshot) {
-                                                                      if (snapshot.hasError) {
-                                                            return Text('Error: ${snapshot.error}');
-                                                              }
-                                                            
-                                                            // if (snapshot.connectionState == ConnectionState.waiting){
-                                                            //   return Center(child: CircularProgressIndicator(color: Colors.blue));
-                                                            // }
-                                                              if (!snapshot.hasData || snapshot.data == null) {
-                                                            return Text('No data found');
-                                                              }
-                                                                   final  data = snapshot.data![0];
-                                                            final  data2 = snapshot.data![1];
-                                                            
-                                                                 if (data.isEmpty){
-                                                                  return Center(child: Text('No users found', style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.bold, fontSize: 16)));
-                                                                 } 
-                                                     permittedProcesses = {
-                                                              for (final entry in data2)
-                                                                if (entry['processpu'] != null && entry['disabled'] != 'true') entry['processpu'] as String
-                                                            };
-                                                            
-                                                            
-                                                            print('permittedproccessses $permittedProcesses');
-                                                            
-                                                              
-                                    
-                                final filteredData = data.where(
-                                  ((row) => row['description'].toString().toLowerCase().contains(usereditControl.text.toLowerCase()))).toList();
-                                
-                                 
-                                                                    return SizedBox(
-                                                                      width: 450,
-                                                                      height: 180,
-                                                                      child: SingleChildScrollView(
-                                                                        scrollDirection: Axis.vertical,
-                                                                       child: SizedBox(
-                                                                        width: 450,
-                                                                        
-                                                                         child: Column(
-                                                                           children: filteredData.map((entry)  { 
-                                                                            final usernames = entry['description'];
-                                                                                        final isChecked = isCheckedMapEdit[usernames] ?? permittedProcesses.contains(usernames);
+                           
+                              Row(
+                                                                         children: [
+                                                                           SizedBox(width: 30),
+                                                                           Text('Permission', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),),
+                                                                         ],
+                                                                                   ),
+                                                                                   SizedBox(height: 5),
+                                                                                   Row(
+                                                                                     children: [
+                                                                                       SizedBox(width: 30),
+                                                                                       Container(
+                                                                                         height: 45,
+                                                                                         width: 400,
+                                                                                         decoration: BoxDecoration(
+                                                                                           borderRadius: BorderRadius.circular(15),
+                                                                                           color: const Color.fromARGB(255, 238, 238, 238),
+                                                                                           border: Border.all(width: 0.5, color: const Color.fromARGB(255, 215, 214, 214)),
+                                                                                         ),
+                                                                                         child: Padding(
+                                                                                           padding: const EdgeInsets.all(10),
+                                                                                           child:
+                                                                                                                   FutureBuilder(
+                                                                                                                     future: Supabase.instance.client.from('process').select(),
+                                                                                                                     builder: (context, snapshot) {
+                                                                                                                   
+                                                                                                                      if (snapshot.hasError){
+                                                                                                                         return Text('Error: ${snapshot.error}');
+                                                                                                                       }
+                                                                                                                           
+                                                                                                                       final data = snapshot.data ?? [];
+                                                                                                                       if (data.isEmpty){
+                                                                                                                         return Text('');
+                                                                                                                       }
+                                                                                                                         
+                                                                                                                           
+                                                                                                                      return FutureBuilder(
+                                                                                                                        future: Future.wait([ Supabase.instance.client.from('process').select(),
+                                                                                                                        Supabase.instance.client.from('process_users').select().eq('userpu', usernamer),
+                                                                                                                       
+                                                                                                                        ]),
+                                                                                                                        builder: (context, snapshot) {
+                                                                                                                            if (snapshot.hasError) {
+                                                                                                                                                     return Text('Error: ${snapshot.error}');
+                                                                                                                                                       }
+                                                                                                                                                     
+                                                                                                                                                     // if (snapshot.connectionState == ConnectionState.waiting){
+                                                                                                                                                     //   return Center(child: CircularProgressIndicator(color: Colors.blue));
+                                                                                                                                                     // }
+                                                                                                                                                       if (!snapshot.hasData || snapshot.data == null) {
+                                                                                                                                                     return Text('No data found');
+                                                                                                                                                       }
+                                                                                                                         final  data = snapshot.data![0];
+                                                                                                                                                     final  data2 = snapshot.data![1];
+                                                                                                                                                     
+                                                                                                                       if (data.isEmpty){
+                                                                                                                        return Center(child: Text('No users found', style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.bold, fontSize: 16)));
+                                                                                                                       }
+                                                                                                                                                  permittedProcesses = data2.where((entry) =>
+                                                                                                                                                  entry['processpu'] != null && entry['disabled'] != 'true').toList();
+                                                                                                                                                 
+                                                                                                                                                     print('permittedproccessses $permittedProcesses');
+                                                                                                                                                     
+                                                                                                                                                        selectedProcess = changed ? selectedProcess : permittedProcesses.firstOrNull?['processpu'] ?? 'Select a process...';    
+                                                                                                                             
+                                                                                                                       final filteredData = data.where(
+                                                                                                                           ((row) => row['description'] != permittedProcesses.firstOrNull?['processpu'])).toList();
+                                                                                                                       
+                                                                                                                         
+                                                                                                                     
+                                                                                                                          return DropdownButtonHideUnderline(
+                                                                                                                            child: DropdownButton2(
+                                                                                                                             
                                                                                                                                 
-                                                                            return CheckboxListTile(
-                                                                            title: Text(entry['description'],  overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.bold, fontSize: 16)),
-                                                                            activeColor: Colors.blue,
-                                                                            value: isChecked,
-                                                                            onChanged: (value){
-                                                                              setLocalState(() {
-                                                                                 isCheckedMapEdit[usernames] = value!;
-                                                                              },);
-                                                                                                                                                             
-                                                                            setLocalState
-                                                                            (() {
-                                                                              
-                                                                            },);
-                                                                            }
-                                                                                             
-                                                                            );}).toList(),
-                                                                         ),
-                                                                       ),
-                                                                      ),
-                                                                    );
-                                                                  }
-                                                                ),
-                                                              ],
-                                                            )
-                                                       ]),
-                                       ],
-                                     ),
-                                     
-                                   ],
-                                 ),
-                                 
-                               );
-                              }
-                            ),
+                                                                                                                       items: [
+                                                                                                                              DropdownMenuItem(
+                                                                                                                                                                                value: 'Select a process...',
+                                                                                                                                                                                child: Text('Select a process...', style: TextStyle(fontFamily: 'Inter')),
+                                                                                                                                                               ),
+                                                                                                                                                              if (permittedProcesses.isNotEmpty)  
+                                                                                                                                                                                 DropdownMenuItem(
+                                                                                                                                                                                value: permittedProcesses.firstOrNull?['processpu'] ?? 'h',
+                                                                                                                                                                                child: Text('${permittedProcesses.firstOrNull?['processpu']}', style: TextStyle(fontFamily: 'Inter')),
+                                                                                                                                                               ),
+                                                                                                                            ...filteredData.map((entry) {
+                                                                                                                              return DropdownMenuItem(
+                                                                                                                                value: entry['description'],
+                                                                                                                                child: Text('${entry['description']}', style: TextStyle(fontFamily: 'Inter'),));
+                                                                                                                            }),
+                                                                                                                                                                                                                                                       ],
+                                                                                                                            value: selectedProcess,
+                                                                                                                            onChanged: (value){
+                                                                                                                              print('selectedpb4 $selectedProcess');
+ setLocalState(() {
+    selectedProcess = value.toString();
+    permittedProcesses = [];
+    changed = true;
+    
+  });
+  print('selectedp $selectedProcess');
+  
+                                                                                                                            },
+                                                                                                                                dropdownStyleData: DropdownStyleData(
+    maxHeight: 200,
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(10),
+    ),
+    offset: const Offset(0, 5),
+    scrollbarTheme: ScrollbarThemeData(
+      thumbColor: WidgetStatePropertyAll(const Color.fromARGB(255, 90, 181, 255)),
+      radius: const Radius.circular(8),
+      thickness: WidgetStatePropertyAll(4),
+      trackVisibility: WidgetStatePropertyAll(false),
+      mainAxisMargin: 10, // ⬅️ This controls vertical margin (effectively makes it shorter)
+    ),
+  ),
+  menuItemStyleData: const MenuItemStyleData(
+    overlayColor: WidgetStatePropertyAll(Color.fromARGB(255, 240, 245, 253)), // ⬅️ Hover color (light blue)
+    padding: EdgeInsets.symmetric(horizontal: 2, vertical: 10),
+  ),
+           buttonStyleData: const ButtonStyleData(
+    height: 45,
+    padding: EdgeInsets.symmetric(horizontal: 10),
+    decoration: BoxDecoration(
+      color: Colors.transparent,
+    ),
+  ),                                                                                                                                                                                                                        
+                                                                                                                            ),
+                                                                                                                          );
+                                                                                                                        }
+                                                                                                                      );
+                                                                                                                     }
+                                                                                                                   ),)),
+                                                                                     ],
+                                                                                   ),
                           ],
                         ),
-                        SizedBox(height: 60),
+                        SizedBox(height: 35,),
                         Row(children: [
-                          SizedBox(width: 10,),
-                          TextButton(
-                            onPressed: () {
-        
-                              isCheckedMapEdit.updateAll((key, value) => true,);
-                              setLocalState(() {
-                                
-                              },);
-                            },
-                            child: Text('Select all', style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold, fontSize: 15, fontFamily: 'WorkSans'),)),
-                            
-                          
-                          SizedBox(width: 7),
-                           TextButton(
-                            onPressed: () {
-                               isCheckedMapEdit.updateAll((key, value) => false,);
-                               setLocalState(() {
-                                 
-                               },);
-                            },
-                            child: Text('Clear all', style: TextStyle(color: Color.fromARGB(255, 0, 74, 123), fontWeight: FontWeight.bold, fontSize: 15, fontFamily: 'WorkSans'))),
-                        SizedBox(width: 80),
+                        Spacer(),
                           MouseRegion(
                       cursor: SystemMouseCursors.click,
                       child: GestureDetector(
                         onTap: (){
                           isCheckedMap.clear();
+
 
                           usernameController.clear();
                           mailController.clear();
@@ -556,55 +602,19 @@ _onSearchChanged(setLocalState);
                       cursor: SystemMouseCursors.click,
                       child: GestureDetector(
                         onTap: () async {
-                          
-                           Map<String, bool> isCheckedMap2 = Map.fromEntries(
-          isCheckedMapEdit.entries.where((entry) => entry.value == true)
-        );
-        List <String> isCheckedMap3 = isCheckedMap2.keys.toList();
-          final user = Supabase.instance.client.auth.currentUser;
-          final email = user?.email;
-          
-          final response = await Supabase.instance.client.from('user').select().eq('email', email!).maybeSingle();
-          final company = response?['company'];
-          final username = response?['username'];
-
-          
-                          
-        for (final entry in isCheckedMap3){
-          // if (isCheckedMap3[username] == true) {
-        if (permittedProcesses.contains(entry)) {
+                         
+if (selectedProcess != 'Select a process...'){
+         
   await Supabase.instance.client.from('process_users').update({
-    'company': company,
-    'userpu': usernamer,
-    'usercreate': username,
-    'processpu': entry,
-  }).eq('processpu', entry).eq('userpu', usernamer);
-}     else {
-  await Supabase.instance.client.from('process_users').insert({
-    'company': company,
-    'userpu': usernamer,
-    'usercreate': username,
-    'processpu': entry,
-  });
-}            
-        }
-         Map<String, bool> isCheckedMap4 = Map.fromEntries(
-          isCheckedMapEdit.entries.where((entry) => entry.value == false)
-        );
-        List <String> isCheckedMap5 = isCheckedMap4.keys.toList();
-     
-        for (final entry in isCheckedMap5){
-          
-   final response = await Supabase.instance.client.from('process_users').select().eq('userpu', usernamer).eq('processpu', entry).or('disabled.is.null,disabled.not.eq.true');
-          if (response.isNotEmpty){
-          
-          await Supabase.instance.client.from('process_users').update({'disabled': 'true'}).eq('processpu', entry).eq('userpu', usernamer);
-          }
-          
-          }
-          },
-                        
-                        
+   
+    'processpu': selectedProcess,
+  }).eq('userpu', usernamer);
+} else {
+ CustomToast2.show(context, 'Please select a process');
+}
+                        },
+                       
+                       
                         child: Container(
                           width: 100,
                           height: 40,
@@ -628,17 +638,22 @@ _onSearchChanged(setLocalState);
     )
   );
 
+
 }
+
 
  String? _role;
   bool _loading = true;
+
 
  Future<void> _loadUserRole() async {
     final user = Supabase.instance.client.auth.currentUser;
     final email = user?.email;
 
+
     final response = await Supabase.instance.client.from('user').select().eq('email', email ?? 'Hi').single();
     final role = response['role'];
+
 
     setState(() {
       _role = role;
@@ -647,9 +662,11 @@ _onSearchChanged(setLocalState);
   }
  bool didntpayed = false;
 
+
 Future<void> didntPay () async{
 final user = Supabase.instance.client.auth.currentUser;
     final email = user?.email;
+
 
     final response = await Supabase.instance.client.from('user').select().eq('email', email ?? 'Hi').single();
     final company = response['company'];
@@ -663,7 +680,8 @@ final user = Supabase.instance.client.auth.currentUser;
 }
 @override
 Widget build(BuildContext content){
-    
+   
+
 
     if (_role == 'user' || Supabase.instance.client.auth.currentSession == null) {
       return Scaffold(
@@ -682,6 +700,7 @@ Widget build(BuildContext content){
       );
     }
 
+
 if (didntpayed == true){
   return Scaffold(
         backgroundColor: Colors.white,
@@ -692,7 +711,7 @@ if (didntpayed == true){
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
-            
+           
                 children: [
                   Container(
                     width: MediaQuery.of(context).size.width *0.13188,
@@ -725,6 +744,8 @@ if (didntpayed == true){
 }
 
 
+
+
    return  Scaffold(
       floatingActionButton: AddNewUser(
           onSuccess: () => CustomToast.show(context),
@@ -745,16 +766,16 @@ if (didntpayed == true){
               ),
              color: const Color.fromARGB(255, 0, 74, 123),
             ),
-          
+         
             child: Column(
               children: [
-                
+               
                 SizedBox(height:MediaQuery.of(context).size.height * 0.15,),
                Align(
                 alignment: Alignment.centerLeft,
                  child: Row(
                    children: [
-                    SizedBox(width: 10), 
+                    SizedBox(width: 10),
                      MouseRegion(
                       cursor: SystemMouseCursors.click,
                        child: GestureDetector(
@@ -796,7 +817,7 @@ if (didntpayed == true){
                 alignment: Alignment.centerLeft,
                  child: Row(
                    children: [
-                    SizedBox(width: 10), 
+                    SizedBox(width: 10),
                      MouseRegion(
                       cursor: SystemMouseCursors.click,
                        child: GestureDetector(
@@ -807,7 +828,7 @@ if (didntpayed == true){
                               selected2 = true;
                               selected3 = false;
                               selected4 = false;
-                                    selected5 = false; 
+                                    selected5 = false;
                                        selected6 = false;
                             });
                             },
@@ -836,13 +857,13 @@ if (didntpayed == true){
                    ],
                  ),
                ),
-            
+           
                   SizedBox(height:MediaQuery.of(context).size.height * 0.018,),
                    Align(
                 alignment: Alignment.centerLeft,
                  child: Row(
                    children: [
-                    SizedBox(width: 10), 
+                    SizedBox(width: 10),
                      MouseRegion(
                       cursor: SystemMouseCursors.click,
                        child: GestureDetector(
@@ -887,7 +908,7 @@ if (didntpayed == true){
                 alignment: Alignment.centerLeft,
                  child: Row(
                    children: [
-                    SizedBox(width: 10), 
+                    SizedBox(width: 10),
                      MouseRegion(
                       cursor: SystemMouseCursors.click,
                        child: GestureDetector(
@@ -898,7 +919,7 @@ if (didntpayed == true){
                               selected2 = false;
                               selected3 = false;
                               selected4 = true;
-                                selected5 = false; 
+                                selected5 = false;
                                    selected6 = false;
                             });
                             },
@@ -932,7 +953,7 @@ if (didntpayed == true){
                 alignment: Alignment.centerLeft,
                  child: Row(
                    children: [
-                    SizedBox(width: 10), 
+                    SizedBox(width: 10),
                      MouseRegion(
                       cursor: SystemMouseCursors.click,
                        child: GestureDetector(
@@ -942,7 +963,7 @@ if (didntpayed == true){
                               selected2 = false;
                               selected3 = true;
                               selected4 = false;
-                                selected5 = false; 
+                                selected5 = false;
                                    selected6 = false;
                             });
                             },
@@ -976,13 +997,13 @@ if (didntpayed == true){
                 alignment: Alignment.centerLeft,
                  child: Row(
                    children: [
-                    SizedBox(width: 10), 
+                    SizedBox(width: 10),
                      MouseRegion(
                       cursor: SystemMouseCursors.click,
                        child: GestureDetector(
                            onTap: (){
                             setState(() {
-                              
+                             
                                      context.go('/route');
                               selected1 = false;
                               selected2 = false;
@@ -990,11 +1011,11 @@ if (didntpayed == true){
                               selected4 = false;
                               selected5 = true;
          selected6 = false;
-        
-            
+       
+           
                                              
                             });
-                          
+                         
                             },
                             child: Container(
                               width: 165,
@@ -1026,7 +1047,7 @@ if (didntpayed == true){
                 alignment: Alignment.centerLeft,
                  child: Row(
                    children: [
-                    SizedBox(width: 10), 
+                    SizedBox(width: 10),
                      MouseRegion(
                       cursor: SystemMouseCursors.click,
                        child: GestureDetector(
@@ -1035,7 +1056,7 @@ if (didntpayed == true){
                                       context.go('/reports');
                            
                             });
-                          
+                         
                             },
                             child: Container(
                               width: 165,
@@ -1072,16 +1093,16 @@ if (didntpayed == true){
                                       await Supabase.instance.client.auth.signOut();
                                      
                                           setState(() {
-                                            
+                                           
                                           });
                                     },
-                                    child: Text('Logout',  textAlign: TextAlign.center, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, 
+                                    child: Text('Logout',  textAlign: TextAlign.center, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold,
                                   color:  const Color.fromARGB(255, 177, 220, 255),),)),
                                    SizedBox(width: 10),
                              Icon(Icons.logout, color:  const Color.fromARGB(255, 177, 220, 255),)
                              
                                 ],
-                              ), SizedBox(height: 20,), 
+                              ), SizedBox(height: 20,),
               ],
             ),
           ),
@@ -1134,7 +1155,7 @@ if (didntpayed == true){
                 Align(
                   alignment: Alignment.topLeft,
                   child: SizedBox(
-                    width:  MediaQuery.of(context).size.width >  1500 ?  MediaQuery.of(context).size.width * 0.866  :  MediaQuery.of(context).size.width >  1450 ? 
+                    width:  MediaQuery.of(context).size.width >  1500 ?  MediaQuery.of(context).size.width * 0.866  :  MediaQuery.of(context).size.width >  1450 ?
                       MediaQuery.of(context).size.width *  0.85 :
                     MediaQuery.of(context).size.width *  0.84,
                         height: 60,
@@ -1165,7 +1186,7 @@ if (didntpayed == true){
                                 Align(
                 alignment: Alignment.topLeft,
                 child: SizedBox(
-                  width:   MediaQuery.of(context).size.width >  1500 ?  MediaQuery.of(context).size.width * 0.866  :  MediaQuery.of(context).size.width >  1450 ? 
+                  width:   MediaQuery.of(context).size.width >  1500 ?  MediaQuery.of(context).size.width * 0.866  :  MediaQuery.of(context).size.width >  1450 ?
                       MediaQuery.of(context).size.width *  0.85 :
                     MediaQuery.of(context).size.width *  0.84,
                       height: MediaQuery.of(context).size.height * 0.68,
@@ -1180,13 +1201,13 @@ if (didntpayed == true){
                   } else if (snapshot.hasError) {
                     return Center(child: Text('Error: ${snapshot.error}'));
                   }
-                    
-                
-                
+                   
+               
+               
                   final data = snapshot.data ?? [];
-                  
+                 
                   final filteredData = data.where((entry) => entry['username'].toString().contains(searchController2.text),).toList();
-                
+               
                   if (filteredData.isEmpty) {
                     return Center(child: Column(
                       children: [
@@ -1201,18 +1222,18 @@ if (didntpayed == true){
                           Positioned
                           (
                             left: 100,
-                            top: 300, child: Text('Nothing here yet...', style: TextStyle(color:  const Color.fromARGB(255, 0, 55, 100), fontSize: 25, 
+                            top: 300, child: Text('Nothing here yet...', style: TextStyle(color:  const Color.fromARGB(255, 0, 55, 100), fontSize: 25,
                             fontWeight: FontWeight.bold )))
                           ])
                       ],
                     ));
                   }
-                
+               
                   return ListView.builder(
                     itemCount: filteredData.length,
                     itemBuilder: (context, index) {
                       final entry = filteredData[index];
-                
+               
                       return Container(
                         decoration: BoxDecoration(
                           border: Border(bottom: BorderSide(width: 1, color: const Color.fromARGB(255, 118, 118, 118))),
@@ -1226,7 +1247,7 @@ if (didntpayed == true){
                               SizedBox(height: 5),
                               Row(
                                 children: [
-                                  
+                                 
                                   SizedBox(width: 20),
                                   SizedBox(width: 350, child: Text(entry['email'] ?? 'N/A', style: TextStyle(fontSize: 16, fontFamily: 'Inter'))),
                                   SizedBox(width: 20),
@@ -1257,7 +1278,7 @@ if (didntpayed == true){
                   ),
                 ),
                                 )
-                                
+                               
                 ]),
               ),
             ],
@@ -1265,6 +1286,6 @@ if (didntpayed == true){
         ],),
       ),
     );
-  
+ 
 }
 }

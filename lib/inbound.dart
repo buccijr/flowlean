@@ -1811,9 +1811,10 @@ backgroundColor: Color.fromARGB(255, 236, 244, 254),
                   builder: (context, snapshot) {
                     
                     return Row(children: [
+                       focusmode ? SizedBox.shrink() :
                         SizedBox(width: MediaQuery.of(context).size.width * 0.009),
-                    
-                        SizedBox(width:  focusmode ? MediaQuery.of(context).size.width *  0.3 : MediaQuery.of(context).size.width *  0.15, child: Text('ID', style: TextStyle(fontSize: 15, fontFamily: 'Inter', fontWeight: FontWeight.bold))),
+                     focusmode ? SizedBox.shrink() :
+                        SizedBox(width:  focusmode ? MediaQuery.of(context).size.width *  0.3 : MediaQuery.of(context).size.width *  0.04, child: Text('ID', style: TextStyle(fontSize: 15, fontFamily: 'Inter', fontWeight: FontWeight.bold))),
                       SizedBox(width: MediaQuery.of(context).size.width * 0.009),
                     
                         SizedBox(width:  focusmode ? MediaQuery.of(context).size.width *  0.3 : MediaQuery.of(context).size.width *  0.15, child: Text('Requested Item', style: TextStyle(fontSize: 15, fontFamily: 'Inter', fontWeight: FontWeight.bold))),
@@ -1977,9 +1978,10 @@ backgroundColor: Color.fromARGB(255, 236, 244, 254),
                                  },
                               child: Row(
                                 children: [
+                                   focusmode ? SizedBox.shrink() :
                                     SizedBox(width: MediaQuery.of(context).size.width * 0.009),
-                                  
-                                    SizedBox(width: focusmode ? MediaQuery.of(context).size.width *  0.27 : MediaQuery.of(context).size.width *  0.15, child: Text("${entry['id']}", style: TextStyle(fontSize: 15, fontFamily: 'Inter'))),
+                                   focusmode ? SizedBox.shrink() :
+                                    SizedBox(width: focusmode ? MediaQuery.of(context).size.width *  0.27 : MediaQuery.of(context).size.width *  0.04, child: Text("${entry['id']}", style: TextStyle(fontSize: 15, fontFamily: 'Inter'))),
                                     
                                       SizedBox(width: MediaQuery.of(context).size.width * 0.009),
                                   

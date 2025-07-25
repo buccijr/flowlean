@@ -1,4 +1,5 @@
 
+import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:async';
@@ -297,8 +298,7 @@ onSearchChanged();
                     child: Padding(
                       padding: const EdgeInsets.all(10),
                       child: DropdownButtonHideUnderline(
-                        child: DropdownButton(
-                          icon: Icon(Icons.keyboard_arrow_down),
+                        child: DropdownButton2(
                           value: selectedRole,
                           items: [
                              DropdownMenuItem(
@@ -318,7 +318,33 @@ onSearchChanged();
                             setLocalState((){
                             selectedRole = value!;
                             });
-                          })
+                          }  ,dropdownStyleData: DropdownStyleData(
+    maxHeight: 200,
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(10),
+    ),
+    offset: const Offset(0, 5),
+    scrollbarTheme: ScrollbarThemeData(
+      thumbColor: WidgetStatePropertyAll(const Color.fromARGB(255, 90, 181, 255)),
+      radius: const Radius.circular(8),
+      thickness: WidgetStatePropertyAll(4),
+      trackVisibility: WidgetStatePropertyAll(false),
+      mainAxisMargin: 10, // ⬅️ This controls vertical margin (effectively makes it shorter)
+    ),
+  ),
+  menuItemStyleData: const MenuItemStyleData(
+    overlayColor: WidgetStatePropertyAll(Color.fromARGB(255, 240, 245, 253)), // ⬅️ Hover color (light blue)
+    padding: EdgeInsets.symmetric(horizontal: 2, vertical: 10),
+  ),
+           buttonStyleData: const ButtonStyleData(
+    height: 45,
+    padding: EdgeInsets.symmetric(horizontal: 10),
+    decoration: BoxDecoration(
+      color: Colors.transparent,
+    ),
+  ),
+     )
                       ),
                     ),
                   ),

@@ -773,7 +773,7 @@ backgroundColor: Color.fromARGB(255, 236, 244, 254),
                 width: double.infinity,
                 child: Row(children: [
                 SizedBox(width: MediaQuery.of(context).size.width * 0.009),
-                    SizedBox(width:  MediaQuery.of(context).size.width * 0.08, child: Text('ID', style: TextStyle(fontSize: 15, fontFamily: 'Inter',
+                    SizedBox(width:  MediaQuery.of(context).size.width * 0.04, child: Text('ID', style: TextStyle(fontSize: 15, fontFamily: 'Inter',
                     fontWeight: FontWeight.bold)),),
                     SizedBox(width: MediaQuery.of(context).size.width * 0.009),
                     SizedBox(width:  MediaQuery.of(context).size.width * 0.207, child: Text('Requested', style: TextStyle(fontSize: 15, fontFamily: 'Inter',
@@ -905,7 +905,7 @@ backgroundColor: Color.fromARGB(255, 236, 244, 254),
                                   Row(
                                     children: [
                                     SizedBox(width: MediaQuery.of(context).size.width * 0.009),
-                                      SizedBox(width:  MediaQuery.of(context).size.width * 0.08, child: Text('${entry['id']}', style: TextStyle(fontSize: 16, fontFamily: 'Inter'))),
+                                      SizedBox(width:  MediaQuery.of(context).size.width * 0.04, child: Text('${entry['id']}', style: TextStyle(fontSize: 16, fontFamily: 'Inter'))),
                                       SizedBox(width: MediaQuery.of(context).size.width * 0.009),
                                       SizedBox(width:  MediaQuery.of(context).size.width * 0.207, child: Text(entry['requestitem'] ?? '', style: TextStyle(fontSize: 16, fontFamily: 'Inter'))),
                                       SizedBox(width: MediaQuery.of(context).size.width * 0.009),

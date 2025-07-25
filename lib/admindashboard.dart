@@ -1,3 +1,4 @@
+import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:async';
@@ -935,7 +936,9 @@ _launchURL();
                         value: 'Cancel',
                         child: Text('Unsubscribe', style: TextStyle(fontFamily: 'Inter', fontSize: 18),)),
                       ],
-                      ));
+                      
+                      )
+                       );
                    },
                  ),
                ),
@@ -1070,7 +1073,7 @@ _launchURL();
            
            }).toList();
            
-           final filteredData1 = data.where((entry) {
+           final filteredData1 = data1.where((entry) {
              
              final start = DateTime.parse(entry['starttime']);
             

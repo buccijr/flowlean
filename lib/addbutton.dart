@@ -1,5 +1,6 @@
 
 
+import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:async';
@@ -301,8 +302,8 @@ Future<String> fetchTo2() async {
                                             return StatefulBuilder(
                                               builder:(context, setLocallyState) => 
                                                DropdownButtonHideUnderline(
-                                               child: DropdownButton(
-                                                   icon: Icon(Icons.keyboard_arrow_down),
+                                               child: DropdownButton2(
+                                                 
                                                              value:  fromt.value ?? fetchh,
                                                              items: [
                                                              DropdownMenuItem(
@@ -331,7 +332,34 @@ Future<String> fetchTo2() async {
                                                              });
                                                              
                                                           
-                                                             }
+                                                             },
+                                                             
+                                                                        dropdownStyleData: DropdownStyleData(
+    maxHeight: 200,
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(10),
+    ),
+    offset: const Offset(0, 5),
+    scrollbarTheme: ScrollbarThemeData(
+      thumbColor: WidgetStatePropertyAll(const Color.fromARGB(255, 90, 181, 255)),
+      radius: const Radius.circular(8),
+      thickness: WidgetStatePropertyAll(4),
+      trackVisibility: WidgetStatePropertyAll(false),
+      mainAxisMargin: 10, // ⬅️ This controls vertical margin (effectively makes it shorter)
+    ),
+  ),
+  menuItemStyleData: const MenuItemStyleData(
+    overlayColor: WidgetStatePropertyAll(Color.fromARGB(255, 240, 245, 253)), // ⬅️ Hover color (light blue)
+    padding: EdgeInsets.symmetric(horizontal: 2, vertical: 10),
+  ),
+           buttonStyleData: const ButtonStyleData(
+    height: 45,
+    padding: EdgeInsets.symmetric(horizontal: 10),
+    decoration: BoxDecoration(
+      color: Colors.transparent,
+    ),
+  ),   
                                                ),
                                               ),
                                             );
@@ -374,7 +402,7 @@ Future<String> fetchTo2() async {
                                     return FutureBuilder(
                                        future: fetchFrom(tappIndexx, taapp),
                                               builder: (context, snapshot) {
-                                                final fetchh = snapshot.data ?? 'N/A';
+                                                final fetchh = snapshot.data ?? 'N/A.';
                                                
                                         return FutureBuilder(
                                           future: fetchTo(),
@@ -386,20 +414,18 @@ Future<String> fetchTo2() async {
                                               builder: (context, snapshot) {
                                                 final data = snapshot.data ?? [];
                                                final filtereddata = data.where((entry) => entry['description'] != fetchhedd && entry['description'] != 'Material Location'
-                                                        && entry['description'] != 'Current Process'
+                                                        && entry['description'] != 'Current Process' && (entry['description'] ?? 'N/A!') != fetchh
                                                         );
                                                 return StatefulBuilder(
                                                   builder:(context, setLocallyState) => 
                                                    DropdownButtonHideUnderline(
-                                                   child: DropdownButton(
-                                                       icon: Icon(Icons.keyboard_arrow_down),
-                                                                 value:  tot.value ?? fetchhedd ?? 'N/A',
+                                                   child: DropdownButton2(
+                                                                 value:  tot.value ?? fetchhedd ?? 'N/A!',
                                                                  items: [
                                                                  DropdownMenuItem(
-                                                                   value: fetchhedd ?? 'N/A',
+                                                                   value: fetchhedd ?? 'N/AA',
                                                                    child: Row(
                                                                      children: [
-                                                                      SizedBox(width: 10,),
                                                                        Text(fetchhedd ?? 'N / A' ),
                                                                      ],
                                                                    )),
@@ -407,7 +433,6 @@ Future<String> fetchTo2() async {
                                                                value: fetchh,
                                                                child: Row(
                                                                  children: [
-                                                                   SizedBox(width: 10,),
                                                                    Text(fetchh),
                                                                  ],
                                                                )),
@@ -428,7 +453,33 @@ Future<String> fetchTo2() async {
                                                                  print('to ${tot.value}');
                                                                  
                                                               
-                                                                 }
+                                                                 },
+                                                                            dropdownStyleData: DropdownStyleData(
+    maxHeight: 200,
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(10),
+    ),
+    offset: const Offset(0, 5),
+    scrollbarTheme: ScrollbarThemeData(
+      thumbColor: WidgetStatePropertyAll(const Color.fromARGB(255, 90, 181, 255)),
+      radius: const Radius.circular(8),
+      thickness: WidgetStatePropertyAll(4),
+      trackVisibility: WidgetStatePropertyAll(false),
+      mainAxisMargin: 10, // ⬅️ This controls vertical margin (effectively makes it shorter)
+    ),
+  ),
+  menuItemStyleData: const MenuItemStyleData(
+    overlayColor: WidgetStatePropertyAll(Color.fromARGB(255, 240, 245, 253)), // ⬅️ Hover color (light blue)
+    padding: EdgeInsets.symmetric(horizontal: 2, vertical: 10),
+  ),
+           buttonStyleData: const ButtonStyleData(
+    height: 45,
+    padding: EdgeInsets.symmetric(horizontal: 10),
+    decoration: BoxDecoration(
+      color: Colors.transparent,
+    ),
+  ),   
                                                    ),
                                                   ),
                                                 );
@@ -617,8 +668,7 @@ fromTot() async {
                                             return StatefulBuilder(
                                               builder:(context, setLocallyState) => 
                                                DropdownButtonHideUnderline(
-                                               child: DropdownButton(
-                                                   icon: Icon(Icons.keyboard_arrow_down),
+                                               child: DropdownButton2(
                                                              value:  fromNotifier.value,
                                                              items: [
                                                              DropdownMenuItem(
@@ -643,7 +693,33 @@ fromTot() async {
                                                              
                                                              
                                                           
-                                                             }
+                                                             },
+                                                                        dropdownStyleData: DropdownStyleData(
+    maxHeight: 200,
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(10),
+    ),
+    offset: const Offset(0, 5),
+    scrollbarTheme: ScrollbarThemeData(
+      thumbColor: WidgetStatePropertyAll(const Color.fromARGB(255, 90, 181, 255)),
+      radius: const Radius.circular(8),
+      thickness: WidgetStatePropertyAll(4),
+      trackVisibility: WidgetStatePropertyAll(false),
+      mainAxisMargin: 10, // ⬅️ This controls vertical margin (effectively makes it shorter)
+    ),
+  ),
+  menuItemStyleData: const MenuItemStyleData(
+    overlayColor: WidgetStatePropertyAll(Color.fromARGB(255, 240, 245, 253)), // ⬅️ Hover color (light blue)
+    padding: EdgeInsets.symmetric(horizontal: 2, vertical: 10),
+  ),
+           buttonStyleData: const ButtonStyleData(
+    height: 45,
+    padding: EdgeInsets.symmetric(horizontal: 10),
+    decoration: BoxDecoration(
+      color: Colors.transparent,
+    ),
+  ),   
                                                ),
                                               ),
                                             );
@@ -681,8 +757,7 @@ fromTot() async {
                                     return StatefulBuilder(
                                       builder:(context, setLocallyState) => 
                                        DropdownButtonHideUnderline(
-                                       child: DropdownButton(
-                                           icon: Icon(Icons.keyboard_arrow_down),
+                                       child: DropdownButton2(
                                                      value:  toNotifier.value,
                                                      items: [
                                                      DropdownMenuItem(
@@ -706,7 +781,33 @@ fromTot() async {
                                                      
                                                      
                                                   
-                                                     }
+                                                     },
+                                                                dropdownStyleData: DropdownStyleData(
+    maxHeight: 200,
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(10),
+    ),
+    offset: const Offset(0, 5),
+    scrollbarTheme: ScrollbarThemeData(
+      thumbColor: WidgetStatePropertyAll(const Color.fromARGB(255, 90, 181, 255)),
+      radius: const Radius.circular(8),
+      thickness: WidgetStatePropertyAll(4),
+      trackVisibility: WidgetStatePropertyAll(false),
+      mainAxisMargin: 10, // ⬅️ This controls vertical margin (effectively makes it shorter)
+    ),
+  ),
+  menuItemStyleData: const MenuItemStyleData(
+    overlayColor: WidgetStatePropertyAll(Color.fromARGB(255, 240, 245, 253)), // ⬅️ Hover color (light blue)
+    padding: EdgeInsets.symmetric(horizontal: 2, vertical: 10),
+  ),
+           buttonStyleData: const ButtonStyleData(
+    height: 45,
+    padding: EdgeInsets.symmetric(horizontal: 10),
+    decoration: BoxDecoration(
+      color: Colors.transparent,
+    ),
+  ),   
                                        ),
                                       ),
                                     );
@@ -1461,8 +1562,8 @@ _debounce = Timer(const Duration(milliseconds: 400), (){
                               return StatefulBuilder(
                                 builder:(context, setLocallyState) => 
                                  DropdownButtonHideUnderline(
-                                 child: DropdownButton(
-                                     icon: Icon(Icons.keyboard_arrow_down),
+                                 child: DropdownButton2(
+                                     
                                                value:  selectedTime2,
                                                items: [
                                                DropdownMenuItem(
@@ -1491,7 +1592,34 @@ _debounce = Timer(const Duration(milliseconds: 400), (){
                                                
                                                
           
-                                               }
+                                               },
+                                                          dropdownStyleData: DropdownStyleData(
+    maxHeight: 200,
+     width: 150,
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(10),
+    ),
+    offset: const Offset(0, 5),
+    scrollbarTheme: ScrollbarThemeData(
+      thumbColor: WidgetStatePropertyAll(const Color.fromARGB(255, 90, 181, 255)),
+      radius: const Radius.circular(8),
+      thickness: WidgetStatePropertyAll(4),
+      trackVisibility: WidgetStatePropertyAll(false),
+      mainAxisMargin: 10, // ⬅️ This controls vertical margin (effectively makes it shorter)
+    ),
+  ),
+  menuItemStyleData: const MenuItemStyleData(
+    overlayColor: WidgetStatePropertyAll(Color.fromARGB(255, 240, 245, 253)), // ⬅️ Hover color (light blue)
+    padding: EdgeInsets.symmetric(horizontal: 2, vertical: 10),
+  ),
+           buttonStyleData: const ButtonStyleData(
+    height: 45,
+    padding: EdgeInsets.symmetric(horizontal: 10),
+    decoration: BoxDecoration(
+      color: Colors.transparent,
+    ),
+  ),   
                                  ),
                                 ),
                               );
@@ -1765,8 +1893,7 @@ _debounce = Timer(const Duration(milliseconds: 400), (){
                               return StatefulBuilder(
                                 builder:(context, setLocallyState) => 
                                  DropdownButtonHideUnderline(
-                                 child: DropdownButton(
-                                     icon: Icon(Icons.keyboard_arrow_down),
+                                 child: DropdownButton2(
                                                value:  selectedTime1,
                                                items: [
                                                DropdownMenuItem(
@@ -1797,7 +1924,33 @@ _debounce = Timer(const Duration(milliseconds: 400), (){
                                                 
                                               
                                                  
-                                               }
+                                               },
+                                                          dropdownStyleData: DropdownStyleData(
+    maxHeight: 200,
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(10),
+    ),
+    offset: const Offset(0, 5),
+    scrollbarTheme: ScrollbarThemeData(
+      thumbColor: WidgetStatePropertyAll(const Color.fromARGB(255, 90, 181, 255)),
+      radius: const Radius.circular(8),
+      thickness: WidgetStatePropertyAll(4),
+      trackVisibility: WidgetStatePropertyAll(false),
+      mainAxisMargin: 10, // ⬅️ This controls vertical margin (effectively makes it shorter)
+    ),
+  ),
+  menuItemStyleData: const MenuItemStyleData(
+    overlayColor: WidgetStatePropertyAll(Color.fromARGB(255, 240, 245, 253)), // ⬅️ Hover color (light blue)
+    padding: EdgeInsets.symmetric(horizontal: 2, vertical: 10),
+  ),
+           buttonStyleData: const ButtonStyleData(
+    height: 45,
+    padding: EdgeInsets.symmetric(horizontal: 10),
+    decoration: BoxDecoration(
+      color: Colors.transparent,
+    ),
+  ),   
                                  ),
                                 ),
                               );
@@ -1846,8 +1999,8 @@ _debounce = Timer(const Duration(milliseconds: 400), (){
                                                                       valueListenable: selectedStep1Notifier,
                                                                       builder: (context, value, child) {
                                                                         return DropdownButtonHideUnderline(
-                                                                                            child: DropdownButton(
-                                                                               icon: Icon(Icons.keyboard_arrow_down),
+                                                                                            child: DropdownButton2(
+                                                                              
                                                                                value: value,
                                                                                items: [
                                                                                DropdownMenuItem(
@@ -1885,7 +2038,34 @@ _debounce = Timer(const Duration(milliseconds: 400), (){
                                                                                       }
                                                                                  });
                                                                                 
-                                                                               }
+                                                                               },
+                                                                                          dropdownStyleData: DropdownStyleData(
+                                                                                            width: MediaQuery.of(context).size.width < 1500 ? 200 : 250,
+    maxHeight: 200,
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(10),
+    ),
+    offset: const Offset(0, 5),
+    scrollbarTheme: ScrollbarThemeData(
+      thumbColor: WidgetStatePropertyAll(const Color.fromARGB(255, 90, 181, 255)),
+      radius: const Radius.circular(8),
+      thickness: WidgetStatePropertyAll(4),
+      trackVisibility: WidgetStatePropertyAll(false),
+      mainAxisMargin: 10, // ⬅️ This controls vertical margin (effectively makes it shorter)
+    ),
+  ),
+  menuItemStyleData: const MenuItemStyleData(
+    overlayColor: WidgetStatePropertyAll(Color.fromARGB(255, 240, 245, 253)), // ⬅️ Hover color (light blue)
+    padding: EdgeInsets.symmetric(horizontal: 2, vertical: 10),
+  ),
+           buttonStyleData: const ButtonStyleData(
+    height: 45,
+    padding: EdgeInsets.symmetric(horizontal: 10),
+    decoration: BoxDecoration(
+      color: Colors.transparent,
+    ),
+  ),   
                                                                              ),
                                                                                            );
                                                                       }
@@ -1991,8 +2171,7 @@ _debounce = Timer(const Duration(milliseconds: 400), (){
                                                                                        return StatefulBuilder(
                                                                                          builder:(context, setLocallyState) => 
                                                                                           DropdownButtonHideUnderline(
-                                                                                          child: DropdownButton(
-                                                                                              icon: Icon(Icons.keyboard_arrow_down),
+                                                                                          child: DropdownButton2(
                                                                                                         value:  selectedTime1,
                                                                                                         items: [
                                                                                                         DropdownMenuItem(
@@ -2023,7 +2202,34 @@ _debounce = Timer(const Duration(milliseconds: 400), (){
                                                                                                          
                                                                                                        
                                                                                                           
-                                                                                                        }
+                                                                                                        },
+                                                                                                                   dropdownStyleData: DropdownStyleData(
+    maxHeight: 200,
+    width: MediaQuery.of(context).size.width * 0.35,
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(10),
+    ),
+    offset: const Offset(0, 5),
+    scrollbarTheme: ScrollbarThemeData(
+      thumbColor: WidgetStatePropertyAll(const Color.fromARGB(255, 90, 181, 255)),
+      radius: const Radius.circular(8),
+      thickness: WidgetStatePropertyAll(4),
+      trackVisibility: WidgetStatePropertyAll(false),
+      mainAxisMargin: 10, // ⬅️ This controls vertical margin (effectively makes it shorter)
+    ),
+  ),
+  menuItemStyleData: const MenuItemStyleData(
+    overlayColor: WidgetStatePropertyAll(Color.fromARGB(255, 240, 245, 253)), // ⬅️ Hover color (light blue)
+    padding: EdgeInsets.symmetric(horizontal: 2, vertical: 10),
+  ),
+           buttonStyleData: const ButtonStyleData(
+    height: 45,
+    padding: EdgeInsets.symmetric(horizontal: 10),
+    decoration: BoxDecoration(
+      color: Colors.transparent,
+    ),
+  ),   
                                                                                           ),
                                                                                          ),
                                                                                        );
@@ -2073,8 +2279,7 @@ _debounce = Timer(const Duration(milliseconds: 400), (){
                                                                   valueListenable: selectedStep1Notifier,
                                                                   builder: (context, value, child) {
                                                                     return DropdownButtonHideUnderline(
-                                                                                        child: DropdownButton(
-                                                                           icon: Icon(Icons.keyboard_arrow_down),
+                                                                                        child: DropdownButton2(
                                                                            value: value,
                                                                            items: [
                                                                            DropdownMenuItem(
@@ -2109,7 +2314,33 @@ _debounce = Timer(const Duration(milliseconds: 400), (){
                                                                                   }
                                                                              });
                                                                             
-                                                                           }
+                                                                           },
+                                                                                      dropdownStyleData: DropdownStyleData(
+    maxHeight: 200,
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(10),
+    ),
+    offset: const Offset(0, 5),
+    scrollbarTheme: ScrollbarThemeData(
+      thumbColor: WidgetStatePropertyAll(const Color.fromARGB(255, 90, 181, 255)),
+      radius: const Radius.circular(8),
+      thickness: WidgetStatePropertyAll(4),
+      trackVisibility: WidgetStatePropertyAll(false),
+      mainAxisMargin: 10, // ⬅️ This controls vertical margin (effectively makes it shorter)
+    ),
+  ),
+  menuItemStyleData: const MenuItemStyleData(
+    overlayColor: WidgetStatePropertyAll(Color.fromARGB(255, 240, 245, 253)), // ⬅️ Hover color (light blue)
+    padding: EdgeInsets.symmetric(horizontal: 2, vertical: 10),
+  ),
+           buttonStyleData: const ButtonStyleData(
+    height: 45,
+    padding: EdgeInsets.symmetric(horizontal: 10),
+    decoration: BoxDecoration(
+      color: Colors.transparent,
+    ),
+  ),   
                                                                          ),
                                                                                        );
                                                                   }

@@ -1,3 +1,4 @@
+import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'admindata.dart';
@@ -1597,7 +1598,7 @@ double fontSizeBasedOnLength(String text) {
                                                                                      Row(
                                                                                       children: [
                                                                                         SizedBox(width: 10,),
-                                                                                        DropdownButton(
+                                                                                        DropdownButton2(
                                                                                           value: processed[index] == 'Select a process...' ? selectedProcess.value  : processed[index],
                                                                                           
                                                                                           items: [
@@ -1636,7 +1637,35 @@ for (int i = 0; i < selectedValues.length; i++) {
 setLocallyState(() {
   
 },);
-                                                                                           }),
+                                                                                           },
+                                                                                          dropdownStyleData: DropdownStyleData(
+    maxHeight: 200,
+    width: 175,
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(10),
+    ),
+    offset: const Offset(0, 5),
+    scrollbarTheme: ScrollbarThemeData(
+      thumbColor: WidgetStatePropertyAll(const Color.fromARGB(255, 90, 181, 255)),
+      radius: const Radius.circular(8),
+      thickness: WidgetStatePropertyAll(4),
+      trackVisibility: WidgetStatePropertyAll(false),
+      mainAxisMargin: 10, // ⬅️ This controls vertical margin (effectively makes it shorter)
+    ),
+  ),
+  menuItemStyleData: const MenuItemStyleData(
+    overlayColor: WidgetStatePropertyAll(Color.fromARGB(255, 240, 245, 253)), // ⬅️ Hover color (light blue)
+    padding: EdgeInsets.symmetric(horizontal: 2, vertical: 10),
+  ),
+           buttonStyleData: const ButtonStyleData(
+    height: 45,
+    padding: EdgeInsets.symmetric(horizontal: 0),
+    decoration: BoxDecoration(
+      color: Colors.transparent,
+    ),
+  ),       
+                                                                                           ),
                                                                                       ],
                                                                                     ),
                                                                                   ],
@@ -1775,7 +1804,7 @@ setLocallyState(() {
                                                                                                                                       
                                                                                                                                       
                                                                                                                                       DropdownButtonHideUnderline(
-                                                                                                                                       child: DropdownButton(
+                                                                                                                                       child: DropdownButton2(
                                                                                                                                          value: fromTo[index]?['From'] ?? 'From',
                                                                                                                                          items: [
                                                                                                                                            DropdownMenuItem(
@@ -1803,7 +1832,34 @@ setLocallyState(() {
                                                                                                                                            fromTo[index]?['From'] = value!.toString();
                                                                                                                                            setLocallyState((){});
                                                                                                                                        
-                                                                                                                                         }
+                                                                                                                                         },
+                                                                                                                                            dropdownStyleData: DropdownStyleData(
+    maxHeight: 200,
+    width: 175,
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(10),
+    ),
+    offset: const Offset(0, 5),
+    scrollbarTheme: ScrollbarThemeData(
+      thumbColor: WidgetStatePropertyAll(const Color.fromARGB(255, 90, 181, 255)),
+      radius: const Radius.circular(8),
+      thickness: WidgetStatePropertyAll(4),
+      trackVisibility: WidgetStatePropertyAll(false),
+      mainAxisMargin: 10, // ⬅️ This controls vertical margin (effectively makes it shorter)
+    ),
+  ),
+  menuItemStyleData: const MenuItemStyleData(
+    overlayColor: WidgetStatePropertyAll(Color.fromARGB(255, 240, 245, 253)), // ⬅️ Hover color (light blue)
+    padding: EdgeInsets.symmetric(horizontal: 2, vertical: 10),
+  ),
+           buttonStyleData: const ButtonStyleData(
+    height: 45,
+    padding: EdgeInsets.symmetric(horizontal: 0),
+    decoration: BoxDecoration(
+      color: Colors.transparent,
+    ),
+  ),   
                                                                                                                                          )),
                                                                                                                                     ),
                                                                                                                                                                          ),
@@ -1819,7 +1875,7 @@ setLocallyState(() {
                                                                                                                                     child: Padding(
                                                                                                                                       padding: const EdgeInsets.all(8.0),
                                                                                                                                       child: DropdownButtonHideUnderline(
-                                                                                                                                       child: DropdownButton(
+                                                                                                                                       child: DropdownButton2(
                                                                                                                                          value:  fromTo[index]?['To'] ?? 'To',
                                                                                                                                          items: [
                                                                                                                                            DropdownMenuItem(
@@ -1846,7 +1902,34 @@ setLocallyState(() {
                                                                                                                                           
                                                                                                                                           fromTo[index]?['To'] = value!.toString();
                                                                                                                                             setLocallyState((){});
-                                                                                                                                         }
+                                                                                                                                         },
+                                                                                                                                            dropdownStyleData: DropdownStyleData(
+    maxHeight: 200,
+    width: 175,
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(10),
+    ),
+    offset: const Offset(0, 5),
+    scrollbarTheme: ScrollbarThemeData(
+      thumbColor: WidgetStatePropertyAll(const Color.fromARGB(255, 90, 181, 255)),
+      radius: const Radius.circular(8),
+      thickness: WidgetStatePropertyAll(4),
+      trackVisibility: WidgetStatePropertyAll(false),
+      mainAxisMargin: 10, // ⬅️ This controls vertical margin (effectively makes it shorter)
+    ),
+  ),
+  menuItemStyleData: const MenuItemStyleData(
+    overlayColor: WidgetStatePropertyAll(Color.fromARGB(255, 240, 245, 253)), // ⬅️ Hover color (light blue)
+    padding: EdgeInsets.symmetric(horizontal: 2, vertical: 10),
+  ),
+           buttonStyleData: const ButtonStyleData(
+    height: 45,
+    padding: EdgeInsets.symmetric(horizontal: 0),
+    decoration: BoxDecoration(
+      color: Colors.transparent,
+    ),
+  ),   
                                                                                                                                          )),
                                                                                                                                     ),
                                                                                                                                     
@@ -2855,7 +2938,7 @@ SizedBox(width: 30),
                                                                                      Row(
                                                                                       children: [
                                                                                         SizedBox(width: 10,),
-                                                                                        DropdownButton(
+                                                                                        DropdownButton2(
                                                                                           value: processed[index] == 'Select a process...' ? selectedProcess.value  : processed[index],
                                                                                           
                                                                                           items: [
@@ -2894,7 +2977,35 @@ SizedBox(width: 30),
                 setLocallyState(() {
                   
                 },);
-                                                                                           }),
+                                                                                           },
+                                                                                                       dropdownStyleData: DropdownStyleData(
+    maxHeight: 200,
+    width: 175,
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(10),
+    ),
+    offset: const Offset(0, 5),
+    scrollbarTheme: ScrollbarThemeData(
+      thumbColor: WidgetStatePropertyAll(const Color.fromARGB(255, 90, 181, 255)),
+      radius: const Radius.circular(8),
+      thickness: WidgetStatePropertyAll(4),
+      trackVisibility: WidgetStatePropertyAll(false),
+      mainAxisMargin: 10, // ⬅️ This controls vertical margin (effectively makes it shorter)
+    ),
+  ),
+  menuItemStyleData: const MenuItemStyleData(
+    overlayColor: WidgetStatePropertyAll(Color.fromARGB(255, 240, 245, 253)), // ⬅️ Hover color (light blue)
+    padding: EdgeInsets.symmetric(horizontal: 2, vertical: 10),
+  ),
+           buttonStyleData: const ButtonStyleData(
+    height: 45,
+    padding: EdgeInsets.symmetric(horizontal: 0),
+    decoration: BoxDecoration(
+      color: Colors.transparent,
+    ),
+  ),     
+                                                                                           ),
                                                                                       ],
                                                                                     ),
                                                                                   ],
@@ -3056,7 +3167,7 @@ SizedBox(width: 30),
                                                                                                                                       
                                                                                                                                       
                                                                                                                                       DropdownButtonHideUnderline(
-                                                                                                                                       child: DropdownButton(
+                                                                                                                                       child: DropdownButton2(
                                                                                                                                          value: fromTo[index]?['From'] ?? 'From',
                                                                                                                                          items: [
                                                                                                                                            DropdownMenuItem(
@@ -3083,7 +3194,34 @@ SizedBox(width: 30),
                                                                                                                                            fromTo[index]?['From'] = value!.toString();
                                                                                                                                            setLocallyState((){});
                                                                                                                                        
-                                                                                                                                         }
+                                                                                                                                         },
+                                                                                                                                                      dropdownStyleData: DropdownStyleData(
+    maxHeight: 200,
+    width: 175,
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(10),
+    ),
+    offset: const Offset(0, 5),
+    scrollbarTheme: ScrollbarThemeData(
+      thumbColor: WidgetStatePropertyAll(const Color.fromARGB(255, 90, 181, 255)),
+      radius: const Radius.circular(8),
+      thickness: WidgetStatePropertyAll(4),
+      trackVisibility: WidgetStatePropertyAll(false),
+      mainAxisMargin: 10, // ⬅️ This controls vertical margin (effectively makes it shorter)
+    ),
+  ),
+  menuItemStyleData: const MenuItemStyleData(
+    overlayColor: WidgetStatePropertyAll(Color.fromARGB(255, 240, 245, 253)), // ⬅️ Hover color (light blue)
+    padding: EdgeInsets.symmetric(horizontal: 2, vertical: 10),
+  ),
+           buttonStyleData: const ButtonStyleData(
+    height: 45,
+    padding: EdgeInsets.symmetric(horizontal: 0),
+    decoration: BoxDecoration(
+      color: Colors.transparent,
+    ),
+  ),     
                                                                                                                                          )),
                                                                                                                                     ),
                                                                                                                                                                          ),
@@ -3099,7 +3237,7 @@ SizedBox(width: 30),
                                                                                                                                     child: Padding(
                                                                                                                                       padding: const EdgeInsets.all(8.0),
                                                                                                                                       child: DropdownButtonHideUnderline(
-                                                                                                                                       child: DropdownButton(
+                                                                                                                                       child: DropdownButton2(
                                                                                                                                          value:  fromTo[index]?['To'] ?? 'To',
                                                                                                                                          items: [
                                                                                                                                            DropdownMenuItem(
@@ -3126,7 +3264,34 @@ SizedBox(width: 30),
                                                                                                                                           
                                                                                                                                           fromTo[index]?['To'] = value!.toString();
                                                                                                                                             setLocallyState((){});
-                                                                                                                                         }
+                                                                                                                                         },
+                                                                                                                                                       dropdownStyleData: DropdownStyleData(
+    maxHeight: 200,
+    width: 175,
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(10),
+    ),
+    offset: const Offset(0, 5),
+    scrollbarTheme: ScrollbarThemeData(
+      thumbColor: WidgetStatePropertyAll(const Color.fromARGB(255, 90, 181, 255)),
+      radius: const Radius.circular(8),
+      thickness: WidgetStatePropertyAll(4),
+      trackVisibility: WidgetStatePropertyAll(false),
+      mainAxisMargin: 10, // ⬅️ This controls vertical margin (effectively makes it shorter)
+    ),
+  ),
+  menuItemStyleData: const MenuItemStyleData(
+    overlayColor: WidgetStatePropertyAll(Color.fromARGB(255, 240, 245, 253)), // ⬅️ Hover color (light blue)
+    padding: EdgeInsets.symmetric(horizontal: 2, vertical: 10),
+  ),
+           buttonStyleData: const ButtonStyleData(
+    height: 45,
+    padding: EdgeInsets.symmetric(horizontal: 0),
+    decoration: BoxDecoration(
+      color: Colors.transparent,
+    ),
+  ),     
                                                                                                                                          )),
                                                                                                                                     ),
                                                                                                                                     
