@@ -101,7 +101,7 @@ class _ToastContent extends StatelessWidget {
             Icon(Icons.task_alt, color: Colors.white),
             SizedBox(width: 10, ),
             Text(
-              'Created successfully!',
+              'Success!',
               style: TextStyle(color: const Color.fromARGB(255, 255, 255, 255), fontSize: 15, fontFamily: 'Inter'),
               textAlign: TextAlign.center,
             ),
@@ -204,7 +204,7 @@ TextEditingController usereditControl = TextEditingController();
 
 
 
-void editUserButton(usernamer){
+void editUserButton(usernamer, entry){
  showDialog(
   context: context,
   builder: (_)  => StatefulBuilder(
@@ -435,7 +435,6 @@ _onSearchChanged(setLocalState);
                            
                               Row(
                                                                          children: [
-                                                                           SizedBox(width: 30),
                                                                            Text('Permission', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),),
                                                                          ],
                                                                                    ),
@@ -604,12 +603,26 @@ _onSearchChanged(setLocalState);
                         onTap: () async {
                          
 if (selectedProcess != 'Select a process...'){
-         
+  CustomToast.show(context);
+         final responsee = await Supabase.instance.client.from('process_users').select().eq('userpu', usernamer);
+         if (responsee.isNotEmpty){
   await Supabase.instance.client.from('process_users').update({
    
     'processpu': selectedProcess,
   }).eq('userpu', usernamer);
 } else {
+  final user = await Supabase.instance.client.auth.currentUser;
+  final email = user?.email;
+  final responsem = await Supabase.instance.client.from('user').select().eq('email', email ?? '').maybeSingle();
+  await Supabase.instance.client.from('process_users').insert({
+'processpu': selectedProcess,
+'userpu': usernamer,
+'company': entry['company'],
+'usercreate': email,
+  });
+}
+  }
+  else {
  CustomToast2.show(context, 'Please select a process');
 }
                         },
@@ -686,14 +699,16 @@ Widget build(BuildContext content){
     if (_role == 'user' || Supabase.instance.client.auth.currentSession == null) {
       return Scaffold(
         backgroundColor: Colors.white,
-        body: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Center(
-            child: Image.asset(
-              'images/restrict.png',
-              width: 400,
-              height: 400,
-              fit: BoxFit.contain,
+        body: Center(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Center(
+              child: Image.asset(
+                'images/restrict.png',
+                width: 400,
+                height: 400,
+                fit: BoxFit.contain,
+              ),
             ),
           ),
         ),
@@ -770,7 +785,7 @@ if (didntpayed == true){
             child: Column(
               children: [
                
-                SizedBox(height:MediaQuery.of(context).size.height * 0.15,),
+                SizedBox(height:MediaQuery.of(context).size.height < 600 ? MediaQuery.of(context).size.height * 0.05 : MediaQuery.of(context).size.height * 0.1,),
                Align(
                 alignment: Alignment.centerLeft,
                  child: Row(
@@ -1177,6 +1192,9 @@ if (didntpayed == true){
                                 SizedBox(width: 20),
                                  SizedBox(width: 150, child: Text('Role', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold,
                                fontFamily: 'Inter' ))),
+                               SizedBox(width: 20),
+                            SizedBox(width: 200, child: Text('Process', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold,
+                            fontFamily: 'Inter' ))),
                                 Spacer(),
                                SizedBox(width: 80, child: Text('')),
                         ],)
@@ -1191,61 +1209,90 @@ if (didntpayed == true){
                     MediaQuery.of(context).size.width *  0.84,
                       height: MediaQuery.of(context).size.height * 0.68,
                   child: StreamBuilder(
-                stream: Supabase.instance.client
-                    .from('user')
-                    .stream(primaryKey: ['id'])
-                    .order('id'),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(child: CircularProgressIndicator());
-                  } else if (snapshot.hasError) {
-                    return Center(child: Text('Error: ${snapshot.error}'));
-                  }
-                   
-               
-               
-                  final data = snapshot.data ?? [];
-                 
-                  final filteredData = data.where((entry) => entry['username'].toString().contains(searchController2.text),).toList();
-               
-                  if (filteredData.isEmpty) {
-                    return Center(child: Column(
-                      children: [
-                        SizedBox(height: 70),
-                        Stack(
+                    stream: Supabase.instance.client
+                        .from('process_users')
+                        .stream(primaryKey: ['id'])
+                        .order('id'),
+                                      builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Center(child: CircularProgressIndicator());
+                      } else if (snapshot.hasError) {
+                        return Center(child: Text('Error: ${snapshot.error}'));
+                      }
+                      final data2 = snapshot.data ?? [];
+
+                      return StreamBuilder(
+                                      stream: Supabase.instance.client
+                        .from('user')
+                        .stream(primaryKey: ['id'])
+                        .order('id'),
+                                      builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Center(child: CircularProgressIndicator());
+                      } else if (snapshot.hasError) {
+                        return Center(child: Text('Error: ${snapshot.error}'));
+                      }
+                       
+                                     
+                                     
+                      final data = snapshot.data ?? [];
+                                       if (data.isEmpty) {
+                        return Center(child: Column(
                           children: [
-                           Image( image: AssetImage('images/search.png'
-                          ),
-                           width: 400,
-                            height: 400,
-                            fit: BoxFit.contain,),
-                          Positioned
-                          (
-                            left: 100,
-                            top: 300, child: Text('Nothing here yet...', style: TextStyle(color:  const Color.fromARGB(255, 0, 55, 100), fontSize: 25,
-                            fontWeight: FontWeight.bold )))
-                          ])
-                      ],
-                    ));
-                  }
-               
-                  return ListView.builder(
-                    itemCount: filteredData.length,
-                    itemBuilder: (context, index) {
-                      final entry = filteredData[index];
-               
-                      return Container(
-                        decoration: BoxDecoration(
-                          border: Border(bottom: BorderSide(width: 1, color: const Color.fromARGB(255, 118, 118, 118))),
-                        color: (entry['closed'] == 1)
-                            ? Color.fromARGB(255, 172, 250, 175)
-                            : Colors.white),
-                        child: SizedBox(
-                          height: 61,
-                          child: Column(
-                            children: [
-                              SizedBox(height: 5),
-                              Row(
+                            SizedBox(height: 70),
+                            Stack(
+                              children: [
+                               Image( image: AssetImage('images/search.png'
+                              ),
+                               width: 400,
+                                height: 400,
+                                fit: BoxFit.contain,),
+                              Positioned
+                              (
+                                left: 100,
+                                top: 300, child: Text('Nothing here yet...', style: TextStyle(color:  const Color.fromARGB(255, 0, 55, 100), fontSize: 25,
+                                fontWeight: FontWeight.bold )))
+                              ])
+                          ],
+                        ));
+                      }
+                      final filteredData = data.where((entry) => entry['username'].toString().contains(searchController2.text),).toList();
+                                 
+                      if (filteredData.isEmpty) {
+                        return Center(child: Column(
+                          children: [
+                            SizedBox(height: 70),
+                            Stack(
+                              children: [
+                               Image( image: AssetImage('images/search.png'
+                              ),
+                               width: 400,
+                                height: 400,
+                                fit: BoxFit.contain,),
+                              Positioned
+                              (
+                                left: 100,
+                                top: 300, child: Text('Nothing here yet...', style: TextStyle(color:  const Color.fromARGB(255, 0, 55, 100), fontSize: 25,
+                                fontWeight: FontWeight.bold )))
+                              ])
+                          ],
+                        ));
+                      }
+                                   
+                      return ListView.builder(
+                        itemCount: filteredData.length,
+                        itemBuilder: (context, index) {
+                          final entry = filteredData[index];
+                                  final da = data2.where((entrye) => entrye['userpu'] == entry['email']).toList()   ;
+                          return Container(
+                            decoration: BoxDecoration(
+                              border: Border(bottom: BorderSide(width: 1, color: const Color.fromARGB(255, 118, 118, 118))),
+                            color: (entry['closed'] == 1)
+                                ? Color.fromARGB(255, 172, 250, 175)
+                                : Colors.white),
+                            child: SizedBox(
+                              height: 60,
+                              child: Row(
                                 children: [
                                  
                                   SizedBox(width: 20),
@@ -1254,27 +1301,30 @@ if (didntpayed == true){
                                   SizedBox(width: 150, child: Text(entry['username'] ?? 'N/A',  style: TextStyle(fontSize: 16, fontFamily: 'Inter'))),
                                        SizedBox(width: 20),
                                   SizedBox(width: 150, child: Text(entry['role'] ?? 'N/A',  style: TextStyle(fontSize: 16, fontFamily: 'Inter'))),
-                             Spacer(),
-                             SizedBox(width: 80, child: IconButton(onPressed:() {
-                             final usernamer = entry['username'] ?? 'N/A';
-                            role = entry['role'] ?? 'N/A';
-                             password = entry['password'] ?? 'N/A';
-                           email = entry['email'] ?? 'N/A';
-                              editUserButton(usernamer);
-                               setState(() {
-                                 
-                               });
-                             }, icon: Icon(Icons.edit)
-                             )),
+                                    SizedBox(width: 20),
+                                  SizedBox(width: 200, child: Text(da.isNotEmpty     ? da[0]['processpu'] ?? 'N/A' : 'N/A',  style: TextStyle(fontSize: 16, fontFamily: 'Inter'))),
+                                                               Spacer(),
+                                                               SizedBox(width: 80, child: IconButton(onPressed:() {
+                                                               final usernamer = entry['email'] ?? 'N/A';
+                                                              role = entry['role'] ?? 'N/A';
+                                                               password = entry['password'] ?? 'N/A';
+                                                             email = entry['email'] ?? 'N/A';
+                              editUserButton(usernamer, entry);
+                              
+                                                               }, icon: Icon(Icons.edit)
+                                                               )),
+                               SizedBox(width:  MediaQuery.of(context).size.width * 0.01, child: Column(children: [
+                                    SizedBox(height: MediaQuery.of(context).size.width * 0.02587,),
+                                  ],)),
                                 ],
                               ),
-                            ],
-                          ),
-                        ),
+                            ),
+                          );
+                        },
                       );
-                    },
-                  );
-                },
+                                      },
+                      );
+                    }
                   ),
                 ),
                                 )

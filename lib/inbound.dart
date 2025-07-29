@@ -57,7 +57,7 @@ final ScrollController _scrollController = ScrollController();
 @override
 void initState() {
   super.initState();
-
+fetchUsername();
   fetchNextPage();
 
   _scrollController.addListener(() {
@@ -158,11 +158,10 @@ Future fetchTo(entry) async {
     
     final user = Supabase.instance.client.auth.currentUser;
   final email = user?.email;
-  final response = await Supabase.instance.client.from('user').select().eq('email', email!).maybeSingle();
 
-  final username = response?['username'];
-  final response10 = await Supabase.instance.client.from('process_users').select().eq('userpu', username).or('disabled.is.null,disabled.not.eq.true');
-  final response18 = await Supabase.instance.client.from('user_machine').select().eq('user_mac', username).maybeSingle();
+  final username = email ?? '';
+  final response10 = await Supabase.instance.client.from('process_users').select().eq('userpu', email ??'').or('disabled.is.null,disabled.not.eq.true');
+  final response18 = await Supabase.instance.client.from('user_machine').select().eq('user_mac', email ?? '').maybeSingle();
     if (response10.length > 1){
     fetchtot =  response18?['machine'] ?? 'N/A'; 
   } else {
@@ -875,6 +874,7 @@ fetchfromt2 = responsey!['machine'];
   fetchfromt2 = response3['from_route'];
 }
 
+   
 
   final response99 = await Supabase.instance.client.from('detail').select().eq('idreq', entry['idreq']).eq('route_name', entry['route_name'])
   .eq('steps', entry['steps']).eq('status', 0);
@@ -892,7 +892,9 @@ if (response99.isEmpty){
     'detail_to': fetchtot2 ?? 'N/A',
     'steps': entry['steps'] + 1,
     'route_name': entry['route_name'],
-    'neededby': entry['neededby']
+    'neededby': entry['neededby'],
+    if (alone == 'true')
+   'user_unique': usernamer
   });
 }
 
@@ -925,9 +927,8 @@ if (response99.isEmpty){
     if ( nexts != null && nexts != 'Finished'){
     final user = Supabase.instance.client.auth.currentUser;
   final email = user?.email;
-  final response = await Supabase.instance.client.from('user').select().eq('email', email!).maybeSingle();
+  final response = await Supabase.instance.client.from('user').select().eq('email', email ?? '').maybeSingle();
   final company = response?['company'];
-  final usern = response?['username'];
     await Supabase.instance.client.from('masterdata').update({
                                         'currentprocess': nexts,
                                       }).eq('id', entry['idreq']);
@@ -940,9 +941,10 @@ if (response99.isEmpty){
    'company': company,
     'neededby': entry['needtime'],
     if (alone == 'false')
-   'current_user': usernamer,
+   'current_user': null,
    if (alone == 'true')
-   'user_unique': usern
+   'user_unique': usernamer
+
   });}
 
   
@@ -1145,25 +1147,26 @@ bool selected3 = false;
 String? alone;
 String? allowedProcess;
 String? username;
+String? email;
 bool forklifter = false;
 Future<Map<String, String?>> fetchUsername() async {
           final user = Supabase.instance.client.auth.currentUser;
-          final email = user?.email;
+         email = user?.email;
           final response = await Supabase.instance.client.from('user').select().eq('email', email ?? '').maybeSingle();
           print('responseee $response');
           username = response?['username'];
           print('userrf $username');
-          final response2 = await Supabase.instance.client.from('user_machine').select().eq('user_mac', username ?? '').maybeSingle();
+          final response2 = await Supabase.instance.client.from('user_machine').select().eq('user_mac', email ?? '').maybeSingle();
            if (response2 != null){
            allowedProcess = response2['machine'];
-           print('allow3 $allowedProcess');
+           print('allow5 $allowedProcess');
            }
            print('response2 $response2');
-           final response3 = await Supabase.instance.client.from('process_users').select().eq('userpu', username ?? '').or('disabled.is.null,disabled.not.eq.true');
+           final response3 = await Supabase.instance.client.from('process_users').select().eq('userpu', email ?? '').or('disabled.is.null,disabled.not.eq.true');
        if (response2 == null && response3.isNotEmpty){
             
             allowedProcess = response3[0]['processpu'];
-
+              print('allow3 $allowedProcess');
        }
 
          final response57 = await Supabase.instance.client.from('process').select().eq('description', response3[0]['processpu']).maybeSingle();
@@ -1203,7 +1206,7 @@ print('allow $allowedProcess');
     'username': username,
     'allowedProcess': allowedProcess,
     'alone': alone,
-    
+    'email': email
   };
           
 }
@@ -1260,14 +1263,16 @@ Widget build(BuildContext content){
     if (Supabase.instance.client.auth.currentSession == null) {
       return Scaffold(
         backgroundColor: Colors.white,
-        body: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Center(
-            child: Image.asset(
-              'images/restrict.png',
-              width: 400,
-              height: 400,
-              fit: BoxFit.contain,
+        body: Center(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Center(
+              child: Image.asset(
+                'images/restrict.png',
+                width: 400,
+                height: 400,
+                fit: BoxFit.contain,
+              ),
             ),
           ),
         ),
@@ -1544,7 +1549,7 @@ backgroundColor: Color.fromARGB(255, 236, 244, 254),
                                  SizedBox(width: 5),
                                        StreamBuilder(stream: Supabase.instance.client.from('masterdata').stream(primaryKey: ['id']), builder:(context, snapshot) {
                                      final data = snapshot.data ?? [];
-                                     final filteredData = data.where((entry) => entry['usernamem'] == username && entry['finishedtime'] == null);
+                                     final filteredData = data.where((entry) => entry['usernamem'] == email && entry['finishedtime'] == null);
                                      return                               Flexible(
                                        child: Text('(${filteredData.length})',  textAlign: TextAlign.center, style: TextStyle(
                                                                        color: filteredData.isEmpty ?  const Color.fromARGB(255, 255, 255, 255) : const Color.fromARGB(255, 253, 242, 143),
@@ -1817,7 +1822,7 @@ backgroundColor: Color.fromARGB(255, 236, 244, 254),
                         SizedBox(width:  focusmode ? MediaQuery.of(context).size.width *  0.3 : MediaQuery.of(context).size.width *  0.04, child: Text('ID', style: TextStyle(fontSize: 15, fontFamily: 'Inter', fontWeight: FontWeight.bold))),
                       SizedBox(width: MediaQuery.of(context).size.width * 0.009),
                     
-                        SizedBox(width:  focusmode ? MediaQuery.of(context).size.width *  0.3 : MediaQuery.of(context).size.width *  0.15, child: Text('Requested Item', style: TextStyle(fontSize: 15, fontFamily: 'Inter', fontWeight: FontWeight.bold))),
+                        SizedBox(width:  focusmode ? MediaQuery.of(context).size.width *  0.27 : MediaQuery.of(context).size.width *  0.15, child: Text('Requested Item', style: TextStyle(fontSize: 15, fontFamily: 'Inter', fontWeight: FontWeight.bold))),
                            SizedBox(width: MediaQuery.of(context).size.width * 0.009),
                         SizedBox(width: focusmode ? MediaQuery.of(context).size.width *  0.15 : MediaQuery.of(context).size.width * 0.088, child: Text('Needed', style: TextStyle(fontSize: 15, fontFamily: 'Inter',
                         fontWeight: FontWeight.bold))),
@@ -1855,8 +1860,8 @@ backgroundColor: Color.fromARGB(255, 236, 244, 254),
     return Center(child: CircularProgressIndicator(color: Colors.blue));
     }
       
-        final username = snapshot.data!['username'];
-    final allowedProcess = snapshot.data!['allowedProcess'];
+    final allowedProcess = snapshot.data
+    ?['allowedProcess'] ?? [];
     
     final finalFilter = finalFiltern.where((entry) =>  entry['process'] == allowedProcess).toList();
       
@@ -2038,7 +2043,7 @@ backgroundColor: Color.fromARGB(255, 236, 244, 254),
                                                                           color: 
                                                                           entry['current_user'] == null ? Colors.grey : const Color.fromARGB(255, 255, 219, 41),
                                                                           //  entry['status'] == 0 ? const Color.fromARGB(255, 211, 211, 211) : const Color.fromARGB(255, 167, 229, 255),
-                                                                          size: 26,
+                                                                          size: 28,
                                                                         )
                                                                             )) : SizedBox.shrink(),
                                         )],
@@ -2046,8 +2051,8 @@ backgroundColor: Color.fromARGB(255, 236, 244, 254),
                                     )
                                     
                                     ),
-                                    SizedBox(width: focusmode ? MediaQuery.of(context).size.width * 0.036 : MediaQuery.of(context).size.width * 0.01),
-                                     SizedBox(width: MediaQuery.of(context).size.width * 0.032, child: Row(
+                                  SizedBox(width: focusmode ? MediaQuery.of(context).size.width * 0.03 : MediaQuery.of(context).size.width * 0.01),
+                                     SizedBox(width: focusmode ? MediaQuery.of(context).size.width * 0.04 :MediaQuery.of(context).size.width * 0.03, child: Row(
                                       children: [
                                       
                                         ValueListenableBuilder(
@@ -2087,14 +2092,17 @@ backgroundColor: Color.fromARGB(255, 236, 244, 254),
                                                                                   Icons.check_circle_rounded,
 
                                                                                   color:  entry['status'] == 1 ? Colors.green : Colors.grey,
-                                                                                  size: 26,
+                                                                                  size: 28,
                                                                                 )
                                                                                     )),
+                                                                                    
                                                 );
                                               }
                                             );
                                           }
-                                        )],
+                                        ),
+                                          SizedBox(width: focusmode ? MediaQuery.of(context).size.width  : MediaQuery.of(context).size.width * 0.01),
+                                        ],
                                       
                                     )
                                     

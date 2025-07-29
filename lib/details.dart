@@ -70,14 +70,16 @@ Widget build(BuildContext content){
     if (Supabase.instance.client.auth.currentSession == null) {
       return Scaffold(
         backgroundColor: Colors.white,
-        body: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Center(
-            child: Image.asset(
-              'images/restrict.png',
-              width: 400,
-              height: 400,
-              fit: BoxFit.contain,
+        body: Center(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Center(
+              child: Image.asset(
+                'images/restrict.png',
+                width: 400,
+                height: 400,
+                fit: BoxFit.contain,
+              ),
             ),
           ),
         ),
@@ -179,7 +181,7 @@ if (didntpayed == true){
               ),
             ],
                       ),
-                      SizedBox(height: 80),
+                      SizedBox(height: 50),
             Container(
               
                decoration: BoxDecoration(
@@ -271,11 +273,9 @@ if (didntpayed == true){
               final endTime = (entry['endtime'] != null) ? DateFormat("MM-dd h:mm a").format(DateTime.parse(entry['endtime']).toLocal()) : 'N/A';
              
                       
-              final idreq = widget.id;
-                      
+             
                        final process = entry['process'];
-                      final originalneed = entry['originalneed'];
-                      final username = entry['usernamed'];
+              
                       
                 return FutureBuilder(
                   future:  Supabase.instance.client.from('process_users').select().eq('processpu', entry['process']).or('disabled.is.null,disabled.not.eq.true'),
@@ -324,7 +324,7 @@ if (didntpayed == true){
                       ),
                       
                       child: SizedBox(
-                              height: 65,
+                              height: 60,
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -411,9 +411,7 @@ if (didntpayed == true){
                                                  , fontFamily: 'Inter'))),
                                                   SizedBox(width: MediaQuery.of(context).size.width * 0.01),
                                                  SizedBox(width: MediaQuery.of(context).size.width * 0.07, child: Text('$minutesElapsed', style: TextStyle(fontSize: 15, fontFamily: 'Inter'))),
-                                                   SizedBox(width:  MediaQuery.of(context).size.width * 0.01, child: Column(children: [
-                                        SizedBox(height: MediaQuery.of(context).size.width * 0.02587,),
-                                      ],)),
+
                                     ],
                                   ),
                                 ],

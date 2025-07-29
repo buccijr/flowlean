@@ -225,7 +225,9 @@ onSearchChanged();
                         
                       cursorColor: Colors.black,
                       controller: usernameController,
+                      
                       decoration: InputDecoration(
+                        contentPadding: EdgeInsets.symmetric(horizontal: 5, vertical: 10),
                         floatingLabelStyle:TextStyle( color: const Color.fromARGB(255, 238, 238, 238),),
                         label: Text('Username' ),
                         enabledBorder: InputBorder.none,
@@ -264,6 +266,7 @@ onSearchChanged();
                       cursorColor: Colors.black,
                       controller: mailController,
                       decoration: InputDecoration(
+                        contentPadding: EdgeInsets.symmetric(horizontal: 5, vertical: 10),
                         floatingLabelStyle:TextStyle( color: const Color.fromARGB(255, 238, 238, 238)),
                         label: Text('Email', ),
                         enabledBorder: InputBorder.none,
@@ -339,7 +342,7 @@ onSearchChanged();
   ),
            buttonStyleData: const ButtonStyleData(
     height: 45,
-    padding: EdgeInsets.symmetric(horizontal: 10),
+    padding: EdgeInsets.symmetric(horizontal: 0),
     decoration: BoxDecoration(
       color: Colors.transparent,
     ),
@@ -376,6 +379,7 @@ onSearchChanged();
                       cursorColor: Colors.black,
                       controller: passwordController,
                       decoration: InputDecoration(
+                        contentPadding: EdgeInsets.symmetric(horizontal: 5, vertical: 10),
                         floatingLabelStyle:TextStyle(color:  const Color.fromARGB(255, 238, 238, 238),),
                         label: Text('Password', ),
                         enabledBorder: InputBorder.none,
@@ -437,19 +441,16 @@ onSearchChanged();
                      
                     },
                     child: Container(
-                      width: 80,
+                      width: 100,
                       height: 40,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(width: 1, color: Colors.grey)),
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
-                          child: Row(
-                            children: [
-                              SizedBox(width: notEdit ? 7 : 17),
-                              Text( notEdit ? 'Cancel' : 'Back', style: TextStyle(fontWeight: FontWeight.bold),),
-                            ],
-                          ),
+                          child: 
+                              Center(child: Text( notEdit ? 'Cancel' : 'Back', style: TextStyle(fontWeight: FontWeight.bold),)),
+                            
                         )
                     ),
                   ),
@@ -459,10 +460,10 @@ onSearchChanged();
                  MouseRegion(
                   cursor: SystemMouseCursors.click,
                   child: GestureDetector(
-                    onTap: () {
+                    onTap: () async {
                       if (selectedRole != 'Role' && usernameController.text.isNotEmpty && passwordController.text.isNotEmpty
                       && mailController.text.isNotEmpty){
-                      addUser();
+                      await addUser();
                       // Navigator.pop(context);
                       } else {
                         errorText = "Please don't leave a field blank";
@@ -473,11 +474,10 @@ onSearchChanged();
                       if(usernameController.text.isNotEmpty && passwordController.text.isNotEmpty && mailController.text.isNotEmpty){
                      
                              errorText = '';
-                              setLocalState(() {
-                                
-          notEdit = false;
-        },);
-                          
+                           mailController.clear();
+usernameController.clear();
+passwordController.clear();
+selectedRole = 'Role';
         setLocalState(() {
         },);
         
@@ -487,7 +487,7 @@ onSearchChanged();
                     
                     },
                     child: Container(
-                      width: 80,
+                      width: 100,
                       height: 40,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(10),
@@ -495,21 +495,18 @@ onSearchChanged();
                         ),
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
-                          child: Row(
-                            children: [
-                              SizedBox(width: 17),
+                          child: Center( child: 
                               Text('Add', style: TextStyle(fontWeight: FontWeight.bold)),
-                            ],
-                          ),
+                         
                         )
                     ),
                   ),
-                ),
-              ],)
+                
+                  ),)
             ],),
-          ),
+          ]),
         ),
-      );
+      ));
    } ));
    
     
@@ -531,6 +528,9 @@ Future<void> addUser() async {
     print('Error: no user signed in or no access token found.');
     return;
   }
+
+  print('sending mail ${mailController.text
+  }');
   final response = await http.post(
     Uri.parse('https://rmotaezqlbiiiwwiaomh.supabase.co/functions/v1/add-user-admin'),
     
@@ -557,7 +557,14 @@ Future<void> addUser() async {
     print('User created successfully!');
   } else {
     print('Failed to create user: ${response.body}');
+    if (response.body.contains('User already registered')){
+      errorText = "Error: Email already in use.";
+    } else {
     errorText = '${response.body}';
+    }
+    setState(() {
+      
+    });
   }
 }
   

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'dart:async';
-import 'login.dart';
 import 'routes.dart';
 
 import 'package:go_router/go_router.dart';
@@ -103,7 +102,6 @@ decoration: BoxDecoration(
   },);
 }
 void signUp() async {
-  print('here9');
    final response3 = await Supabase.instance.client.from('company').select().eq('companyname', companyController.text);
       if (response3.isEmpty){
   if (companyController.text.isNotEmpty &&
@@ -133,7 +131,6 @@ void signUp() async {
        
      });
       }
-  print('Value ${errorText.value}, ${errorText.value}');
 
   setState(() {});
 }
@@ -217,7 +214,7 @@ void signUp() async {
           crossAxisAlignment: MediaQuery.of(context).size.width < 600 ? CrossAxisAlignment.start : CrossAxisAlignment.center,
               children: [
               SizedBox(height:  MediaQuery.of(context).size.height < 710 ? 10: 90,),
-              Center(child: Text('Sign Up', style: TextStyle(fontFamily: 'WorkSans', fontWeight: FontWeight.bold, fontSize: 40),)),
+              Center(child: Text('Sign Up', style: TextStyle(fontFamily: 'WorkSans', fontWeight: FontWeight.bold, fontSize: 40, color: Color.fromARGB(255, 17, 145, 251),),)),
               SizedBox(height: 10,),
               
               Column(
@@ -533,30 +530,34 @@ void signUp() async {
                           },
                            child: Row(
                              children: [
-                               Align(
-                                alignment: Alignment.center,
-                                 child: AnimatedPadding(
-                                  duration: Duration(milliseconds: 200),
-                                  padding: EdgeInsets.all(10),
-                                                           child:   AnimatedContainer(
-                                  duration: Duration(milliseconds: 200),
-                                  width: MediaQuery.of(context).size.width < 600 ? 300 : isHovered4 == false ?  503 : 500,
-                                  height: isHovered4 == false ? 53 : 50,
-                                  decoration: BoxDecoration(
-                                                             color: isHovered4 == false ? const Color.fromARGB(255, 101, 186, 255) : Color.fromARGB(255, 26, 152, 255),
-                                    borderRadius: BorderRadius.circular(15),
-                                  ),
-                                   child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                    children: [
-                                   
-                                    Text('Submit', style: TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Inter', fontSize: 16),),
-                                    SizedBox(width: 10,),
-                                                                        isHovered4  == false ?   Icon(Icons.arrow_forward, size: 25,) : SizedBox.shrink(),
-                                   ],)
+                               SizedBox(
+                                width: MediaQuery.of(context).size.width < 600 ? 300 : 550,
+                                height: 80,
+                                 child: Align(
+                                  alignment: Alignment.center,
+                                   child: AnimatedPadding(
+                                    duration: Duration(milliseconds: 200),
+                                    padding: EdgeInsets.all(10),
+                                                             child:   AnimatedContainer(
+                                    duration: Duration(milliseconds: 200),
+                                    width: MediaQuery.of(context).size.width < 600 ? 300 : isHovered4 == false ?  503 : 500,
+                                    height: isHovered4 == false ? 55 : 50,
+                                    decoration: BoxDecoration(
+                                                               color: isHovered4 == false ? const Color.fromARGB(255, 101, 186, 255) : Color.fromARGB(255, 26, 152, 255),
+                                      borderRadius: BorderRadius.circular(15),
+                                    ),
+                                     child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: [
+                                     
+                                      Text('Submit', style: TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Inter', fontSize: 16),),
+                                      SizedBox(width: 10,),
+                                                                          isHovered4  == false ?   Icon(Icons.arrow_forward, size: 25,) : SizedBox.shrink(),
+                                     ],)
+                                   ),
+                                                            ),
                                  ),
-                                                          ),
                                ),
                              ],
                            ),

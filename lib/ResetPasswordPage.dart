@@ -2,10 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:mbi2/routes.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'package:go_router/go_router.dart';
-
-import 'dart:async';
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 

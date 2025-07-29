@@ -163,6 +163,7 @@ bool  selected2 = false;
 bool selected3 = true;
 
 String? fetchedUsername;
+String? fetchedUsernamer;
 String? username;
 Future fetchUsername() async {
 
@@ -181,7 +182,8 @@ print('emil $email');
       .eq('email', email ?? 'hi')
       .maybeSingle();
 
-  fetchedUsername = response?['username'] ?? 'hi';
+  fetchedUsername = email ?? 'hi';
+  fetchedUsernamer = response?['username'] ?? 'hi';
 print(' fetched $fetchedUsername');
 
   if (fetchedUsername != null) {
@@ -264,14 +266,16 @@ Widget build(BuildContext content){
     if (Supabase.instance.client.auth.currentSession == null) {
       return Scaffold(
         backgroundColor: Colors.white,
-        body: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Center(
-            child: Image.asset(
-              'images/restrict.png',
-              width: 400,
-              height: 400,
-              fit: BoxFit.contain,
+        body: Center(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Center(
+              child: Image.asset(
+                'images/restrict.png',
+                width: 400,
+                height: 400,
+                fit: BoxFit.contain,
+              ),
             ),
           ),
         ),
@@ -487,7 +491,7 @@ backgroundColor: Color.fromARGB(255, 236, 244, 254),
                                      final data = snapshot.data ?? [];
 
                                      final filteredData = data.where((entry) => entry['endtime'] == null && entry['process'] == allowedProcess && ((entry['current_user'] == null && entry['user_unique'] == null) || 
-                                     ((entry['current_user'] == fetchedUsername|| entry['user_unique'] ==fetchedUsername) )));
+                                     ((entry['current_user'] == fetchedUsernamer|| entry['user_unique'] ==fetchedUsernamer) )));
                                      return                               Flexible(
                                        child: Text('(${filteredData.length})',  textAlign: TextAlign.center, style: TextStyle(
                                                                        color:filteredData.isEmpty ?  const Color.fromARGB(255, 255, 255, 255) : const Color.fromARGB(255, 253, 242, 143),
@@ -898,32 +902,24 @@ backgroundColor: Color.fromARGB(255, 236, 244, 254),
                       context.go('/details/${entry['id']}', extra: {'route': '/outbound'});
                             },
                             child: SizedBox(
-                              height: 61,
-                              child: Column(
+                              height: 60,
+                              child: Row(
                                 children: [
-                                  SizedBox(height: 5),
-                                  Row(
-                                    children: [
-                                    SizedBox(width: MediaQuery.of(context).size.width * 0.009),
-                                      SizedBox(width:  MediaQuery.of(context).size.width * 0.04, child: Text('${entry['id']}', style: TextStyle(fontSize: 16, fontFamily: 'Inter'))),
-                                      SizedBox(width: MediaQuery.of(context).size.width * 0.009),
-                                      SizedBox(width:  MediaQuery.of(context).size.width * 0.207, child: Text(entry['requestitem'] ?? '', style: TextStyle(fontSize: 16, fontFamily: 'Inter'))),
-                                      SizedBox(width: MediaQuery.of(context).size.width * 0.009),
-                                      SizedBox(width:  MediaQuery.of(context).size.width * 0.088, child: Text(entry['needtime'] ?? '', style: TextStyle(fontSize: 16,fontFamily: 'Inter'))),
-                                      SizedBox(width: MediaQuery.of(context).size.width * 0.009),
-                                      SizedBox(width:  MediaQuery.of(context).size.width * 0.088, child: Text(startTime, style: TextStyle(fontSize: 16, fontFamily: 'Inter'))),
-                                      SizedBox(width: MediaQuery.of(context).size.width * 0.009),
-                                      SizedBox(width:  MediaQuery.of(context).size.width * 0.088, child: Text(endTime, style: TextStyle(fontSize: 16, fontFamily: 'Inter'))),
-                                      SizedBox(width: MediaQuery.of(context).size.width * 0.009),
-                                      SizedBox(width:  MediaQuery.of(context).size.width * 0.15, child: Text(entry['currentprocess'] ?? '', style: TextStyle(fontSize: 16, fontFamily: 'Inter'))),
-                                      SizedBox(width: MediaQuery.of(context).size.width * 0.009),
-                                      SizedBox(width: MediaQuery.of(context).size.width * 0.088, child: Text('$minutesElapsed', style: TextStyle(fontSize: 16, fontFamily: 'Inter'))),
-                                      SizedBox(width:  MediaQuery.of(context).size.width * 0.01, child: Column(children: [
-                                        SizedBox(height: MediaQuery.of(context).size.width * 0.02587,),
-                                      ],)),
-                                    ],
-                                  ),
-                                ],
+                                SizedBox(width: MediaQuery.of(context).size.width * 0.009),
+                                  SizedBox(width:  MediaQuery.of(context).size.width * 0.04, child: Text('${entry['id']}', style: TextStyle(fontSize: 16, fontFamily: 'Inter'))),
+                                  SizedBox(width: MediaQuery.of(context).size.width * 0.009),
+                                  SizedBox(width:  MediaQuery.of(context).size.width * 0.207, child: Text(entry['requestitem'] ?? '', style: TextStyle(fontSize: 16, fontFamily: 'Inter'))),
+                                  SizedBox(width: MediaQuery.of(context).size.width * 0.009),
+                                  SizedBox(width:  MediaQuery.of(context).size.width * 0.088, child: Text(entry['needtime'] ?? '', style: TextStyle(fontSize: 16,fontFamily: 'Inter'))),
+                                  SizedBox(width: MediaQuery.of(context).size.width * 0.009),
+                                  SizedBox(width:  MediaQuery.of(context).size.width * 0.088, child: Text(startTime, style: TextStyle(fontSize: 16, fontFamily: 'Inter'))),
+                                  SizedBox(width: MediaQuery.of(context).size.width * 0.009),
+                                  SizedBox(width:  MediaQuery.of(context).size.width * 0.088, child: Text(endTime, style: TextStyle(fontSize: 16, fontFamily: 'Inter'))),
+                                  SizedBox(width: MediaQuery.of(context).size.width * 0.009),
+                                  SizedBox(width:  MediaQuery.of(context).size.width * 0.15, child: Text(entry['currentprocess'] ?? '', style: TextStyle(fontSize: 16, fontFamily: 'Inter'))),
+                                  SizedBox(width: MediaQuery.of(context).size.width * 0.009),
+                                  SizedBox(width: MediaQuery.of(context).size.width * 0.088, child: Text('$minutesElapsed', style: TextStyle(fontSize: 16, fontFamily: 'Inter'))),
+                                ]
                               ),
                             ),
                           ),

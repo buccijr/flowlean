@@ -105,13 +105,18 @@ return CustomTransitionPage(
     transitionsBuilder: (context, animation, secondaryAnimation, child) => child,
   ),
     ),
-    GoRoute(
+  GoRoute(
       path: '/dashboard',
-    pageBuilder: (context, state) => CustomTransitionPage(
-    child: const Mbi(),
+     pageBuilder: (context, state) {
+ final extra = state.extra as Map<String, dynamic>?;
+
+    final sendwarning = extra?['sendwarning'] as bool?;
+return CustomTransitionPage(
+  key: state.pageKey,
+    child: Mbi(sendwarning: sendwarning,),
     transitionsBuilder: (context, animation, secondaryAnimation, child) => child,
-  ),
-    ),
+);
+  }),
     GoRoute(
       path: '/inbound',
     pageBuilder: (context, state) => CustomTransitionPage(

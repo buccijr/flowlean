@@ -146,7 +146,7 @@ showDialog(
   
     content: Container(
       width: 500,
-      height: 650,
+      height:350,
       decoration: BoxDecoration(
         color: const Color.fromARGB(255, 255, 255, 255),
         borderRadius: BorderRadius.circular(30)
@@ -194,150 +194,97 @@ Text(successText ? 'Added successfully' : errorText, style: TextStyle(fontFamily
         ),
         Divider(thickness: 1, indent: 20, endIndent: 20,),
         SizedBox(height: 25),
-        SizedBox(
-          height: 450,
-          width: 450,
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  SizedBox(width: 30,),
-                  Text('Description', style: TextStyle(fontFamily: 'WorkSans', fontWeight: FontWeight.bold, fontSize: 16)),
-                ],
+        Column(
+          children: [
+            Row(
+              children: [
+                SizedBox(width: 30,),
+                Text('Description', style: TextStyle(fontFamily: 'WorkSans', fontWeight: FontWeight.bold, fontSize: 16)),
+              ],
+            ),
+              
+        SizedBox(height: 10,),
+             
+        SizedBox(width: 30),
+        Row(
+          children: [
+             SizedBox(width: 30),
+            Container(
+              width: 400,
+              height: 45,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                color: const Color.fromARGB(255, 235, 235, 235),
               ),
-                
-          SizedBox(height: 10,),
-     
-          SizedBox(width: 30),
-          Row(
-            children: [
-               SizedBox(width: 30),
-              Container(
-                width: 400,
-                height: 45,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  color: const Color.fromARGB(255, 235, 235, 235),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextField(
+                controller:  descriptionController,
+                cursorColor: Colors.black,
+                decoration: InputDecoration(
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  disabledBorder: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(horizontal: 3, vertical: 13),
+                  labelText: 'Enter the description...',
+                  floatingLabelStyle: TextStyle(color:const Color.fromARGB(255, 235, 235, 235),),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: TextField(
-                  controller:  descriptionController,
-                  cursorColor: Colors.black,
-                  decoration: InputDecoration(
-                    enabledBorder: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                    disabledBorder: InputBorder.none,
-                    labelText: 'Enter the description...',
-                    floatingLabelStyle: TextStyle(color:const Color.fromARGB(255, 235, 235, 235),),
-                  ),
-                  ),
-               
                 ),
+             
               ),
-            ],
-          ),
-          SizedBox(height: 15 ,),
-               Row(
-                 children: [
-                 SizedBox(width: 25,), 
-                   Align(
-                    alignment: Alignment.topLeft,
-                     child: Row(
-                       children: [
-                         TextButton(
-                          onPressed: (){
-                            isCheckeder = 'true';
-                             setLocalState(() {
-                                  
-                                },);
-                          },
-                          child: Text('Y', style: TextStyle(color: const Color.fromARGB(255, 0, 68, 113), fontSize: 18, fontWeight: isCheckeder == 'true' ?
-                         FontWeight.bold : FontWeight.normal 
-                          ),)),
-                         SizedBox(width: 7,),
-                           Text('|', style: TextStyle(fontSize: 18),),
-                            SizedBox(width: 7,),
-                             TextButton( 
-                              onPressed: (){
-                                isCheckeder = 'false';
-                                setLocalState(() {
-                                  
-                                },);
-                              },
-                              child: Text('N', style: TextStyle(color: const Color.fromARGB(255, 0, 51, 113), fontSize: 18,  fontWeight: isCheckeder == 'false' ?
-                         FontWeight.bold : FontWeight.normal ),)),
-                       ],
-                     ),
-                     
-                    //  Checkbox(value: isCheckeder, 
-                    //  activeColor: const Color.fromARGB(255, 0, 55, 101),
-                    //  onChanged: (value){
-                    //  setLocalState(() {
-                    //    isCheckeder = value!;
-                       
-                    //  },);
-                    //            }),
-                               
-                   ),
-                   SizedBox(width: 10),
-                   Text('Is material movement?', style: TextStyle(fontFamily: 'Inter', fontSize: 16.5, ),)
-                 ],
-               ),
-           SizedBox(height: 20),
-                  Row(
-                    children: [
-                       SizedBox(width: 30,),
-                      Text('Set permissions (optional)', style: TextStyle(fontFamily: 'WorkSans', fontWeight: FontWeight.bold, fontSize: 16)),
-                    ],
-                  ),
-                  SizedBox(height: 25),
-                  Row(
-                    children: [
-                      SizedBox(width: 30,),
-                      FutureBuilder(
-                        future: Supabase.instance.client.from('user').select(),
-                        builder: (context, snapshot) {
-                       final data = snapshot.data ?? [];
-                       if (data.isEmpty){
-                        return Center(child: Text('No users found', style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.bold, fontSize: 16)));
-                       } 
-                          return SizedBox(
-                            width: 400,
-                            height: 240,
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.vertical,
-                              child: Column(
-                             children: data.map((entry) { 
-                              final username = entry['username'];
-                              return Align(
-                              alignment: Alignment.topLeft,
-                               child: CheckboxListTile(
-                                title: Text(username, style: TextStyle(fontFamily: 'Inter', overflow: TextOverflow.ellipsis, fontWeight: FontWeight.bold, fontSize: 16)),
-                                activeColor: Colors.blue,
-                                value: isCheckedMap[username] ?? false,
-                                onChanged: (value){
-                                  setLocalState(() {
-                                     isCheckedMap[username] = value!;
-                                  },);
-                               
-                                setLocalState
-                                (() {
-                                  
-                                },);
-                                }
-                                                 
-                                ),
-                             );}).toList(),
-                           ),
-                            ),
-                          );
-                        }
-                      ),
-                    ],
-                  )
-             ]),
+            ),
+          ],
         ),
+        SizedBox(height: 15 ,),
+             Row(
+               children: [
+               SizedBox(width: 25,), 
+                 Align(
+                  alignment: Alignment.topLeft,
+                   child: Row(
+                     children: [
+                       TextButton(
+                        onPressed: (){
+                          isCheckeder = 'true';
+                           setLocalState(() {
+                                
+                              },);
+                        },
+                        child: Text('Y', style: TextStyle(color: const Color.fromARGB(255, 0, 68, 113), fontSize: 18, fontWeight: isCheckeder == 'true' ?
+                       FontWeight.bold : FontWeight.normal 
+                        ),)),
+                       SizedBox(width: 7,),
+                         Text('|', style: TextStyle(fontSize: 18),),
+                          SizedBox(width: 7,),
+                           TextButton( 
+                            onPressed: (){
+                              isCheckeder = 'false';
+                              setLocalState(() {
+                                
+                              },);
+                            },
+                            child: Text('N', style: TextStyle(color: const Color.fromARGB(255, 0, 51, 113), fontSize: 18,  fontWeight: isCheckeder == 'false' ?
+                       FontWeight.bold : FontWeight.normal ),)),
+                     ],
+                   ),
+                   
+                  //  Checkbox(value: isCheckeder, 
+                  //  activeColor: const Color.fromARGB(255, 0, 55, 101),
+                  //  onChanged: (value){
+                  //  setLocalState(() {
+                  //    isCheckeder = value!;
+                     
+                  //  },);
+                  //            }),
+                             
+                 ),
+                 SizedBox(width: 10),
+                 Text('Is material movement?', style: TextStyle(fontFamily: 'Inter', fontSize: 16.5, ),)
+               ],
+             ),
+         SizedBox(height: 30),
+          
+           ]),
        
         
                                    Row(
@@ -437,9 +384,7 @@ Text(successText ? 'Added successfully' : errorText, style: TextStyle(fontFamily
       );
                                          } else {
          
-Map<String, bool> isCheckedMap2 = Map.fromEntries(
-  isCheckedMap.entries.where((entry) => entry.value == true)
-);
+
 
 final response56 = await Supabase.instance.client.from('process').select().eq('description', descriptionController.text.trim());
 
@@ -458,7 +403,6 @@ setLocalState(() {
 
 else {
   CustomToast.show(context);
-List <String> isCheckedMap3 = isCheckedMap2.keys.toList();
   final user = Supabase.instance.client.auth.currentUser;
   final email = user?.email;
   final response = await Supabase.instance.client.from('user').select().eq('email', email!).maybeSingle();
@@ -467,25 +411,18 @@ List <String> isCheckedMap3 = isCheckedMap2.keys.toList();
   await Supabase.instance.client.from('process').insert({
                                             'company': company,
                                             'description': descriptionController.text.trim(),
-                                            'userp': username,
+                                            'userp': email,
                                            if (isCheckeder == 'true')
                                            'matmov': true,
                                            if (isCheckeder == 'false')
                                            'matmov': false,
                                           });
-                                          if (isCheckedMap3.isNotEmpty){
-for (final entry in isCheckedMap3){
-await Supabase.instance.client.from('process_users').insert({
-                                            'company': company,
-                                            'processpu': descriptionController.text.trim(),
-                                            'userpu': entry,
-                                            'usercreate': username,
-                                          });
-}
-                                        
-                                         }}
                                          }
+                                         }
+                                      descriptionController.clear();
                                          setLocalState((){});
+
+                                        
                                         },
                                         child: Container(
                                         width: 90,
@@ -574,14 +511,16 @@ Widget build(BuildContext content){
     if (_role == 'user' || Supabase.instance.client.auth.currentSession == null) {
       return Scaffold(
         backgroundColor: Colors.white,
-        body: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Center(
-            child: Image.asset(
-              'images/restrict.png',
-              width: 400,
-              height: 400,
-              fit: BoxFit.contain,
+        body: Center(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Center(
+              child: Image.asset(
+                'images/restrict.png',
+                width: 400,
+                height: 400,
+                fit: BoxFit.contain,
+              ),
             ),
           ),
         ),
@@ -661,7 +600,7 @@ if (didntpayed == true){
         child: Column(
           children: [
             
-            SizedBox(height:MediaQuery.of(context).size.height * 0.15,),
+            SizedBox(height:MediaQuery.of(context).size.height < 600 ? MediaQuery.of(context).size.height * 0.05 : MediaQuery.of(context).size.height * 0.1,),
            Align(
             alignment: Alignment.centerLeft,
              child: Row(
@@ -795,7 +734,7 @@ if (didntpayed == true){
                ],
              ),
            ),
-            SizedBox(height: 25),
+            SizedBox(height: 20),
              Align(
             alignment: Alignment.centerLeft,
              child: Row(
@@ -1157,21 +1096,16 @@ if (didntpayed == true){
                                                                  });
                                                                },
                                                                child: SizedBox(
-                                                                 height: 61,
-                                                                 child: Column(
+                                                                 height: 60,
+                                                                 child: Row(
                                                                    children: [
-                                                                     SizedBox(height: 5),
-                                                                     Row(
-                                                                       children: [
-                                                                        
-                                                                         SizedBox(width: 20),
-                                                                                                       SizedBox(width: 400, child: Text('${entry['description']}', style: TextStyle(fontFamily: 'Inter', fontSize: 16))),
-                                                                         SizedBox(width: 20),
-                                                                             SizedBox(width:  MediaQuery.of(context).size.width * 0.01, child: Column(children: [
-                                        SizedBox(height: MediaQuery.of(context).size.width * 0.02587,),
-                                      ],)),
-                                                                       ],
-                                                                     ),
+                                                                    
+                                                                     SizedBox(width: 20),
+                                                                                                   SizedBox(width: 400, child: Text('${entry['description']}', style: TextStyle(fontFamily: 'Inter', fontSize: 16))),
+                                                                     SizedBox(width: 20),
+                                                                         SizedBox(width:  MediaQuery.of(context).size.width * 0.01, child: Column(children: [
+                                                                                                         SizedBox(height: MediaQuery.of(context).size.width * 0.02587,),
+                                                                                                       ],)),
                                                                    ],
                                                                  ),
                                                                ),

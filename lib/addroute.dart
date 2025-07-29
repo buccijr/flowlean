@@ -528,7 +528,7 @@ void addRoute(i, tapIndex) async {
   'step': i +1,
   'process': processed[i],
   'company': company,
-  'userr': username,
+  'userr': email,
   'from_route': fromTo[i]?['From'] ?? 'N/A',
   'to_route': fromTo[i]?['To'] ?? 'N/A',
   'material_route': materialRoute.text,
@@ -538,7 +538,7 @@ void addRoute(i, tapIndex) async {
   'step': selectedValues[i] ?? -1 +1,
   'process': processed[i],
   'company': company,
-  'userr': username,
+  'userr': email,
   'from_route': fromTo[i]?['From'] ?? 'N/A',
   'to_route': fromTo[i]?['To'] ?? 'N/A',
   'material_route': materialRoute.text,
@@ -584,7 +584,7 @@ if (responser.isNotEmpty){
   'step': (selectedValues[i] ?? 1),
   'process': processed[i],
   'company': company,
-  'userr': username,
+  'userr': email,
   'from_route': fromTo[i]?['From'] ?? 'N/A',
   'to_route': fromTo[i]?['To'] ?? 'N/A',
   'material_route': entry,
@@ -597,7 +597,7 @@ print('res9 $res9');
   'step':  selectedValues[i] ?? 1,
   'process': processed[i],
   'company': company,
-  'userr': username,
+  'userr': email,
   'from_route': fromTo[i]?['From'] ?? 'N/A',
   'to_route': fromTo[i]?['To'] ?? 'N/A',
   'material_route': entry,
@@ -3438,14 +3438,16 @@ final user = Supabase.instance.client.auth.currentUser;
     if (_role == 'user' || Supabase.instance.client.auth.currentSession == null) {
       return Scaffold(
         backgroundColor: Colors.white,
-        body: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Center(
-            child: Image.asset(
-              'images/restrict.png',
-              width: 400,
-              height: 400,
-              fit: BoxFit.contain,
+        body: Center(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Center(
+              child: Image.asset(
+                'images/restrict.png',
+                width: 400,
+                height: 400,
+                fit: BoxFit.contain,
+              ),
             ),
           ),
         ),
@@ -3527,7 +3529,7 @@ if (didntpayed == true){
             child: Column(
               children: [
                 
-                 SizedBox(height:MediaQuery.of(context).size.height * 0.15,),
+                 SizedBox(height:MediaQuery.of(context).size.height < 600 ? MediaQuery.of(context).size.height * 0.05 : MediaQuery.of(context).size.height * 0.1,),
                Align(
                 alignment: Alignment.centerLeft,
                  child: Row(

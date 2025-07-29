@@ -36,7 +36,8 @@ class MyApp extends StatelessWidget {
 
 
 class Mbi extends StatefulWidget {
-  const Mbi({super.key});
+   final bool? sendwarning;
+  const Mbi({super.key, required this.sendwarning});
 
   @override
   State<Mbi> createState() => _MbiState();
@@ -69,7 +70,12 @@ int minutesElapsed = 0;
 List machines = [];
 @override
 initState(){
-
+if (widget.sendwarning == true){
+   WidgetsBinding.instance.addPostFrameCallback((_) {
+      Warning();
+   });
+    
+}
   super.initState();
   morning.shuffle();
   afternoon.shuffle();
@@ -84,20 +90,86 @@ initState(){
   });
 });
 }
+void Warning() {
+showDialog(context: context, builder: (_) => StatefulBuilder(
+  builder:(context, setLocalState) => AlertDialog(
+backgroundColor: Colors.transparent,
+    contentPadding: EdgeInsets.all(0),
+  
+    content: Container(
+      width: 400,
+      height: 400,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+            Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                    color: const Color.fromARGB(255, 255, 193, 188),
+                    ),
+                    child: Icon(
+                    Icons.warning, color: Colors.red, size: 50,
+                    ),
+                  ),
+                  SizedBox(height: 25,),
+                  Text('Warning!', style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.bold, fontSize: 25),),
+                  SizedBox(height: 13,),
+                  Text('You have reached your monthly \ntransaction limit.',  textAlign: TextAlign.center,style: TextStyle(fontFamily: 'WorkSans', fontSize: 18),),
+                  SizedBox(height: 30,),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        MouseRegion(
+                          cursor: SystemMouseCursors.click,
+                          child: GestureDetector(
+                            onTap: (){
+                                        Navigator.pop(context);
+                                        setState(() {
+                                          
+                                        });
+                            },
+                            child: Container(
+                              width:   150,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                          color: Colors.red,
+                                          borderRadius: BorderRadius.circular(7)
+                                        ),
+                              child: Center(child: Text('Close', style: TextStyle(fontFamily: 'Inter', color: Colors.white, fontSize:18),),),
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
 
+        ],
+      ),
+  )
+  
+  )));
+}
 Future machineFetch() async {
   final user = Supabase.instance.client.auth.currentUser;
   final email = user?.email;
   final response0 = await Supabase.instance.client.from('user').select().eq('email', email ?? 'hi').maybeSingle();
   username = response0?['username'];
-  final response1 = await Supabase.instance.client.from('user_machine').select().eq('user_mac', username).maybeSingle();
-  final response3 = await Supabase.instance.client.from('process_users').select().eq('userpu', username).or('disabled.is.null,disabled.not.eq.true');
+  final response1 = await Supabase.instance.client.from('user_machine').select().eq('user_mac', email ?? '').maybeSingle();
+  final response3 = await Supabase.instance.client.from('process_users').select().eq('userpu', email ?? '').or('disabled.is.null,disabled.not.eq.true');
   return [response3, response1, username];
 }
 
 String username = '';
 String? allowedProcess;
 String? fetchedUsername;
+String? fetchedUsernamer;
 Map<int, bool> isHovered = {};
 Map<int, bool> isHovered2 = {};
 ValueNotifier loadingUser  = ValueNotifier(true);
@@ -122,7 +194,8 @@ print('emil $email');
       .eq('email', email ?? 'hi')
       .maybeSingle();
 
-  fetchedUsername = response?['username'] ?? 'hi';
+  fetchedUsernamer = response?['username'] ?? 'hi';
+    fetchedUsername = email ?? 'hi';
 print(' fetched $fetchedUsername');
 
   if (fetchedUsername != null) {
@@ -237,14 +310,16 @@ Widget build(BuildContext content){
     if (Supabase.instance.client.auth.currentSession == null) {
       return Scaffold(
         backgroundColor: Colors.white,
-        body: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Center(
-            child: Image.asset(
-              'images/restrict.png',
-              width: 400,
-              height: 400,
-              fit: BoxFit.contain,
+        body: Center(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Center(
+              child: Image.asset(
+                'images/restrict.png',
+                width: 400,
+                height: 400,
+                fit: BoxFit.contain,
+              ),
             ),
           ),
         ),
@@ -398,7 +473,8 @@ if (didntpayed == true){
                                     
                                      final data = snapshot.data ?? [];
 
-                                     final filteredData = data.where((entry) => entry['endtime'] == null && entry['process'] == allowedProcess && ((entry['current_user'] == null && entry['user_unique'] == null) || ((entry['current_user'] == username|| entry['user_unique'] == username) )));
+                                     final filteredData = data.where((entry) => entry['endtime'] == null && entry['process'] == allowedProcess && ((entry['current_user'] == null && entry['user_unique'] == null) || ((entry['current_user'] == fetchedUsernamer|| entry['user_unique'] ==
+                                      fetchedUsernamer) )));
                                      return                               Flexible(
                                        child: Text('(${filteredData.length})',  textAlign: TextAlign.center, style: TextStyle(
                                                                        color:filteredData.isEmpty ?  const Color.fromARGB(255, 255, 255, 255) : const Color.fromARGB(255, 253, 242, 143),
@@ -767,7 +843,7 @@ if (didntpayed == true){
                    builder: (context, snapshot) {
                     print('${snapshot.data} datar');
                   if (snapshot.connectionState == ConnectionState.waiting || !snapshot.hasData) {
-            return Center(child: CircularProgressIndicator());
+            return Center(child: CircularProgressIndicator(color: Colors.blue, strokeWidth: 2,));
               } else if (snapshot.hasError) {
             return Text('Error: ${snapshot.error}');
               }
@@ -801,7 +877,7 @@ if (didntpayed == true){
                   final filteredData7 = 
                 aloner == 'false' ?
                 data3
-                .where((entry) => entry['current_user'] == fetchedUsername )
+                .where((entry) => entry['current_user'] == fetchedUsernamer )
                 .where((entry) {
                 final start = DateTime.parse(entry['starttime']);
                 final finish = entry['finishedtime'];
@@ -813,7 +889,7 @@ if (didntpayed == true){
                 }).toList()
                 : 
                 data
-                .where((entry) => entry['user_unique'] == fetchedUsername)
+                .where((entry) => entry['user_unique'] == fetchedUsernamer)
                 .where((entry) {
                 final start = DateTime.parse(entry['starttime']);
                 final finish = entry['finishedtime'];
@@ -826,17 +902,17 @@ if (didntpayed == true){
                 
                 
                 final filteredData1 = data3
-                .where((entry) => entry['usernamem'] == usernamer && entry['finishedtime'] == null);
+                .where((entry) => entry['usernamem'] == fetchedUsername && entry['finishedtime'] == null);
                 
               
                   final filteredData3 = 
               
                 data
-                .where((entry) => (entry['current_user'] == fetchedUsername|| entry['user_unique'] == fetchedUsername )  && entry['endtime'] == null && entry['process'] == allowedProcessa);
+                .where((entry) => (entry['current_user'] == fetchedUsernamer|| entry['user_unique'] == fetchedUsernamer )  && entry['endtime'] == null && entry['process'] == allowedProcessa);
                 
                   
                 final filteredData2 = data
-                 .where((entry) => (entry['current_user'] == fetchedUsername|| entry['user_unique'] == fetchedUsername ) && entry['usernamed'] != fetchedUsername && entry['process'] == 
+                 .where((entry) => (entry['current_user'] == fetchedUsernamer|| entry['user_unique'] == fetchedUsernamer ) && entry['usernamed'] != fetchedUsername && entry['process'] == 
                  allowedProcessa)
                   .where((entry) => entry['endtime'] != null)
                
@@ -865,7 +941,7 @@ if (didntpayed == true){
                final avg2 = filteredData19.isNotEmpty ? (total2 / filteredData19.length  /60).toStringAsFixed(2): -1;
               print('width: ${MediaQuery.of(context).size.width}, height: ${MediaQuery.of(context).size.height}');
                 
-            final filteredData9 = data.where((entry) => (entry['current_user'] == fetchedUsername || entry['user_unique'] == fetchedUsername)  && entry['endtime'] != null && DateTime.now().toUtc().difference(DateTime.parse(entry['endtime'])).abs().inHours <= 24
+            final filteredData9 = data.where((entry) => (entry['current_user'] == fetchedUsernamer || entry['user_unique'] == fetchedUsernamer)  && entry['endtime'] != null && DateTime.now().toUtc().difference(DateTime.parse(entry['endtime'])).abs().inHours <= 24
        && entry['process'] == allowedProcessa    );
        print('dataaa9 $filteredData9');
             final filteredData10 = data3.where((entry) {

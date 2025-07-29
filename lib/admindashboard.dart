@@ -1,4 +1,4 @@
-import 'package:dropdown_button2/dropdown_button2.dart';
+
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:async';
@@ -280,35 +280,46 @@ backgroundColor: Colors.transparent,
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Container(
-                                    width:   150,
-                                    height: 40,
-                                    decoration: BoxDecoration(
-                                      color: Colors.red,
-                                      borderRadius: BorderRadius.circular(7)
-                                    ), child: MouseRegion(
-                                      cursor: SystemMouseCursors.click,
-                                      child: GestureDetector(
-                                        onTap: (){
-                                          Navigator.pop(context);
-                                          setState(() {
-                                            
-                                          });
-                                        },
-                                        child: Center(child: Text('Close', style: TextStyle(fontFamily: 'Inter', color: Colors.white, fontSize:18),),)),
-                                    ),
-                                  ),
+                        MouseRegion(
+                          cursor: SystemMouseCursors.click,
+                          child: GestureDetector(
+                            onTap: (){
+                                        Navigator.pop(context);
+                                        setState(() {
+                                          
+                                        });
+                                      },
+                            child: Container(
+                              width:   150,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                          color: Colors.red,
+                                          borderRadius: BorderRadius.circular(7)
+                                        ),
+                              child: Center(child: Text('Close', style: TextStyle(fontFamily: 'Inter', color: Colors.white, fontSize:18),),),
+                            ),
+                          ),
+                        ),
                                   SizedBox(width: 10,),
-                                     Container(
-                                    width:   150,
-                                    height:  40,
-                                    decoration: BoxDecoration(
-                                      color: const Color.fromARGB(255, 255, 255, 255),
-                                      border: Border.all(width: 0.5, color: Colors.black),
-                                      borderRadius: BorderRadius.circular(7)
-                                    ), child: Center(child: 
-                                    Text('Upgrade', style: TextStyle(fontFamily: 'Inter', color: const Color.fromARGB(255, 0, 0, 0), fontSize:18,)),),
-                                  ),
+                                     MouseRegion(
+                                      cursor: SystemMouseCursors.click,
+                                       child: GestureDetector(
+                                        onTap: (){
+                                          _launchURL();
+                                          
+                                        },
+                                         child: Container(
+                                                                             width:   150,
+                                                                             height:  40,
+                                                                             decoration: BoxDecoration(
+                                          color: const Color.fromARGB(255, 255, 255, 255),
+                                          border: Border.all(width: 0.5, color: Colors.black),
+                                          borderRadius: BorderRadius.circular(7)
+                                                                             ), child: Center(child: 
+                                                                             Text('Upgrade', style: TextStyle(fontFamily: 'Inter', color: const Color.fromARGB(255, 0, 0, 0), fontSize:18,)),),
+                                                                           ),
+                                       ),
+                                     ),
                       ],
                     )
 
@@ -354,14 +365,16 @@ Widget build(BuildContext content){
     if (_role == 'user' || Supabase.instance.client.auth.currentSession == null) {
       return Scaffold(
         backgroundColor: Colors.white,
-        body: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Center(
-            child: Image.asset(
-              'images/restrict.png',
-              width: 400,
-              height: 400,
-              fit: BoxFit.contain,
+        body: Center(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Center(
+              child: Image.asset(
+                'images/restrict.png',
+                width: 400,
+                height: 400,
+                fit: BoxFit.contain,
+              ),
             ),
           ),
         ),
@@ -432,7 +445,7 @@ return
           child: Column(
             children: [
               
-              SizedBox(height:MediaQuery.of(context).size.height * 0.15,),
+              SizedBox(height:MediaQuery.of(context).size.height < 600 ? MediaQuery.of(context).size.height * 0.05 : MediaQuery.of(context).size.height * 0.1,),
              Align(
               alignment: Alignment.centerLeft,
                child: Row(
@@ -927,7 +940,7 @@ _launchURL();
                         value: 'Main',
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
-                          child: Text('Plan: ${data1[0]['subscription']}', style: TextStyle(fontFamily: 'Inter', fontSize: 18),),
+                          child: Text('Plan: ${data1[0]['subscription']}', style: TextStyle(fontFamily: 'Inter', fontSize: 17),),
                         )),
                         DropdownMenuItem(
                         value: 'Upgrade',
@@ -1083,7 +1096,7 @@ _launchURL();
            
            }).toList();
     
-           final datara = data1.where((entry) => entry['endtime'] == null);
+           final datara = data.where((entry) => entry['finishedtime'] == null);
            
            final filteredData2 = data1
                .where((entry) => entry['endtime'] != null)

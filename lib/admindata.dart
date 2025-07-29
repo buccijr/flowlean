@@ -130,11 +130,14 @@ final user = Supabase.instance.client.auth.currentUser;
 final email = user?.email;
 final responser = await Supabase.instance.client.from('user').select().eq('email', email ?? '').maybeSingle();
 final company = responser?['company'];
-final response2 = await Supabase.instance.client.from('company').select().eq('companyname', company).maybeSingle();
+final response2 = await Supabase.instance.client.from('company').select().maybeSingle();
 print('response 2 $response2');
 if (response2?['subscription'] != 'Basic'){
   
   showbutton = true;
+  setState(() {
+    
+  });
 }
 }
 
@@ -321,14 +324,16 @@ return DateTime.parse(entry['starttime']).difference(DateTime.now()).inDays.abs(
     if (_role == 'user' || Supabase.instance.client.auth.currentSession == null) {
       return Scaffold(
         backgroundColor: Colors.white,
-        body: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Center(
-            child: Image.asset(
-              'images/restrict.png',
-              width: 400,
-              height: 400,
-              fit: BoxFit.contain,
+        body: Center(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Center(
+              child: Image.asset(
+                'images/restrict.png',
+                width: 400,
+                height: 400,
+                fit: BoxFit.contain,
+              ),
             ),
           ),
         ),
@@ -401,7 +406,7 @@ if (didntpayed == true){
         child: Column(
           children: [
             
-          SizedBox(height:MediaQuery.of(context).size.height * 0.15,),
+          SizedBox(height:MediaQuery.of(context).size.height < 600 ? MediaQuery.of(context).size.height * 0.05 : MediaQuery.of(context).size.height * 0.1,),
            Align(
             alignment: Alignment.centerLeft,
              child: Row(
@@ -993,7 +998,9 @@ if (didntpayed == true){
                 width: double.infinity,
                 child: Row(children: [
                    SizedBox(width: MediaQuery.of(context).size.width * 0.009),
-                    SizedBox(width:  MediaQuery.of(context).size.width * 0.03, child: Text('ID', style: TextStyle(fontSize: 15, fontFamily: 'Inter',)),),
+                    SizedBox(width:  MediaQuery.of(context).size.width * 0.03, child: Text('ID', style: TextStyle(fontSize: 15, fontFamily: 'Inter',
+                    
+                    fontWeight: FontWeight.bold)),),
                   SizedBox(width: 20),
 
                    
@@ -1014,120 +1021,129 @@ if (didntpayed == true){
                 ],)
             ),
                       
-                    SizedBox(
-                      width: 1520,
-                      height:  MediaQuery.of(context).size.height * 0.68,
-            child: 
-            
-            
-              // final filteredData2 = data.where((entry){
-              //             if (filteredData == 2){ 
-              //             return entry['closed'] == 1;
-            
-              //             } else if (filteredData == 3){
-              //               return entry['closed'] == 0;
-              //             } else {
-              //               return true;
-              //             }
-              //           },).toList();
-            
-            
-              // final filteredData2 = filteredData == 2 ? data.where((entry) => entry['closed'] == 1).toList() : filteredData == 3 ? 
-              // data.where((entry) => entry['closed'] == 0).toList() : data;
-            
-            isLoading && finalFilter.isEmpty ? Center(
-              child: SizedBox(
-                width: 40, height: 50,
-                child: CircularProgressIndicator(color: Colors.blue)),
-            ) :
-            finalFilter.isEmpty && !isLoading ? 
-             Center(child: Column(
-                children: [
-                  SizedBox(height: 70),
-                  Stack(
-                    children: [
-                     Image( image: AssetImage('images/search.png'
-                    ),
-                     width: 400,
-                      height: 400,
-                      fit: BoxFit.contain,),
-                    Positioned
-                    (
-                      left: 100,
-                      top: 300, child: Text('Nothing here yet...', style: TextStyle(color:  const Color.fromARGB(255, 0, 55, 100), fontSize: 25, 
-                      fontWeight: FontWeight.bold )))
-                    ])
-                ],
-              ))
-            :
-            
-         ListView.builder(
-              itemCount: finalFilter.length,
-              itemBuilder: (context, index) {
-                    if (index == finalFilter.length) {
-        return SizedBox.shrink();
-            }
-                final entry =  finalFilter[index];
-                      
-                final startTime = DateFormat("MM-dd h:mm a")
-                    .format(DateTime.parse(entry['starttime']));
-                final endTime = (entry['finishedtime'] != null)
-                    ? DateFormat("MM-dd h:mm a")
-                        .format(DateTime.parse(entry['finishedtime']))
-                    : 'N/A';
-                      
-                int minutesElapsed;
-                final createdAt = DateTime.parse(entry['starttime']);
-                if (entry['finishedtime'] != null && entry['closed'] == 1) {
-                  minutesElapsed = DateTime.parse(entry['finishedtime'])
-                      .difference(createdAt)
-                      .inMinutes;
-                     
-                } else {
-                  minutesElapsed = DateTime.now().toUtc().difference(createdAt).inMinutes;
-                 
-                }
-                      
-                      
-                return StatefulBuilder(
-                  
-        builder: (context, setLocalState) => 
-                   Container(
-                    decoration: BoxDecoration(
-                      border: Border(bottom: BorderSide(width: 1, color: const Color.fromARGB(255, 118, 118, 118))),
-                    color:   (entry['closed'] == 1)
-                        ? Color.fromARGB(255, 172, 250, 175) :
-                    hoverIndex == entry['id'] ? const Color.fromARGB(255, 247, 247, 247) :
-                 
-                       Colors.white),
-                    child: MouseRegion(
-                      cursor: SystemMouseCursors.click,
-                      onHover: (event){
-                        setLocalState(() {
-                           hoverIndex = entry['id'];
-                        });
-                      },
-                      onExit: (event) {
-                        setLocalState(() {
-                          hoverIndex = null;
-                        });
-                      },
-                      child: GestureDetector(
-                        onTap: () {
-                        context.go('/details/${entry['id']}', extra: {'route': '/data'});
-                         },
-                        child: SizedBox(
-                          height: 61,
-                          child: Column(
-                            children: [
-                              SizedBox(height: 5),
-                              Row(
+                    FutureBuilder(
+                      future: Supabase.instance.client.from('user').select(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting){
+                           Center(
+                                      child: SizedBox(
+                                        width: 40, height: 50,
+                                        child: CircularProgressIndicator(color: Colors.blue)),
+                                    ) ;
+                        }
+final data = snapshot.data ?? [];
+                        return SizedBox(
+                          width: 1520,
+                          height:  MediaQuery.of(context).size.height * 0.68,
+                                    child: 
+                                    
+                                    
+                                      // final filteredData2 = data.where((entry){
+                                      //             if (filteredData == 2){ 
+                                      //             return entry['closed'] == 1;
+                                    
+                                      //             } else if (filteredData == 3){
+                                      //               return entry['closed'] == 0;
+                                      //             } else {
+                                      //               return true;
+                                      //             }
+                                      //           },).toList();
+                                    
+                                    
+                                      // final filteredData2 = filteredData == 2 ? data.where((entry) => entry['closed'] == 1).toList() : filteredData == 3 ? 
+                                      // data.where((entry) => entry['closed'] == 0).toList() : data;
+                                    
+                                    isLoading && finalFilter.isEmpty ? Center(
+                                      child: SizedBox(
+                                        width: 40, height: 50,
+                                        child: CircularProgressIndicator(color: Colors.blue)),
+                                    ) :
+                                    finalFilter.isEmpty && !isLoading ? 
+                                     Center(child: Column(
+                                        children: [
+                                          SizedBox(height: 70),
+                                          Stack(
+                        children: [
+                         Image( image: AssetImage('images/search.png'
+                        ),
+                         width: 400,
+                          height: 400,
+                          fit: BoxFit.contain,),
+                        Positioned
+                        (
+                          left: 100,
+                          top: 300, child: Text('Nothing here yet...', style: TextStyle(color:  const Color.fromARGB(255, 0, 55, 100), fontSize: 25, 
+                          fontWeight: FontWeight.bold )))
+                        ])
+                                        ],
+                                      ))
+                                    :
+                                    
+                                 ListView.builder(
+                                      itemCount: finalFilter.length,
+                                      itemBuilder: (context, index) {
+                        if (index == finalFilter.length) {
+                                return SizedBox.shrink();
+                                    }
+                                        final entry =  finalFilter[index];
+                          
+                                        final startTime = DateFormat("MM-dd h:mm a")
+                        .format(DateTime.parse(entry['starttime']));
+                                        final endTime = (entry['finishedtime'] != null)
+                        ? DateFormat("MM-dd h:mm a")
+                            .format(DateTime.parse(entry['finishedtime']))
+                        : 'N/A';
+                          
+                                        int minutesElapsed;
+                                        final createdAt = DateTime.parse(entry['starttime']);
+                                        if (entry['finishedtime'] != null && entry['closed'] == 1) {
+                                          minutesElapsed = DateTime.parse(entry['finishedtime'])
+                          .difference(createdAt)
+                          .inMinutes;
+                         
+                                        } else {
+                                          minutesElapsed = DateTime.now().toUtc().difference(createdAt).inMinutes;
+                                         
+                                        }
+                          
+                        final from = data.where(((e) => e['email'] == entry['usernamem'])).toList();
+                       
+                                        return StatefulBuilder(
+                                          
+                                builder: (context, setLocalState) => 
+                                           Container(
+                        decoration: BoxDecoration(
+                          border: Border(bottom: BorderSide(width: 1, color: const Color.fromARGB(255, 118, 118, 118))),
+                        color:   (entry['closed'] == 1)
+                            ? Color.fromARGB(255, 172, 250, 175) :
+                        hoverIndex == entry['id'] ? const Color.fromARGB(255, 247, 247, 247) :
+                                         
+                           Colors.white),
+                        child: MouseRegion(
+                          cursor: SystemMouseCursors.click,
+                          onHover: (event){
+                            setLocalState(() {
+                               hoverIndex = entry['id'];
+                            });
+                          },
+                          onExit: (event) {
+                            setLocalState(() {
+                              hoverIndex = null;
+                            });
+                          },
+                          child: GestureDetector(
+                            onTap: () {
+                            context.go('/details/${entry['id']}', extra: {'route': '/data'});
+                             },
+                            child: SizedBox(
+                              height: 60,
+                              child: Row(
                                 children: [
                                   SizedBox(width: MediaQuery.of(context).size.width * 0.009),
-                    SizedBox(width:  MediaQuery.of(context).size.width * 0.03, child: Text('${entry['id']}', style: TextStyle(fontSize: 15, fontFamily: 'Inter',)),),
+                                                  SizedBox(width:  MediaQuery.of(context).size.width * 0.03, child: Text('${entry['id']}', style: TextStyle(fontSize: 15, fontFamily: 'Inter',)),),
                                   SizedBox(width: 20),
                                 
-                                        SizedBox(width: 150, child: Text('${entry['usernamem']}', style: TextStyle(fontFamily: 'Inter', fontSize: 16))),
+                                        SizedBox(width: 150, child: Text('${from.isNotEmpty ? from[0]['username'] ?? 'N/A' : ''}', style: TextStyle(fontFamily: 'Inter', fontSize: 16))),
                                   SizedBox(width: 20),
                                   SizedBox(width: 250, child: Text(entry['requestitem'] ?? '', style: TextStyle(fontFamily: 'Inter', fontSize: 16))),
                                   SizedBox(width: 20),
@@ -1140,22 +1156,20 @@ if (didntpayed == true){
                                   SizedBox(width: 250, child: Text(entry['currentprocess'] ?? '', style: TextStyle(fontSize: 16, fontFamily: 'Inter'))),
                                   SizedBox(width: 20),
                                   SizedBox(width: 150, child: Text('$minutesElapsed', style: TextStyle(fontSize: 16, fontFamily: 'Inter'))),
-                                  SizedBox(width: 1, child: Column(children: [
-                                    SizedBox(height: 45,),
-                                  ],)),
+                                 
                                 ],
                               ),
-                            ],
+                            ),
                           ),
                         ),
-                      ),
-                    ),
-                  ),
-                );
-              },
-            )
-                 
-                      )
+                                          ),
+                                        );
+                                      },
+                                    )
+                                         
+                          );
+                      }
+                    )
                       
             ]),
           ),

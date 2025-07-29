@@ -155,11 +155,11 @@ Future fetchTo() async {
     
     final user = Supabase.instance.client.auth.currentUser;
   final email = user?.email;
-  final response = await Supabase.instance.client.from('user').select().eq('email', email!).maybeSingle();
 
-  final username = response?['username'];
-  final response10 = await Supabase.instance.client.from('process_users').select().eq('userpu', username).or('disabled.is.null,disabled.not.eq.true');
-  final response18 = await Supabase.instance.client.from('user_machine').select().eq('user_mac', username).maybeSingle();
+  final username = email ?? '';
+  final response10 = await Supabase.instance.client.from('process_users').select().eq('userpu', email ?? 
+'').or('disabled.is.null,disabled.not.eq.true');
+  final response18 = await Supabase.instance.client.from('user_machine').select().eq('user_mac', email ?? '').maybeSingle();
     if (response10.length > 1){
    toNotifier.value =  response18?['machine'] ?? 'N/A'; 
   } else {
@@ -190,22 +190,18 @@ Future<String> fetchFrom(tappIndexx, taapp) async {
 Future<String> fetchTo2() async {
   final user = Supabase.instance.client.auth.currentUser;
   final email = user?.email;
-  final response = await Supabase.instance.client
-      .from('user')
-      .select()
-      .eq('email', email!)
-      .maybeSingle();
+ 
 
-  final username = response?['username'];
+  final username = email ?? '';
   final response10 = await Supabase.instance.client
       .from('process_users')
       .select()
-      .eq('userpu', username).or('disabled.is.null,disabled.not.eq.true');
+      .eq('userpu', email ?? '').or('disabled.is.null,disabled.not.eq.true');
 
   final response18 = await Supabase.instance.client
       .from('user_machine')
       .select()
-      .eq('user_mac', username)
+      .eq('user_mac', email ?? '')
       .maybeSingle();
 
   if (response10.length > 1) {
@@ -985,7 +981,7 @@ bool dwitsfalse = false;
 
 Future<void> addMaterial(  tappIndexx, taapp, seelectedStep1, tott, frommt, tot2, frommt2, snackbarr) async{
 
-  CustomToast.show(context,);
+  
    Future.delayed(Duration(seconds: 3), () {
  
   canGo = true;
@@ -1058,7 +1054,7 @@ Future<void> addMaterial(  tappIndexx, taapp, seelectedStep1, tott, frommt, tot2
         
       });
   } else {
- 
+ CustomToast.show(context);
            snackbarNotifier.value = true;
 
     
@@ -1082,11 +1078,11 @@ print('$response30 response3012');
   final email = user?.email;
   final response = await Supabase.instance.client.from('user').select().eq('email', email!).maybeSingle();
   final company = response?['company'];
-  final username = response?['username'];
-   final response10 = await Supabase.instance.client.from('process_users').select().eq('userpu', username).or('disabled.is.null,disabled.not.eq.true');
+  final username = email;
+   final response10 = await Supabase.instance.client.from('process_users').select().eq('userpu', email ?? '').or('disabled.is.null,disabled.not.eq.true');
 
-  final response101 = await Supabase.instance.client.from('process_users').select().eq('userpu', username).or('disabled.is.null,disabled.not.eq.true');
-  final response18 = await Supabase.instance.client.from('user_machine').select().eq('user_mac', username).maybeSingle();
+  final response101 = await Supabase.instance.client.from('process_users').select().eq('userpu', email).or('disabled.is.null,disabled.not.eq.true');
+  final response18 = await Supabase.instance.client.from('user_machine').select().eq('user_mac', email).maybeSingle();
 print('r101 $response101, r18 $response18, r10 $response10, $company, $username');
      final insertedMaster =    await Supabase.instance.client
     .from('masterdata')
@@ -1124,11 +1120,11 @@ print('$masterId masterid');
   final email = user?.email;
   final response = await Supabase.instance.client.from('user').select().eq('email', email!).maybeSingle();
   final company = response?['company'];
-  final username = response?['username'];
+  final username = email;
    final response10 = await Supabase.instance.client.from('process_users').select().eq('processpu', process).or('disabled.is.null,disabled.not.eq.true');
 
-  final response101 = await Supabase.instance.client.from('process_users').select().eq('userpu', username).or('disabled.is.null,disabled.not.eq.true');
-  final response18 = await Supabase.instance.client.from('user_machine').select().eq('user_mac', username).maybeSingle();
+  final response101 = await Supabase.instance.client.from('process_users').select().eq('userpu', email).or('disabled.is.null,disabled.not.eq.true');
+  final response18 = await Supabase.instance.client.from('user_machine').select().eq('user_mac', email).maybeSingle();
 if ( response1['to_route']  == 'Material Location'){
        final responseso = await Supabase.instance.client.from('materials').select().eq('name', mat).maybeSingle();
     
@@ -1195,12 +1191,12 @@ setState(() {});
   final email = user?.email;
   final response = await Supabase.instance.client.from('user').select().eq('email', email!).maybeSingle();
   final company = response?['company'];
-  final username = response?['username'];
+  final username = email;
  
-   final response10 = await Supabase.instance.client.from('process_users').select().eq('userpu', username).or('disabled.is.null,disabled.not.eq.true');
+   final response10 = await Supabase.instance.client.from('process_users').select().eq('userpu', email).or('disabled.is.null,disabled.not.eq.true');
 
-final response18 = await Supabase.instance.client.from('user_machine').select().eq('user_mac', username).maybeSingle();
-  final response101 = await Supabase.instance.client.from('process_users').select().eq('userpu', username).or('disabled.is.null,disabled.not.eq.true');
+final response18 = await Supabase.instance.client.from('user_machine').select().eq('user_mac', email).maybeSingle();
+  final response101 = await Supabase.instance.client.from('process_users').select().eq('userpu',email).or('disabled.is.null,disabled.not.eq.true');
     final insertedMaster = await Supabase.instance.client
     .from('masterdata')
     .insert({
@@ -1631,7 +1627,9 @@ _debounce = Timer(const Duration(milliseconds: 400), (){
                ]),
                                  
             SizedBox(
-            height: MediaQuery.of(context).size.height < 400 ? MediaQuery.of(context).size.height * 0.4 : MediaQuery.of(context).size.height < 350 ? MediaQuery.of(context).size.height * 0.1 : MediaQuery.of(context).size.height * 0.7,
+            height: MediaQuery.of(context).size.height < 350 ? MediaQuery.of(context).size.height * 0.1 : MediaQuery.of(context).size.height < 400 ? MediaQuery.of(context).size.height * 0.4 :
+            MediaQuery.of(context).size.height < 600 ? MediaQuery.of(context).size.height * 0.6 : 
+             MediaQuery.of(context).size.height * 0.7,
                   width: MediaQuery.of(context).size.width * 0.85,
                   
               child: Column(children: [

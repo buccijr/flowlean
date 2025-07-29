@@ -4,11 +4,15 @@ import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:async';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 import 'routes.dart';
-
-
+import 'package:file_picker/file_picker.dart';
+import 'package:csv/csv.dart';
+import 'dart:convert';
+import 'dart:io';
+import 'dart:html' as html;
 
 void main() async {
   setUrlStrategy(PathUrlStrategy());
@@ -86,6 +90,65 @@ class _ToastContent extends StatelessWidget {
   }
 }
 
+class CustomToast2 {
+  static void show(
+    BuildContext context,
+    String message, {
+    Duration duration = const Duration(seconds: 5),
+  }) {
+    final overlay = Overlay.of(context);
+    final overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        bottom: 50,
+        left: 0,
+        right: 0,
+        child: Align(
+          alignment: Alignment.bottomCenter,
+          child: _ToastContent2(message: message),
+        ),
+      ),
+    );
+
+    overlay.insert(overlayEntry);
+
+    Future.delayed(duration, () {
+      overlayEntry.remove();
+    });
+  }
+}
+
+class _ToastContent2 extends StatelessWidget {
+  final String message;
+
+  const _ToastContent2({super.key, required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: AnimatedContainer(
+        duration: Duration(milliseconds: 300),
+        width: 600,
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: const Color.fromARGB(255, 63, 128, 26),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.task_alt, color: Colors.white),
+            SizedBox(width: 10, ),
+            Text(
+              message,
+              style: TextStyle(color: const Color.fromARGB(255, 255, 255, 255), fontSize: 15, fontFamily: 'Inter'),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 class AddMaterial extends StatefulWidget {
   const AddMaterial({super.key});
 
@@ -100,10 +163,139 @@ int pageSize = 30;
 int currentPage = 0;
 bool isLoading = false;
 bool hasMore = true;
-
+bool hovered = false;
+bool hovered1 = false;
 final ScrollController _scrollController2 = ScrollController();
 
+Future<void> downloadEmptyCsv() async {
+  final headers = [
+    'name',
+    'sku',
+    'description',
+    'dimensions',
+    'location',
+    'batch',
+    'expdate',
+    'dob',
+    'vendor',
+    'type',
+    'weight',
+  ];
+
+  // Create CSV content with headers only (no rows)
+  final csv = const ListToCsvConverter().convert([headers]);
+
+  if (kIsWeb) {
+    // Web: trigger file download via anchor element
+    final bytes = utf8.encode(csv);
+    final blob = html.Blob([bytes], 'text/csv');
+    final url = html.Url.createObjectUrlFromBlob(blob);
+    final anchor = html.document.createElement('a') as html.AnchorElement
+      ..href = url
+      ..style.display = 'none'
+      ..download = 'empty_template.csv';
+    html.document.body!.append(anchor);
+    anchor.click();
+    anchor.remove();
+    html.Url.revokeObjectUrl(url);
+  } else {
+    CustomToast2.show(context, 'Error: Download not supported for your device.');
+  }
+}
+
+
+Future<void> importCsvAndUpload() async {
+  try {
+    // 1. Pick CSV file
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['csv'],
+      withData: true,
+    );
+
+    if (result == null || result.files.isEmpty) return;
+
+    final pickedFile = result.files.single;
+    String csvString;
+
+    if (pickedFile.bytes != null) {
+      csvString = utf8.decode(pickedFile.bytes!);
+    } else if (pickedFile.path != null) {
+      final file = File(pickedFile.path!);
+      csvString = await file.readAsString();
+    } else {
+      throw Exception('No valid file data found.');
+    }
+
+    List<List<dynamic>> csvData = const CsvToListConverter().convert(csvString);
+    if (csvData.isEmpty) throw Exception('CSV is empty');
+
+    final headers = csvData.first.map((e) => e.toString().trim().toLowerCase()).toList();
+    final requiredHeaders = ['name', 'location'];
+    final missing = requiredHeaders.where((h) => !headers.contains(h)).toList();
+
+    if (missing.isNotEmpty) {
+      throw Exception('Missing required column(s): ${missing.join(', ')}');
+    }
+
+    final rows = csvData.sublist(1);
+    final user = Supabase.instance.client.auth.currentUser;
+    final email = user?.email;
+    if (email == null) throw Exception('User not signed in');
+
+    final userData = await Supabase.instance.client
+        .from('user')
+        .select()
+        .eq('email', email)
+        .maybeSingle();
+
+    if (userData == null) throw Exception('User data not found');
+
+    final mapped = rows.map((row) {
+      final rowMap = <String, dynamic>{};
+      for (int i = 0; i < headers.length; i++) {
+        final key = headers[i];
+        var value = row[i];
+
+        // Make empty strings/null values → null
+        if (value == null || (value is String && value.trim().isEmpty)) {
+          value = null;
+        } else if (key == 'dob' || key == 'expdate') {
+          // Try parsing date
+          if (value is String) {
+            try {
+              final parsed = DateFormat('MM/dd/yyyy').parse(value.trim());
+              value = DateFormat('yyyy-MM-dd').format(parsed);
+            } catch (e) {
+              print('Invalid date in "$key": $value');
+              value = null;
+            }
+          }
+        } else {
+          // Force string for non-empty, non-date fields
+          value = value.toString();
+        }
+
+        rowMap[key] = value;
+      }
+
+      // Add extra fields
+      rowMap['usermat'] = userData['email'];
+      rowMap['company'] = userData['company'];
+      return rowMap;
+    }).toList();
+
+    await Supabase.instance.client.from('materials').insert(mapped);
+    CustomToast.show(context);
+  } catch (e) {
+    CustomToast2.show(context, 'Error: $e');
+  }
+}
+
+
+
 @override
+
 void initState() {
   super.initState();
    _loadUserRole();
@@ -229,6 +421,9 @@ bool material = true;
 
 TextEditingController nameController = TextEditingController();
 TextEditingController searchMController = TextEditingController();
+TextEditingController typeController = TextEditingController();
+TextEditingController weightMController = TextEditingController();
+TextEditingController vendorController = TextEditingController();
 TextEditingController searchPController = TextEditingController();
 TextEditingController descripController = TextEditingController();
 TextEditingController skuController = TextEditingController();
@@ -240,7 +435,6 @@ TextEditingController dobController = TextEditingController();
 
 TextEditingController processController =  TextEditingController();
 TextEditingController locationPController = TextEditingController();
-TextEditingController typeController = TextEditingController();
 TextEditingController timePController = TextEditingController();
 TextEditingController availibleController = TextEditingController();
 
@@ -273,6 +467,9 @@ TextEditingController locationController = TextEditingController(text: entry['lo
 TextEditingController batchController = TextEditingController(text: entry['batch']);
 TextEditingController expController = TextEditingController(text: entry['expdate']);
 TextEditingController dobController = TextEditingController(text: entry['dob']);
+TextEditingController typeController = TextEditingController(text: entry['type']);
+TextEditingController weightMController = TextEditingController(text: entry['weight']);
+TextEditingController vendorController = TextEditingController(text: entry['vendor']);
 
 showDialog(
   context: context,
@@ -300,7 +497,7 @@ showDialog(
             Row(
               children: [
                 SizedBox(width: 30),
-                Text('Add a material', textAlign: TextAlign.center,
+                Text('Edit', textAlign: TextAlign.center,
                 style: TextStyle(color:  const Color.fromARGB(255, 156, 211, 255), fontFamily: 'Inter', fontWeight: FontWeight.bold, fontSize: 21),),
                 Spacer(),
                 IconButton(
@@ -308,6 +505,9 @@ showDialog(
            dobController.clear();
                                                   skuController.clear();
                                                  descripController.clear();
+                                                 typeController.clear();
+                                                 weightMController.clear();
+                                                 vendorController.clear();
                                                  dimentionController.clear();
                                                  locationController.clear();
                                                  batchController.clear();
@@ -367,6 +567,45 @@ showDialog(
                     ),
                   ],
                 ),
+                 SizedBox(height: 15,),
+                                 
+                                    Row(
+                                      children: [
+                                           SizedBox(width: 30,),
+                                        Text('Location', style: TextStyle(fontFamily: 'WorkSans', fontWeight: FontWeight.bold)),
+                                      ],
+                                    ),
+                                        SizedBox(height: 10,),
+                                   
+                                        Row(
+                                          children: [
+                                                 SizedBox(width: 30),
+                                            Container(
+                                              width: 400,
+                                              height: 45,
+                                              decoration: BoxDecoration(
+                                                borderRadius: BorderRadius.circular(10),
+                                                color: const Color.fromARGB(255, 235, 235, 235),
+                                              ),
+                                              child: Padding(
+                                                padding: const EdgeInsets.all(8.0),
+                                                child: TextField(
+                                                controller: locationController,
+                                                cursorColor: Colors.black,
+                                                decoration: InputDecoration(
+                                                  enabledBorder: InputBorder.none,
+                                                  focusedBorder: InputBorder.none,
+                                                  disabledBorder: InputBorder.none,
+                                                    contentPadding: EdgeInsets.symmetric(horizontal: 2, vertical: 13),
+                                                  labelText: 'Enter the location...',
+                                                  floatingLabelStyle: TextStyle(color:const Color.fromARGB(255, 235, 235, 235),),
+                                                ),
+                                                ),
+                                             
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                    SizedBox(height: 15,),
                     Column(
                       children: [
@@ -487,45 +726,7 @@ showDialog(
                                     ),
                                   ],
                                 ),
-                                  SizedBox(height: 15,),
                                  
-                                    Row(
-                                      children: [
-                                           SizedBox(width: 30,),
-                                        Text('Location (Optional)', style: TextStyle(fontFamily: 'WorkSans', fontWeight: FontWeight.bold)),
-                                      ],
-                                    ),
-                                        SizedBox(height: 10,),
-                                   
-                                        Row(
-                                          children: [
-                                                 SizedBox(width: 30),
-                                            Container(
-                                              width: 400,
-                                              height: 45,
-                                              decoration: BoxDecoration(
-                                                borderRadius: BorderRadius.circular(10),
-                                                color: const Color.fromARGB(255, 235, 235, 235),
-                                              ),
-                                              child: Padding(
-                                                padding: const EdgeInsets.all(8.0),
-                                                child: TextField(
-                                                controller: locationController,
-                                                cursorColor: Colors.black,
-                                                decoration: InputDecoration(
-                                                  enabledBorder: InputBorder.none,
-                                                  focusedBorder: InputBorder.none,
-                                                  disabledBorder: InputBorder.none,
-                                                    contentPadding: EdgeInsets.symmetric(horizontal: 2, vertical: 13),
-                                                  labelText: 'Enter the location...',
-                                                  floatingLabelStyle: TextStyle(color:const Color.fromARGB(255, 235, 235, 235),),
-                                                ),
-                                                ),
-                                             
-                                              ),
-                                            ),
-                                          ],
-                                        ),
                                           SizedBox(height: 15,),
                                             SizedBox(width: 30,),
                                             Row(
@@ -565,6 +766,125 @@ showDialog(
                                                     ),
                                                   ],
                                                 ),
+                                                  SizedBox(height: 15,),
+                                            SizedBox(width: 30,),
+                                            Row(
+                                              children: [
+                                                       SizedBox(width: 30,),
+                                                Text('Type (Optional)', style: TextStyle(fontFamily: 'WorkSans', fontWeight: FontWeight.bold)),
+                                              ],
+                                            ),
+                                                SizedBox(height: 10,),
+                                                
+                                                Row(
+                                                  children: [
+                                                    SizedBox(width: 30),
+                                                    Container(
+                                                      width: 400,
+                                                      height: 45,
+                                                      decoration: BoxDecoration(
+                                                        borderRadius: BorderRadius.circular(10),
+                                                        color: const Color.fromARGB(255, 235, 235, 235),
+                                                      ),
+                                                      child: Padding(
+                                                        padding: const EdgeInsets.all(8.0),
+                                                        child: TextField(
+                                                        controller: typeController,
+                                                        cursorColor: Colors.black,
+                                                        decoration: InputDecoration(
+                                                          enabledBorder: InputBorder.none,
+                                                          focusedBorder: InputBorder.none,
+                                                          disabledBorder: InputBorder.none,
+                                                          contentPadding: EdgeInsets.symmetric(horizontal: 2, vertical: 13),
+                                                          labelText: 'Enter the type...',
+                                                          floatingLabelStyle: TextStyle(color:const Color.fromARGB(255, 235, 235, 235),),
+                                                        ),
+                                                        ),
+                                                     
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                 SizedBox(height: 15,),
+                                            SizedBox(width: 30,),
+                                            Row(
+                                              children: [
+                                                       SizedBox(width: 30,),
+                                                Text('Vendor (Optional)', style: TextStyle(fontFamily: 'WorkSans', fontWeight: FontWeight.bold)),
+                                              ],
+                                            ),
+                                                SizedBox(height: 10,),
+                                                
+                                                Row(
+                                                  children: [
+                                                    SizedBox(width: 30),
+                                                    Container(
+                                                      width: 400,
+                                                      height: 45,
+                                                      decoration: BoxDecoration(
+                                                        borderRadius: BorderRadius.circular(10),
+                                                        color: const Color.fromARGB(255, 235, 235, 235),
+                                                      ),
+                                                      child: Padding(
+                                                        padding: const EdgeInsets.all(8.0),
+                                                        child: TextField(
+                                                        controller: vendorController,
+                                                        cursorColor: Colors.black,
+                                                        decoration: InputDecoration(
+                                                          enabledBorder: InputBorder.none,
+                                                          focusedBorder: InputBorder.none,
+                                                          contentPadding: EdgeInsets.symmetric(horizontal: 2, vertical: 13),
+                                                          disabledBorder: InputBorder.none,
+                                                          labelText: 'Enter the vendor...',
+                                                          floatingLabelStyle: TextStyle(color:const Color.fromARGB(255, 235, 235, 235),),
+                                                        ),
+                                                        ),
+                                                     
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                 SizedBox(height: 15,),
+                                            SizedBox(width: 30,),
+                                            Row(
+                                              children: [
+                                                       SizedBox(width: 30,),
+                                                Text('Weight (Optional)', style: TextStyle(fontFamily: 'WorkSans', fontWeight: FontWeight.bold)),
+                                              ],
+                                            ),
+                                                SizedBox(height: 10,),
+                                                
+                                                Row(
+                                                  children: [
+                                                    SizedBox(width: 30),
+                                                    Container(
+                                                      width: 400,
+                                                      height: 45,
+                                                      decoration: BoxDecoration(
+                                                        borderRadius: BorderRadius.circular(10),
+                                                        color: const Color.fromARGB(255, 235, 235, 235),
+                                                      ),
+                                                      child: Padding(
+                                                        padding: const EdgeInsets.all(8.0),
+                                                        child: TextField(
+                                                        controller: weightMController,
+                                                        cursorColor: Colors.black,
+
+                                                        decoration: InputDecoration(
+                                                          enabledBorder: InputBorder.none,
+                                                          contentPadding: EdgeInsets.symmetric(horizontal: 2, vertical: 13),
+                                                          focusedBorder: InputBorder.none,
+                                                          disabledBorder: InputBorder.none,
+                                                          labelText: 'Enter the weight...',
+                                                          floatingLabelStyle: TextStyle(color:const Color.fromARGB(255, 235, 235, 235),),
+                                                        ),
+                                                        ),
+                                                     
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                  
                                                   SizedBox(height: 15,),
                                                     Row(
                                                           children: [
@@ -670,6 +990,9 @@ showDialog(
                                                child: GestureDetector(
                                                 onTap: (){
                                                   dobController.clear();
+                                                  typeController.clear();
+                                                 weightMController.clear();
+                                                 vendorController.clear();
                                                   skuController.clear();
                                                  descripController.clear();
                                                  dimentionController.clear();
@@ -705,7 +1028,7 @@ showDialog(
                                            child: GestureDetector(
                                             onTap: () async {
                                                final response56 = await Supabase.instance.client.from('process').select().eq('description', nameController.text).maybeSingle();
-                                             if (nameController.text.isEmpty){
+                                             if (nameController.text.isEmpty || locationController.text.isEmpty){
                                              showDialog(
       context: context, 
       builder: (_) => AlertDialog(
@@ -729,7 +1052,7 @@ showDialog(
                       ),
                       child: Icon(Icons.error, color: Colors.red,)),
                   SizedBox(height: 10,),
-                  Text('Please do not leave the name field blank.', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),),
+                  Text('Please do not leave the name or location field blank.', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),),
                   SizedBox(height: 19),
                   Container(
                                   width: 120,
@@ -878,7 +1201,13 @@ if (!isExpValid || !isDobValid) {
           if (expController.text.isNotEmpty)
                                                 'expdate': actualexpdate,
                                                   if (dobController.text.isNotEmpty)
-                                                'dob': actualdobdate
+                                                'dob': actualdobdate,
+                                                   if (typeController.text.isNotEmpty)
+                                                'type':typeController.text,
+                                                if (weightMController.text.isNotEmpty)
+                                                'weight':weightMController,
+                                                if (vendorController.text.isNotEmpty)
+                                                'vendor':vendorController.text,
                                               }).eq('id', entry['id']);
                                              }
                                              setLocalState((){});
@@ -948,6 +1277,9 @@ showDialog(
            dobController.clear();
                                                   skuController.clear();
                                                  descripController.clear();
+                                                 typeController.clear();
+                                                 weightMController.clear();
+                                                 vendorController.clear();
                                                  dimentionController.clear();
                                                  locationController.clear();
                                                  batchController.clear();
@@ -997,6 +1329,7 @@ showDialog(
                           enabledBorder: InputBorder.none,
                           focusedBorder: InputBorder.none,
                           disabledBorder: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(horizontal: 2, vertical: 13),
                           labelText: 'Enter the name...',
                           floatingLabelStyle: TextStyle(color:const Color.fromARGB(255, 235, 235, 235),),
                         ),
@@ -1006,6 +1339,45 @@ showDialog(
                     ),
                   ],
                 ),
+                 SizedBox(height: 15,),
+                                 
+                                    Row(
+                                      children: [
+                                           SizedBox(width: 30,),
+                                        Text('Location', style: TextStyle(fontFamily: 'WorkSans', fontWeight: FontWeight.bold)),
+                                      ],
+                                    ),
+                                        SizedBox(height: 10,),
+                                   
+                                        Row(
+                                          children: [
+                                                 SizedBox(width: 30),
+                                            Container(
+                                              width: 400,
+                                              height: 45,
+                                              decoration: BoxDecoration(
+                                                borderRadius: BorderRadius.circular(10),
+                                                color: const Color.fromARGB(255, 235, 235, 235),
+                                              ),
+                                              child: Padding(
+                                                padding: const EdgeInsets.all(8.0),
+                                                child: TextField(
+                                                controller: locationController,
+                                                cursorColor: Colors.black,
+                                                decoration: InputDecoration(
+                                                  enabledBorder: InputBorder.none,
+                                                  focusedBorder: InputBorder.none,
+                                                  disabledBorder: InputBorder.none,
+                                                    contentPadding: EdgeInsets.symmetric(horizontal: 2, vertical: 13),
+                                                  labelText: 'Enter the location...',
+                                                  floatingLabelStyle: TextStyle(color:const Color.fromARGB(255, 235, 235, 235),),
+                                                ),
+                                                ),
+                                             
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                    SizedBox(height: 15,),
                     Column(
                       children: [
@@ -1038,6 +1410,7 @@ showDialog(
                       enabledBorder: InputBorder.none,
                       focusedBorder: InputBorder.none,
                       disabledBorder: InputBorder.none,
+                      contentPadding: EdgeInsets.symmetric(horizontal: 2, vertical: 13),
                       labelText: 'Enter the SKU...',
                       floatingLabelStyle: TextStyle(color:const Color.fromARGB(255, 235, 235, 235),),
                     ),
@@ -1077,6 +1450,7 @@ showDialog(
                                   focusedBorder: InputBorder.none,
                                   disabledBorder: InputBorder.none,
                                   labelText: 'Enter the description...',
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 2, vertical: 13),
                                   floatingLabelStyle: TextStyle(color:const Color.fromARGB(255, 235, 235, 235),),
                                 ),
                                 ),
@@ -1115,6 +1489,7 @@ showDialog(
                                           focusedBorder: InputBorder.none,
                                           disabledBorder: InputBorder.none,
                                           labelText: 'Enter the dimensions...',
+                                          contentPadding: EdgeInsets.symmetric(horizontal: 2, vertical: 13),
                                           floatingLabelStyle: TextStyle(color:const Color.fromARGB(255, 235, 235, 235),),
                                         ),
                                         ),
@@ -1125,43 +1500,6 @@ showDialog(
                                 ),
                                   SizedBox(height: 15,),
                                  
-                                    Row(
-                                      children: [
-                                           SizedBox(width: 30,),
-                                        Text('Location (Optional)', style: TextStyle(fontFamily: 'WorkSans', fontWeight: FontWeight.bold)),
-                                      ],
-                                    ),
-                                        SizedBox(height: 10,),
-                                   
-                                        Row(
-                                          children: [
-                                                 SizedBox(width: 30),
-                                            Container(
-                                              width: 400,
-                                              height: 45,
-                                              decoration: BoxDecoration(
-                                                borderRadius: BorderRadius.circular(10),
-                                                color: const Color.fromARGB(255, 235, 235, 235),
-                                              ),
-                                              child: Padding(
-                                                padding: const EdgeInsets.all(8.0),
-                                                child: TextField(
-                                                controller: locationController,
-                                                cursorColor: Colors.black,
-                                                decoration: InputDecoration(
-                                                  enabledBorder: InputBorder.none,
-                                                  focusedBorder: InputBorder.none,
-                                                  disabledBorder: InputBorder.none,
-                                                  labelText: 'Enter the location...',
-                                                  floatingLabelStyle: TextStyle(color:const Color.fromARGB(255, 235, 235, 235),),
-                                                ),
-                                                ),
-                                             
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                          SizedBox(height: 15,),
                                             SizedBox(width: 30,),
                                             Row(
                                               children: [
@@ -1191,6 +1529,124 @@ showDialog(
                                                           focusedBorder: InputBorder.none,
                                                           disabledBorder: InputBorder.none,
                                                           labelText: 'Enter the batch...',
+                                                          contentPadding: EdgeInsets.symmetric(horizontal: 2, vertical: 13),
+                                                          floatingLabelStyle: TextStyle(color:const Color.fromARGB(255, 235, 235, 235),),
+                                                        ),
+                                                        ),
+                                                     
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                 SizedBox(height: 15,),
+                                            SizedBox(width: 30,),
+                                            Row(
+                                              children: [
+                                                       SizedBox(width: 30,),
+                                                Text('Type (Optional)', style: TextStyle(fontFamily: 'WorkSans', fontWeight: FontWeight.bold)),
+                                              ],
+                                            ),
+                                                SizedBox(height: 10,),
+                                                
+                                                Row(
+                                                  children: [
+                                                    SizedBox(width: 30),
+                                                    Container(
+                                                      width: 400,
+                                                      height: 45,
+                                                      decoration: BoxDecoration(
+                                                        borderRadius: BorderRadius.circular(10),
+                                                        color: const Color.fromARGB(255, 235, 235, 235),
+                                                      ),
+                                                      child: Padding(
+                                                        padding: const EdgeInsets.all(8.0),
+                                                        child: TextField(
+                                                        controller: typeController,
+                                                        cursorColor: Colors.black,
+                                                        decoration: InputDecoration(
+                                                          enabledBorder: InputBorder.none,
+                                                          focusedBorder: InputBorder.none,
+                                                          disabledBorder: InputBorder.none,
+                                                          labelText: 'Enter the type...',
+                                                          contentPadding: EdgeInsets.symmetric(horizontal: 2, vertical: 13),
+                                                          floatingLabelStyle: TextStyle(color:const Color.fromARGB(255, 235, 235, 235),),
+                                                        ),
+                                                        ),
+                                                     
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                 SizedBox(height: 15,),
+                                            SizedBox(width: 30,),
+                                            Row(
+                                              children: [
+                                                       SizedBox(width: 30,),
+                                                Text('Vendor (Optional)', style: TextStyle(fontFamily: 'WorkSans', fontWeight: FontWeight.bold)),
+                                              ],
+                                            ),
+                                                SizedBox(height: 10,),
+                                                
+                                                Row(
+                                                  children: [
+                                                    SizedBox(width: 30),
+                                                    Container(
+                                                      width: 400,
+                                                      height: 45,
+                                                      decoration: BoxDecoration(
+                                                        borderRadius: BorderRadius.circular(10),
+                                                        color: const Color.fromARGB(255, 235, 235, 235),
+                                                      ),
+                                                      child: Padding(
+                                                        padding: const EdgeInsets.all(8.0),
+                                                        child: TextField(
+                                                        controller: vendorController,
+                                                        cursorColor: Colors.black,
+                                                        decoration: InputDecoration(
+                                                          enabledBorder: InputBorder.none,
+                                                          focusedBorder: InputBorder.none,
+                                                          disabledBorder: InputBorder.none,
+                                                          contentPadding: EdgeInsets.symmetric(horizontal: 2, vertical: 13),
+                                                          labelText: 'Enter the vendor...',
+                                                          floatingLabelStyle: TextStyle(color:const Color.fromARGB(255, 235, 235, 235),),
+                                                        ),
+                                                        ),
+                                                     
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                 SizedBox(height: 15,),
+                                            SizedBox(width: 30,),
+                                            Row(
+                                              children: [
+                                                       SizedBox(width: 30,),
+                                                Text('Weight (Optional)', style: TextStyle(fontFamily: 'WorkSans', fontWeight: FontWeight.bold)),
+                                              ],
+                                            ),
+                                                SizedBox(height: 10,),
+                                                
+                                                Row(
+                                                  children: [
+                                                    SizedBox(width: 30),
+                                                    Container(
+                                                      width: 400,
+                                                      height: 45,
+                                                      decoration: BoxDecoration(
+                                                        borderRadius: BorderRadius.circular(10),
+                                                        color: const Color.fromARGB(255, 235, 235, 235),
+                                                      ),
+                                                      child: Padding(
+                                                        padding: const EdgeInsets.all(8.0),
+                                                        child: TextField(
+                                                        controller: weightMController,
+                                                        cursorColor: Colors.black,
+                                                        decoration: InputDecoration(
+                                                          enabledBorder: InputBorder.none,
+                                                          focusedBorder: InputBorder.none,
+                                                          disabledBorder: InputBorder.none,
+                                                          contentPadding: EdgeInsets.symmetric(horizontal: 2, vertical: 13),
+                                                          labelText: 'Enter the weight...',
                                                           floatingLabelStyle: TextStyle(color:const Color.fromARGB(255, 235, 235, 235),),
                                                         ),
                                                         ),
@@ -1230,6 +1686,7 @@ showDialog(
                                                                 decoration: InputDecoration(
                                                                   enabledBorder: InputBorder.none,
                                                                   focusedBorder: InputBorder.none,
+                                                                  contentPadding: EdgeInsets.symmetric(horizontal: 2, vertical: 13),
                                                                   disabledBorder: InputBorder.none,
                                                                   labelText: 'MM/DD/YYYY',
                                                                   floatingLabelStyle: TextStyle(color:const Color.fromARGB(255, 235, 235, 235),),
@@ -1262,6 +1719,7 @@ showDialog(
                                                             padding: const EdgeInsets.all(8.0),
                                                             child: TextField(
                                                             controller: dobController,
+                                                            
                                                             cursorColor: Colors.black,
                                                             inputFormatters: [
         LengthLimitingTextInputFormatter(10),
@@ -1270,6 +1728,7 @@ showDialog(
                                                             decoration: InputDecoration(
                                                               enabledBorder: InputBorder.none,
                                                               focusedBorder: InputBorder.none,
+                                                              contentPadding: EdgeInsets.symmetric(horizontal: 2, vertical: 13),
                                                               disabledBorder: InputBorder.none,
                                                               labelText: 'MM/DD/YYYY',
                                                               floatingLabelStyle: TextStyle(color:const Color.fromARGB(255, 235, 235, 235),),
@@ -1301,6 +1760,9 @@ showDialog(
                                                child: GestureDetector(
                                                 onTap: (){
                                                   dobController.clear();
+                                                  typeController.clear();
+                                                 weightMController.clear();
+                                                 vendorController.clear();
                                                   skuController.clear();
                                                  descripController.clear();
                                                  dimentionController.clear();
@@ -1336,7 +1798,7 @@ showDialog(
                                            child: GestureDetector(
                                             onTap: () async {
                                                final response56 = await Supabase.instance.client.from('process').select().eq('description', nameController.text).maybeSingle();
-                                             if (nameController.text.isEmpty){
+                                             if (nameController.text.isEmpty || locationController.text.isEmpty){
                                              showDialog(
       context: context, 
       builder: (_) => AlertDialog(
@@ -1360,7 +1822,7 @@ showDialog(
                       ),
                       child: Icon(Icons.error, color: Colors.red,)),
                   SizedBox(height: 10,),
-                  Text('Please do not leave the name field blank.', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),),
+                  Text('Please do not leave the name or location field blank.', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),),
                   SizedBox(height: 19),
                   Container(
                                   width: 120,
@@ -1496,11 +1958,10 @@ if (!isExpValid || !isDobValid) {
           final response = await Supabase.instance.client.from('user').select().eq('email', email!).maybeSingle();
           final company = response?['company'];
           
-          final username = response?['username'];
           CustomToast.show(context);
                                               await Supabase.instance.client.from('materials').insert({
                                                 'company': company,
-                                                'usermat': username,
+                                                'usermat': email,
                                                 'name': nameController.text,
                                                 if (skuController.text.isNotEmpty)
                                                 'sku': skuController.text,
@@ -1515,7 +1976,13 @@ if (!isExpValid || !isDobValid) {
           if (expController.text.isNotEmpty)
                                                 'expdate': actualexpdate,
                                                   if (dobController.text.isNotEmpty)
-                                                'dob': actualdobdate
+                                                'dob': actualdobdate,
+                                                  if (typeController.text.isNotEmpty)
+                                                'type':typeController.text,
+                                                if (weightMController.text.isNotEmpty)
+                                                'weight':weightMController,
+                                                if (vendorController.text.isNotEmpty)
+                                                'vendor':vendorController.text,
                                               });
                                              }
                                              setLocalState((){});
@@ -1606,14 +2073,16 @@ filteredEntries.sort((a, b) => a['name'].compareTo(b['name']));
      if (_role == 'user' || Supabase.instance.client.auth.currentSession == null) {
       return Scaffold(
         backgroundColor: Colors.white,
-        body: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Center(
-            child: Image.asset(
-              'images/restrict.png',
-              width: 400,
-              height: 400,
-              fit: BoxFit.contain,
+        body: Center(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Center(
+              child: Image.asset(
+                'images/restrict.png',
+                width: 400,
+                height: 400,
+                fit: BoxFit.contain,
+              ),
             ),
           ),
         ),
@@ -1698,7 +2167,8 @@ if (didntpayed == true){
           child: Column(
             children: [
               
-              SizedBox(height:MediaQuery.of(context).size.height * 0.15,),
+              
+                SizedBox(height:MediaQuery.of(context).size.height < 600 ? MediaQuery.of(context).size.height * 0.05 : MediaQuery.of(context).size.height * 0.1,),
              Align(
               alignment: Alignment.centerLeft,
                child: Row(
@@ -2052,41 +2522,171 @@ if (didntpayed == true){
                                 mainAxisAlignment: MainAxisAlignment.start,
                                 crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      SizedBox(width: 30),
+                      
                       Text('Add Material', style: TextStyle(color: const Color.fromARGB(255, 23, 85, 161), fontWeight: FontWeight.bold, fontSize: 30)),
-                   SizedBox(width: 2400),   
+                   SizedBox(width: 3000,),   
                     ],
                               ),
-                              SizedBox(height: 35),
+                              SizedBox(height: 15),
                               Column(
                     mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(children: [
-                       
-                          SizedBox(width: 30),
+                      
                              Container(
                         width: 400,
                         height: 40,
                         decoration: BoxDecoration(
-                          border: Border.all(width: 1, color: Colors.grey), borderRadius: BorderRadius.circular(10),
+                          border: Border.all(width: 1.2, color: const Color.fromARGB(255, 145, 185, 244)), borderRadius: BorderRadius.circular(6),
                         ),
                         child: TextField(
                         controller: searchMController,
                         cursorColor: Colors.black,
                         decoration: InputDecoration(
-                          label: Text('Search a material, SKU or type...'),
+                        hintText: 'Search a material, SKU or type...',
+                        hintStyle:  TextStyle(fontFamily: 'Inter', fontSize: 16 ),
+                         
                           floatingLabelStyle: TextStyle(color:  Color(0xFFFAFAFA),),
                           enabledBorder: InputBorder.none,
                             isDense: true,
-                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                         focusedBorder: InputBorder.none,
                         disabledBorder: InputBorder.none,
                         prefixIcon: Icon(Icons.search, color:const Color.fromARGB(255, 23, 85, 161), size: 26 )
                         ),
                         ),
                        ),
-                       SizedBox(width: 2200,),
+                       SizedBox(width: 5,),
+                        SizedBox(
+                          width: 140,
+                                height: 70, 
+                          child: StatefulBuilder(
+                                            builder: (context, setLocalState) {
+                                              return MouseRegion(
+                                                cursor: SystemMouseCursors.click,
+                                                onEnter: (event){
+                          setLocalState(() {
+                            hovered1 = true;
+                          });
+                                                },
+                                                 onExit: (event){
+                          setLocalState(() {
+                            hovered1 = false;
+                          });
+                                                },
+                                                child: GestureDetector(
+                          onTap: ()  async {
+                                                
+                                              importCsvAndUpload();
+                          
+                                                
+                                              
+                          },
+                          child: Align(
+                            alignment: Alignment.center,
+                            child: AnimatedPadding(
+                              duration: Duration(milliseconds: 200),
+                              
+                              padding: const EdgeInsets.all(8.0),
+                              child: AnimatedContainer(
+                                duration: Duration(milliseconds: 200),
+                                width: hovered1 ? 125 : 120,
+                                height: hovered1 ? 43 : 40,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(5),
+                                  color: hovered1 ? const Color.fromARGB(255, 237, 247, 255) : Colors.white,
+                                  boxShadow: [BoxShadow(color: const Color.fromARGB(255, 214, 214, 214), blurRadius: 10, offset:  Offset(0, 5))],
+                                  border: Border.all(width: 1.5, color: const Color.fromARGB(255, 176, 208, 255))
+                                ),
+                                child: Center(child:       ShaderMask(
+                                                         shaderCallback: (bounds) => LinearGradient(
+                                                           colors: [const Color.fromARGB(255, 154, 195, 244),const Color.fromARGB(255, 0, 0, 0)],
+                                                         ).createShader(Rect.fromLTWH(0, 0, bounds.width, bounds.height)),
+                                                         blendMode: BlendMode.srcIn,
+                                                         child: Text(
+                                                          'Import CSV',
+                                                           style: TextStyle(
+                                                             fontSize: 16,
+                                                             fontFamily: 'Inter',
+                                                             color: Colors.white, // Needed for ShaderMask to work
+                                                           ),
+                                                         ),
+                                                       )),
+                                
+                              ),
+                            ),
+                          ),
+                                                ),
+                                              );
+                                            }
+                                          ),
+                        )  ,
+                        SizedBox(
+                          width: 190,
+                                height: 70, 
+                          child: StatefulBuilder(
+                                            builder: (context, setLocalState) {
+                                              return MouseRegion(
+                                                cursor: SystemMouseCursors.click,
+                                                onEnter: (event){
+                          setLocalState(() {
+                            hovered = true;
+                          });
+                                                },
+                                                 onExit: (event){
+                          setLocalState(() {
+                            hovered = false;
+                          });
+                                                },
+                                                child: GestureDetector(
+                          onTap: ()  async {
+                                                
+                                            downloadEmptyCsv();
+                          
+                                                
+                                              
+                          },
+                          child: Align(
+                            alignment: Alignment.center,
+                            child: AnimatedPadding(
+                              duration: Duration(milliseconds: 200),
+                              
+                              padding: const EdgeInsets.all(8.0),
+                              child: AnimatedContainer(
+                                duration: Duration(milliseconds: 200),
+                                width: hovered ? 180 : 170,
+                                height: hovered ? 43 : 40,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(5),
+                                  color: hovered ? const Color.fromARGB(255, 237, 247, 255) : Colors.white,
+                                  boxShadow: [BoxShadow(color: const Color.fromARGB(255, 214, 214, 214), blurRadius: 10, offset:  Offset(0, 5))],
+                                  border: Border.all(width: 1.5, color: const Color.fromARGB(255, 176, 208, 255))
+                                ),
+                                child: Center(child:       ShaderMask(
+                                                         shaderCallback: (bounds) => LinearGradient(
+                                                           colors: [const Color.fromARGB(255, 154, 195, 244),const Color.fromARGB(255, 0, 0, 0)],
+                                                         ).createShader(Rect.fromLTWH(0, 0, bounds.width, bounds.height)),
+                                                         blendMode: BlendMode.srcIn,
+                                                         child: Text(
+                                                          'Download Template',
+                                                           style: TextStyle(
+                                                             fontSize: 16,
+                                                             fontFamily: 'Inter',
+                                                             color: Colors.white, // Needed for ShaderMask to work
+                                                           ),
+                                                         ),
+                                                       )),
+                                
+                              ),
+                            ),
+                          ),
+                                                ),
+                                              );
+                                            }
+                                          ),
+                        )  ,
+                       SizedBox(width: 2450,),
                      ],
                                ),
                     
@@ -2095,412 +2695,435 @@ if (didntpayed == true){
                   
                     
                               
-                              SizedBox(height: 20),
-                          SizedBox(
-                        
-                         child: SingleChildScrollView(
-                       scrollDirection: Axis.horizontal,
-                       child: SizedBox(
-                         // Keep the fixed width you had for the content
-                            width: 2620,
-                         child: Column(
-                  children: [
-                    // Your header container stays the same
-                    Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            const Color.fromARGB(255, 186, 224, 254),
-                            const Color.fromARGB(255, 234, 245, 255)
-                          ],
-                          begin: Alignment.centerLeft,
-                          end: Alignment.centerRight,
-                        ),
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(16),
-                          topRight: Radius.circular(16),
-                        ),
-                      ),
-                      height: 60,
-                      width: double.infinity,
-                      child: Row(
-                        children: [
-                          SizedBox(width: 20),
-                         SizedBox(
-                              width: 10,
-
-                              ),
-                              SizedBox(width: 40),
-                          SizedBox(
-                              width: 350,
-                              child: Text('Name',
-                                  style: TextStyle(
-                                      fontSize: 15,
-                                      fontFamily: 'Inter',
-                                      fontWeight: FontWeight.bold))),
-                          SizedBox(width: 20),
-                           SizedBox(
-                                                    width: 200,
-                                                    child: Text('SKU',
-                                                        style: TextStyle(
-                                                            fontFamily: 'Inter',
-                                                            fontWeight: FontWeight.bold,
-                                                            fontSize: 16))),
-                                                            SizedBox(width: 20),
-                                                              SizedBox(
-                                                    width: 200,
-                                                    child: Text('Type',
-                                                        style: TextStyle(
-                                                            fontFamily: 'Inter',
-                                                            fontWeight: FontWeight.bold,
-                                                            fontSize: 16))),
-                                                            SizedBox(width: 20),
-                          SizedBox(
-                              width: 350,
-                              child: Text('Description',
-                                  style: TextStyle(
-                                      fontSize: 15,
-                                      fontFamily: 'Inter',
-                                      fontWeight: FontWeight.bold))),
-                                      SizedBox(width: 20),
-                                      SizedBox(
-                                                    width: 250,
-                                                    child: Text('Dimensions',
-                                                        style: TextStyle(
-                                                            fontSize: 16,
-                                                            fontWeight: FontWeight.bold,
-                                                            fontFamily: 'Inter'))),
-                                                            SizedBox(width: 20),
-                                      SizedBox(
-                                                    width: 250,
-                                                    child: Text('Vendor',
-                                                        style: TextStyle(
-                                                            fontSize: 16,
-                                                            fontWeight: FontWeight.bold,
-                                                            fontFamily: 'Inter'))),
-                          SizedBox(width: 20),
-                          SizedBox(
-                              width: 250,
-                              child: Text('Location',
-                                  style: TextStyle(
-                                      fontSize: 15,
-                                      fontFamily: 'Inter',
-                                      fontWeight: FontWeight.bold))),
-                          SizedBox(width: 20),
-                          SizedBox(
-                              width: 250,
-                              child: Text('Batch',
-                                  style: TextStyle(
-                                      fontSize: 15,
-                                      fontFamily: 'Inter',
-                                      fontWeight: FontWeight.bold))),
-                          SizedBox(width: 20),
-                          SizedBox(
-                              width: 150,
-                              child: Text('EXP Date',
-                                  style: TextStyle(
-                                      fontSize: 15,
-                                      fontFamily: 'Inter',
-                                      fontWeight: FontWeight.bold))),
-                          SizedBox(width: 20),
-                          SizedBox(
-                              width: 150,
-                              child: Text('DOB',
-                                  style: TextStyle(
-                                      fontSize: 15,
-                                      fontFamily: 'Inter',
-                                      fontWeight: FontWeight.bold))),
-                        ],
-                      ),
-                    ),
-                       
-                    // Expanded with ListView stays exactly the same
-                    SizedBox(
-                      height: MediaQuery.of(context).size.height * 0.62,
-                      // child: StreamBuilder<List<Map<String, dynamic>>>(
-                      //   stream: Supabase.instance.client
-                      //       .from('materials')
-                      //       .stream(primaryKey: ['id']).order('name', ascending: true),
-                      //   builder: (context, snapshot) {
-                      //     // if (snapshot.connectionState == ConnectionState.waiting) {
-                      //     //   return Center(child: CircularProgressIndicator());
-                      //     // } 
-                      //     // else 
-                          
-                      //     if (snapshot.hasError) {
-                      //       return Text('Error: ${snapshot.error}');
-                      //     }
-                      //     final data = snapshot.data ?? [];
-                      //     if (data.isEmpty) {
-                      //       return Center(
-                      //           child: Column(
-                      //         children: [
-                      //           SizedBox(height: 70),
-                      //           Stack(
-                      //             children: [
-                      //               Image(
-                      //                 image: AssetImage('images/search.png'),
-                      //                 width: 400,
-                      //                 height: 400,
-                      //                 fit: BoxFit.contain,
-                      //               ),
-                      //               Positioned(
-                      //                   left: 100,
-                      //                   top: 300,
-                      //                   child: Text(
-                      //                     'Nothing here yet...',
-                      //                     style: TextStyle(
-                      //                         color: const Color.fromARGB(255, 0, 55, 100),
-                      //                         fontSize: 25,
-                      //                         fontWeight: FontWeight.bold),
-                      //                   )),
-                      //             ],
-                      //           )
-                      //         ],
-                      //       ));
-                      //     }
-                     
-                     
-                     
-                       
-                      //     final filteredData = data.where((entries) {
-                      //       final searchMControllerr = searchMController.text.toLowerCase();
-                      //       final names = entries['name'].toString().toLowerCase();
-                      //      final sku = entries['sku'].toString().toLowerCase();
-                      //           final type = entries['type'].toString().toLowerCase();
-                      //       if (searchMController.text.isNotEmpty) {
-                      //         if (names.contains(searchMControllerr) || sku.contains(searchMControllerr) || (type.contains(searchMControllerr)) ) {
-                      //           return true;
-                      //         } else {
-                      //           return false;
-                      //         }
-                      //       } else {
-                      //         return true;
-                      //       }
-                      //     }).toList();
-                       
-                      //     return
-                    child: FutureBuilder(
-                                       future: Supabase.instance.client
-                          .from('materials').select().order('name', ascending: true),
-                          
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          
-                          return Center(child: CircularProgressIndicator());
-                        } else if (snapshot.hasError) {
-                          return Text('Error: ${snapshot.error}');
-                        }
-                        final data = snapshot.data ?? [];
-                        if (data.isEmpty) {
-                          return Center(
-                              child: Column(
+                          Row(
                             children: [
-                              SizedBox(height: 70),
-                              Stack(
-                                children: [
-                                  Image(
-                                    image: AssetImage('images/search.png'),
-                                    width: 400,
-                                    height: 400,
-                                    fit: BoxFit.contain,
-                                  ),
-                                  Positioned(
-                                      left: 100,
-                                      top: 300,
-                                      child: Text(
-                                        'Nothing here yet...',
-                                        style: TextStyle(
-                                            color: const Color.fromARGB(255, 0, 55, 100),
-                                            fontSize: 25,
-                                            fontWeight: FontWeight.bold),
-                                      )),
-                                ],
-                              )
-                            ],
-                          ));
-                        }
-               
-               
-                 
-               
-                     
-                        final filteredData = data.where((entries) {
-                          final searchMControllerr = searchMController.text.toLowerCase();
-                          final names = entries['name'].toString().toLowerCase();
-                         final sku = entries['sku'].toString().toLowerCase();
-                              final type = entries['type'].toString().toLowerCase();
-                          if (searchMController.text.isNotEmpty) {
-                            if (names.contains(searchMControllerr) || sku.contains(searchMControllerr) || (type.contains(searchMControllerr)) ) {
-                              return true;
-                            } else {
-                              return false;
-                            }
-                          } else {
-                            return true;
-                          }
-                        }).toList();
-               
-                        return ListView.builder(
-                              controller: _scrollController,
-                              itemCount: filteredData.length,
-                              itemBuilder: (context, index) {
-                                if (index == filteredData.length) {
-                                  // Loading indicator at bottom
-                                  return SizedBox.shrink();
-                                }
-                                final entry = filteredData[index];
-                                  return StatefulBuilder(
-                                    
-                                    
-                                    builder: (context, setLocalState) {
-                                         
+                              SizedBox(
+                                                      
+                                                       child: SingleChildScrollView(
+                                                     scrollDirection: Axis.horizontal,
+                                                     child: SizedBox(
+                                                       // Keep the fixed width you had for the content
+                                width: 2991,
+                                                       child: Column(
+                                                children: [
+                                                  // Your header container stays the same
+                                                  Container(
+                                                    decoration: BoxDecoration(
+                                                      gradient: LinearGradient(
+                              colors: [
+                                const Color.fromARGB(255, 186, 224, 254),
+                                const Color.fromARGB(255, 234, 245, 255)
+                              ],
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                                                      ),
+                                                      borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(16),
+                              topRight: Radius.circular(16),
+                                                      ),
+                                                    ),
+                                                    height: 60,
+                                                    width: double.infinity,
+                                                    child: Row(
+                                                      children: [
+                              SizedBox(width: 20),
+                                                       SizedBox(
+                                  width: 10,
                               
-                                      return Container(
-                                      decoration: BoxDecoration(
-                                          border: Border(
-                                            bottom: BorderSide(
-                                                width: 1,
-                                                color: const Color.fromARGB(255, 118, 118, 118)),
-                                          ),
-                                          color: hoverIndex == entry['id']
-                                              ? const Color.fromARGB(255, 247, 247, 247)
-                                              : (entry['closed'] == 1)
-                                                  ? Color.fromARGB(255, 172, 250, 175)
-                                                  : Colors.white),
-                                      child: MouseRegion(
-                                        cursor: SystemMouseCursors.click,
-                                        onHover: (event) {
-                                          setLocalState(() {
-                                            hoverIndex = entry['id'];
-                                          });
-                                        },
-                                        onExit: (event) {
-                                          setLocalState(() {
-                                            hoverIndex = null;
-                                          });
-                                        },
-                                        child: GestureDetector(
-                                          onTap: () {
-                                      
-                                            // Navigator.push(
-                                            //     context,
-                                            //     MaterialPageRoute(
-                                            //         builder: (context) => DetailsM(
-                                            //               materialname: entry['name'],
-                                            //             )));
-                                          },
-                                          child: SizedBox(
-                                            height: 61,
-                                            child: Column(
-                                              children: [
-                                                SizedBox(height: 5),
-                                                Row(
-                                                  children: [
-                                                    SizedBox(width: 20),
-                                                     SizedBox(
-                              width: 40,
-                              child: IconButton(
-onPressed: (){
-  materialEditPopUp(entry);
-},
-                                icon: Icon(Icons.edit),
-                              )),
-                                                    SizedBox(width: 20),
-                                                    SizedBox(
-                                                        width: 350,
-                                                        child: Text(entry['name'] ?? 'N/A',
-                                                            style: TextStyle(
-                                                                fontFamily: 'Inter',
-                                                                fontSize: 16))),
-                                                    SizedBox(width: 20),
-                                                    SizedBox(
+                                  ),
+                                  SizedBox(width: 40),
+                              SizedBox(
+                                  width: 350,
+                                  child: Text('Name',
+                                      style: TextStyle(
+                                          fontSize: 15,
+                                          fontFamily: 'Inter',
+                                          fontWeight: FontWeight.bold))),
+                              SizedBox(width: 20),
+                               SizedBox(
                                                         width: 200,
-                                                        child: Text(entry['sku'] ?? 'N/A',
+                                                        child: Text('SKU',
                                                             style: TextStyle(
                                                                 fontFamily: 'Inter',
+                                                                fontWeight: FontWeight.bold,
                                                                 fontSize: 16))),
-                                                                  SizedBox(width: 20),
-                                                                SizedBox(
-                                                        width: 200,
-                                                        child: Text(entry['type'] ?? 'N/A',
-                                                            style: TextStyle(
-                                                                fontFamily: 'Inter',
-                                                                fontSize: 16))),
-                                                    SizedBox(width: 20),
-                                                    SizedBox(
-                                                        width: 350,
-                                                        child: Text(entry['description'] ?? 'N/A',
-                                                            style: TextStyle(
-                                                                fontFamily: 'Inter',
-                                                                fontSize: 16))),
-                                                    SizedBox(width: 20),
-                                                    SizedBox(
-                                                        width: 250,
-                                                        child: Text(entry['dimensions'] ?? 'N/A',
-                                                            style: TextStyle(
-                                                                fontSize: 16,
-                                                                fontFamily: 'Inter'))),
                                                                 SizedBox(width: 20),
                                                                   SizedBox(
+                                                        width: 200,
+                                                        child: Text('Type',
+                                                            style: TextStyle(
+                                                                fontFamily: 'Inter',
+                                                                fontWeight: FontWeight.bold,
+                                                                fontSize: 16))),
+                                                                SizedBox(width: 20),
+                              SizedBox(
+                                  width: 350,
+                                  child: Text('Description',
+                                      style: TextStyle(
+                                          fontSize: 15,
+                                          fontFamily: 'Inter',
+                                          fontWeight: FontWeight.bold))),
+                                          SizedBox(width: 20),
+                                          SizedBox(
                                                         width: 250,
-                                                        child: Text(entry['vendor'] ?? 'N/A',
+                                                        child: Text('Dimensions',
                                                             style: TextStyle(
                                                                 fontSize: 16,
+                                                                fontWeight: FontWeight.bold,
                                                                 fontFamily: 'Inter'))),
-                                                    SizedBox(width: 20),
-                                                    SizedBox(
+                                                                SizedBox(width: 20),
+                                          SizedBox(
                                                         width: 250,
-                                                        child: Text(entry['location'] ?? 'N/A',
+                                                        child: Text('Vendor',
                                                             style: TextStyle(
                                                                 fontSize: 16,
+                                                                fontWeight: FontWeight.bold,
                                                                 fontFamily: 'Inter'))),
-                                                    SizedBox(width: 20),
-                                                    SizedBox(
-                                                        width: 250,
-                                                        child: Text(entry['batch'] ?? 'N/A',
-                                                            style: TextStyle(
-                                                                fontSize: 16,
-                                                                fontFamily: 'Inter'))),
-                                                    SizedBox(width: 20),
-                                                    SizedBox(
-                                                        width: 150,
-                                                        child: Text(entry['expdate'] ?? 'N/A',
-                                                            style: TextStyle(
-                                                                fontSize: 16,
-                                                                fontFamily: 'Inter'))),
-                                                    SizedBox(width: 20),
-                                                    SizedBox(
-                                                        width: 150,
-                                                        child: Text(entry['dob'] ?? 'N/A',
-                                                            style: TextStyle(
-                                                                fontSize: 16,
-                                                                fontFamily: 'Inter'))),
-                                                    SizedBox(width: 1, child: Column(children: [SizedBox(height: 45)])),
-                                                  ],
-                                                ),
-                                              ],
+                              SizedBox(width: 20),
+                              SizedBox(
+                                  width: 250,
+                                  child: Text('Location',
+                                      style: TextStyle(
+                                          fontSize: 15,
+                                          fontFamily: 'Inter',
+                                          fontWeight: FontWeight.bold))),
+                              SizedBox(width: 20),
+                              SizedBox(
+                                  width: 250,
+                                  child: Text('Batch',
+                                      style: TextStyle(
+                                          fontSize: 15,
+                                          fontFamily: 'Inter',
+                                          fontWeight: FontWeight.bold))),
+                              SizedBox(width: 20),
+                              SizedBox(
+                                  width: 150,
+                                  child: Text('EXP Date',
+                                      style: TextStyle(
+                                          fontSize: 15,
+                                          fontFamily: 'Inter',
+                                          fontWeight: FontWeight.bold))),
+                              SizedBox(width: 20),
+                              SizedBox(
+                                  width: 150,
+                                  child: Text('DOB',
+                                      style: TextStyle(
+                                          fontSize: 15,
+                                          fontFamily: 'Inter',
+                                          fontWeight: FontWeight.bold))),
+                                           SizedBox(width: 20),
+                              SizedBox(
+                                  width: 150,
+                                  child: Text('Type',
+                                      style: TextStyle(
+                                          fontSize: 15,
+                                          fontFamily: 'Inter',
+                                          fontWeight: FontWeight.bold))),
+                                           SizedBox(width: 20),
+                              SizedBox(
+                                  width: 150,
+                                  child: Text('Weight',
+                                      style: TextStyle(
+                                          fontSize: 15,
+                                          fontFamily: 'Inter',
+                                          fontWeight: FontWeight.bold))),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                     
+                                                  // Expanded with ListView stays exactly the same
+                                                  SizedBox(
+                                                    height: MediaQuery.of(context).size.height * 0.68,
+                                                    // child: StreamBuilder<List<Map<String, dynamic>>>(
+                                                    //   stream: Supabase.instance.client
+                                                    //       .from('materials')
+                                                    //       .stream(primaryKey: ['id']).order('name', ascending: true),
+                                                    //   builder: (context, snapshot) {
+                                                    //     // if (snapshot.connectionState == ConnectionState.waiting) {
+                                                    //     //   return Center(child: CircularProgressIndicator());
+                                                    //     // } 
+                                                    //     // else 
+                              
+                                                    //     if (snapshot.hasError) {
+                                                    //       return Text('Error: ${snapshot.error}');
+                                                    //     }
+                                                    //     final data = snapshot.data ?? [];
+                                                    //     if (data.isEmpty) {
+                                                    //       return Center(
+                                                    //           child: Column(
+                                                    //         children: [
+                                                    //           SizedBox(height: 70),
+                                                    //           Stack(
+                                                    //             children: [
+                                                    //               Image(
+                                                    //                 image: AssetImage('images/search.png'),
+                                                    //                 width: 400,
+                                                    //                 height: 400,
+                                                    //                 fit: BoxFit.contain,
+                                                    //               ),
+                                                    //               Positioned(
+                                                    //                   left: 100,
+                                                    //                   top: 300,
+                                                    //                   child: Text(
+                                                    //                     'Nothing here yet...',
+                                                    //                     style: TextStyle(
+                                                    //                         color: const Color.fromARGB(255, 0, 55, 100),
+                                                    //                         fontSize: 25,
+                                                    //                         fontWeight: FontWeight.bold),
+                                                    //                   )),
+                                                    //             ],
+                                                    //           )
+                                                    //         ],
+                                                    //       ));
+                                                    //     }
+                                                   
+                                                   
+                                                   
+                                                     
+                                                    //     final filteredData = data.where((entries) {
+                                                    //       final searchMControllerr = searchMController.text.toLowerCase();
+                                                    //       final names = entries['name'].toString().toLowerCase();
+                                                    //      final sku = entries['sku'].toString().toLowerCase();
+                                                    //           final type = entries['type'].toString().toLowerCase();
+                                                    //       if (searchMController.text.isNotEmpty) {
+                                                    //         if (names.contains(searchMControllerr) || sku.contains(searchMControllerr) || (type.contains(searchMControllerr)) ) {
+                                                    //           return true;
+                                                    //         } else {
+                                                    //           return false;
+                                                    //         }
+                                                    //       } else {
+                                                    //         return true;
+                                                    //       }
+                                                    //     }).toList();
+                                                     
+                                                    //     return
+                                                  child: StreamBuilder(
+                                           stream: Supabase.instance.client
+                              .from('materials').stream(primaryKey: ['id']).order('id', ascending: false),
+                              
+                                                    builder: (context, snapshot) {
+                                                      if (snapshot.connectionState == ConnectionState.waiting) {
+                              
+                              return Center(child: CircularProgressIndicator());
+                                                      } else if (snapshot.hasError) {
+                              return Text('Error: ${snapshot.error}');
+                                                      }
+                                                      final data = snapshot.data ?? [];
+                                                      if (data.isEmpty) {
+                              return Center(
+                                  child: Column(
+                                children: [
+                                  SizedBox(height: 70),
+                                  Stack(
+                                    children: [
+                                      Image(
+                                        image: AssetImage('images/search.png'),
+                                        width: 400,
+                                        height: 400,
+                                        fit: BoxFit.contain,
+                                      ),
+                                      Positioned(
+                                          left: 100,
+                                          top: 300,
+                                          child: Text(
+                                            'Nothing here yet...',
+                                            style: TextStyle(
+                                                color: const Color.fromARGB(255, 0, 55, 100),
+                                                fontSize: 25,
+                                                fontWeight: FontWeight.bold),
+                                          )),
+                                    ],
+                                  )
+                                ],
+                              ));
+                                                      }
+                                             
+                                             
+                                               
+                                             
+                                                   
+                                                      final filteredData = data.where((entries) {
+                              final searchMControllerr = searchMController.text.toLowerCase();
+                              final names = entries['name'].toString().toLowerCase();
+                                                       final sku = entries['sku'].toString().toLowerCase();
+                                  final type = entries['type'].toString().toLowerCase();
+                              if (searchMController.text.isNotEmpty) {
+                                if (names.contains(searchMControllerr) || sku.contains(searchMControllerr) || (type.contains(searchMControllerr)) ) {
+                                  return true;
+                                } else {
+                                  return false;
+                                }
+                              } else {
+                                return true;
+                              }
+                                                      }).toList();
+                                             
+                                                      return ListView.builder(
+                                  controller: _scrollController,
+                                  itemCount: filteredData.length,
+                                  itemBuilder: (context, index) {
+                                    if (index == filteredData.length) {
+                                      // Loading indicator at bottom
+                                      return SizedBox.shrink();
+                                    }
+                                    final entry = filteredData[index];
+                                      return StatefulBuilder(
+                                        
+                                        
+                                        builder: (context, setLocalState) {
+                                             
+                                  
+                                          return Container(
+                                          decoration: BoxDecoration(
+                                              border: Border(
+                                                bottom: BorderSide(
+                                                    width: 1,
+                                                    color: const Color.fromARGB(255, 118, 118, 118)),
+                                              ),
+                                              color: hoverIndex == entry['id']
+                                                  ? const Color.fromARGB(255, 247, 247, 247)
+                                                  : (entry['closed'] == 1)
+                                                      ? Color.fromARGB(255, 172, 250, 175)
+                                                      : Colors.white),
+                                          child: GestureDetector(
+                                            onTap: () {
+                                                                                    
+                                              // Navigator.push(
+                                              //     context,
+                                              //     MaterialPageRoute(
+                                              //         builder: (context) => DetailsM(
+                                              //               materialname: entry['name'],
+                                              //             )));
+                                            },
+                                            child: SizedBox(
+                                              height: 61,
+                                              child: Column(
+                                                children: [
+                                                  SizedBox(height: 5),
+                                                  Row(
+                                                    children: [
+                                                      SizedBox(width: 20),
+                                                       SizedBox(
+                                                                            width: 40,
+                                                                            child: IconButton(
+                                                                        onPressed: (){
+                                                                          materialEditPopUp(entry);
+                                                                        },
+                                                                              icon: Icon(Icons.edit),
+                                                                            )),
+                                                      SizedBox(width: 10),
+                                                      SizedBox(
+                                                          width: 350,
+                                                          child: Text(entry['name'] ?? 'N/A',
+                                                              style: TextStyle(
+                                                                  fontFamily: 'Inter',
+                                                                  fontSize: 16))),
+                                                      SizedBox(width: 20),
+                                                      SizedBox(
+                                                          width: 200,
+                                                          child: Text(entry['sku'] ?? 'N/A',
+                                                              style: TextStyle(
+                                                                  fontFamily: 'Inter',
+                                                                  fontSize: 16))),
+                                                                    SizedBox(width: 20),
+                                                                  SizedBox(
+                                                          width: 200,
+                                                          child: Text(entry['type'] ?? 'N/A',
+                                                              style: TextStyle(
+                                                                  fontFamily: 'Inter',
+                                                                  fontSize: 16))),
+                                                      SizedBox(width: 20),
+                                                      SizedBox(
+                                                          width: 350,
+                                                          child: Text(entry['description'] ?? 'N/A',
+                                                              style: TextStyle(
+                                                                  fontFamily: 'Inter',
+                                                                  fontSize: 16))),
+                                                      SizedBox(width: 20),
+                                                      SizedBox(
+                                                          width: 250,
+                                                          child: Text(entry['dimensions'] ?? 'N/A',
+                                                              style: TextStyle(
+                                                                  fontSize: 16,
+                                                                  fontFamily: 'Inter'))),
+                                                                  SizedBox(width: 20),
+                                                                    SizedBox(
+                                                          width: 250,
+                                                          child: Text(entry['vendor'] ?? 'N/A',
+                                                              style: TextStyle(
+                                                                  fontSize: 16,
+                                                                  fontFamily: 'Inter'))),
+                                                      SizedBox(width: 20),
+                                                      SizedBox(
+                                                          width: 250,
+                                                          child: Text(entry['location'] ?? 'N/A',
+                                                              style: TextStyle(
+                                                                  fontSize: 16,
+                                                                  fontFamily: 'Inter'))),
+                                                      SizedBox(width: 20),
+                                                      SizedBox(
+                                                          width: 250,
+                                                          child: Text(entry['batch'] ?? 'N/A',
+                                                              style: TextStyle(
+                                                                  fontSize: 16,
+                                                                  fontFamily: 'Inter'))),
+                                                      SizedBox(width: 20),
+                                                      SizedBox(
+                                                          width: 150,
+                                                          child: Text(entry['expdate'] ?? 'N/A',
+                                                              style: TextStyle(
+                                                                  fontSize: 16,
+                                                                  fontFamily: 'Inter'))),
+                                                      SizedBox(width: 20),
+                                                      SizedBox(
+                                                          width: 150,
+                                                          child: Text(entry['dob'] ?? 'N/A',
+                                                              style: TextStyle(
+                                                                  fontSize: 16,
+                                                                  fontFamily: 'Inter'))),
+                                                                    SizedBox(width: 20),
+                                                      SizedBox(
+                                                          width: 150,
+                                                          child: Text(entry['type'] ?? 'N/A',
+                                                              style: TextStyle(
+                                                                  fontSize: 16,
+                                                                  fontFamily: 'Inter'))),
+                                                                        
+                                                                            SizedBox(width: 20),
+                                                      SizedBox(
+                                                          width: 150,
+                                                          child: Text(entry['weight'] ?? 'N/A',
+                                                              style: TextStyle(
+                                                                  fontSize: 16,
+                                                                  fontFamily: 'Inter'))),
+                                                                                                                                          
+                                                      SizedBox(width: 1, child: Column(children: [SizedBox(height: 45)])),
+                                                    ],
+                                                  ),
+                                                ],
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                      ),
-                                    );
+                                        );
+                                        },
+                                      );
                                     },
                                   );
-                                },
-                              );
-                      }
-                    )
-                      //   },
-                      // ),
-                    ),
-                  ],
-                         ),
-                       ),
-                         ),
+                                                    }
+                                                  )
+                                                    //   },
+                                                    // ),
+                                                  ),
+                                                ],
+                                                       ),
+                                                     ),
+                                                       ),
+                              ),
+                              SizedBox(width: 200,)
+                            ],
                           )
                     ]),
-                       )
+                       ),
                          ],
                        ),
                ),
